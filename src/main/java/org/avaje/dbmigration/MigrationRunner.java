@@ -3,6 +3,7 @@ package org.avaje.dbmigration;
 import org.avaje.dbmigration.runner.LocalMigrationResource;
 import org.avaje.dbmigration.runner.LocalMigrationResources;
 import org.avaje.dbmigration.runner.MigrationTable;
+import org.avaje.dbmigration.runner.MigrationSchema;
 import org.avaje.dbmigration.util.JdbcClose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,10 @@ public class MigrationRunner {
 
     try {
       connection.setAutoCommit(false);
+
+      MigrationSchema schema = new MigrationSchema(migrationConfig, connection);
+      schema.createAndSetIfNeeded();
+
       runMigrations(resources, connection);
 
       connection.commit();
