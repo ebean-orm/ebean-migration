@@ -8,90 +8,82 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 
 /**
- * Create Schema if need and Set current Schema in Migration
+ * Create Schema if needed and set current Schema in Migration
  */
 public class MigrationSchema {
 
-    private static final Logger logger = LoggerFactory.getLogger("org.avaje.dbmigration.runner.MigrationSchema");
+  private static final Logger logger = LoggerFactory.getLogger(MigrationSchema.class);
 
-    private final MigrationConfig migrationConfig;
+  private final Connection connection;
 
-    private final Connection connection;
+  private final String dbSchema;
 
-    public MigrationSchema(MigrationConfig migrationConfig, Connection connection) {
-        this.migrationConfig = migrationConfig;
-        this.connection = connection;
+  private final boolean createSchemaIfNotExists;
+
+  /**
+   * Construct with configuration and connection.
+   */
+  public MigrationSchema(MigrationConfig migrationConfig, Connection connection) {
+    this.dbSchema = trim(migrationConfig.getDbSchema());
+    this.createSchemaIfNotExists = migrationConfig.isCreateSchemaIfNotExists();
+    this.connection = connection;
+  }
+
+  private String trim(String dbSchema) {
+    return (dbSchema == null) ? null : dbSchema.trim();
+  }
+
+  /**
+   * Create and set the DB schema if desired.
+   */
+  public void createAndSetIfNeeded() throws SQLException {
+    if (dbSchema != null) {
+      logger.info("Migration Schema: {}", dbSchema);
+      if (createSchemaIfNotExists) {
+        createSchemaIfNeeded();
+      }
+      setSchema();
     }
+  }
 
-    private Connection getConnection() {
-        return this.connection;
+  private void createSchemaIfNeeded() throws SQLException {
+    if (!schemaExists()) {
+      logger.info("Creating Schema: {}", dbSchema);
+      PreparedStatement query = connection.prepareStatement("CREATE SCHEMA " + dbSchema);
+      try {
+        query.execute();
+      } finally {
+        JdbcClose.close(query);
+      }
     }
+  }
 
-    private String getSchema() {
-        return this.migrationConfig.getDbSchema();
-    }
+  private boolean schemaExists() throws SQLException {
 
-    private boolean getCreateSchemaIfNeed() {
-        return this.migrationConfig.getCreateSchemaIfNotExists();
-    }
-
-    public void createAndSetIfNeeded() throws SQLException {
-        if (getSchema() != null) {
-            logger.info("Migration Schema: " + getSchema());
-
-            createSchemaIfNeed();
-            setSchema();
+    ResultSet schemas = connection.getMetaData().getSchemas();
+    try {
+      while (schemas.next()) {
+        String schema = schemas.getString(1);
+        if (schema.equalsIgnoreCase(dbSchema)) {
+          return true;
         }
+      }
+    } finally {
+      JdbcClose.close(schemas);
     }
 
-    private void createSchemaIfNeed() throws SQLException {
-        if (getCreateSchemaIfNeed()) {
-            checkAndSchemaIfNeed();
-        }
+    return false;
+  }
+
+  private void setSchema() throws SQLException {
+
+    logger.info("Setting Schema: {}", dbSchema);
+    PreparedStatement query = connection.prepareStatement("SET SCHEMA " + dbSchema);
+    try {
+      query.execute();
+    } finally {
+      JdbcClose.close(query);
     }
-
-    private void checkAndSchemaIfNeed() throws SQLException {
-        boolean existSchema = existSchame();
-        if (!existSchema) {
-            logger.info("Creating Schema: " + getSchema());
-
-            PreparedStatement query = getConnection().prepareStatement("CREATE SCHEMA " + getSchema().trim());
-            try {
-                query.execute();
-            } finally {
-                JdbcClose.close(query);
-            }
-        }
-    }
-
-    public boolean existSchame() throws SQLException {
-        DatabaseMetaData databaseMetaData = getConnection().getMetaData();
-        ResultSet schemas = databaseMetaData.getSchemas();
-
-        try {
-            while (schemas.next()) {
-                String tableSchema = schemas.getString(1);
-                if (tableSchema.equalsIgnoreCase(getSchema())) {
-                    return true;
-                }
-            }
-        } finally {
-            JdbcClose.close(schemas);
-        }
-
-        return false;
-    }
-
-    private void setSchema() throws SQLException {
-        logger.info("Setting Schema: " + getSchema());
-
-        PreparedStatement query = getConnection().prepareStatement("SET SCHEMA " + getSchema().trim());
-        try {
-            query.execute();
-        } finally {
-            JdbcClose.close(query);
-        }
-    }
-
+  }
 
 }

@@ -29,7 +29,7 @@ public class MigrationConfig {
   private String dbUrl;
 
   private String dbSchema;
-  private boolean createSchemaIfNotExists = false;
+  private boolean createSchemaIfNotExists;
 
   /**
    * Return the name of the migration table.
@@ -202,22 +202,18 @@ public class MigrationConfig {
   }
 
   /**
-   * Return if Create Schema if not exits
-   * <p>
-   * Used when creating a Connection to run the migration.
-   * </p>
+   * Return true if migration should create the schema if it does not exist.
    */
-  public boolean getCreateSchemaIfNotExists() {
+  public boolean isCreateSchemaIfNotExists() {
     return createSchemaIfNotExists;
   }
 
   /**
-   * Set to create Schema if not exits
-   * <p>
-   * Used when creating a Connection to run the migration.
-   * </p>
+   * Set to create Schema if it does not exist.
    */
-  public void setCreateSchemaIfNotExists(boolean createSchemaIfNotExists) {this.createSchemaIfNotExists = createSchemaIfNotExists;  }
+  public void setCreateSchemaIfNotExists(boolean createSchemaIfNotExists) {
+    this.createSchemaIfNotExists = createSchemaIfNotExists;
+  }
 
   /**
    * Return the ClassLoader to use to load resources.
