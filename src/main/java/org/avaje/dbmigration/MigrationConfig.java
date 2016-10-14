@@ -28,6 +28,9 @@ public class MigrationConfig {
   private String dbDriver;
   private String dbUrl;
 
+  private String dbSchema;
+  private boolean createSchemaIfNotExists = false;
+
   /**
    * Return the name of the migration table.
    */
@@ -177,6 +180,44 @@ public class MigrationConfig {
   public void setDbUrl(String dbUrl) {
     this.dbUrl = dbUrl;
   }
+
+  /**
+   * Return the DB connection Schema.
+   * <p>
+   * Used when creating a Connection to run the migration.
+   * </p>
+   */
+  public String getDbSchema() {
+    return dbSchema;
+  }
+
+  /**
+   * Set the DB connection Schema.
+   * <p>
+   * Used when creating a Connection to run the migration.
+   * </p>
+   */
+  public void setDbSchema(String dbSchema) {
+    this.dbSchema = dbSchema;
+  }
+
+  /**
+   * Return if Create Schema if not exits
+   * <p>
+   * Used when creating a Connection to run the migration.
+   * </p>
+   */
+  public boolean getCreateSchemaIfNotExists() {
+    return createSchemaIfNotExists;
+  }
+
+  /**
+   * Set to create Schema if not exits
+   * <p>
+   * Used when creating a Connection to run the migration.
+   * </p>
+   */
+  public void setCreateSchemaIfNotExists(boolean createSchemaIfNotExists) {this.createSchemaIfNotExists = createSchemaIfNotExists;  }
 
   /**
    * Return the ClassLoader to use to load resources.
