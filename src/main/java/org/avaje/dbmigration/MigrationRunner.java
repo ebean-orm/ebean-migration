@@ -36,21 +36,25 @@ public class MigrationRunner {
     run(connection);
   }
 
+  /**
+   * Run using the connection from the DataSource.
+   */
   public void run(DataSource dataSource) {
+    run(getConnection(dataSource));
+  }
+
+  private Connection getConnection(DataSource dataSource) {
 
     String username = migrationConfig.getDbUsername();
-    String password =  migrationConfig.getDbPassword();
-    if (username == null) {
-      throw new IllegalStateException("No DB migration user specified (to run the db migration) ?");
-    }
-
     try {
-      Connection connection = dataSource.getConnection(username, password);
+      if (username == null) {
+        return dataSource.getConnection();
+      }
       logger.debug("using db user [{}] to run migrations ...", username);
-      run(connection);
-
+      return dataSource.getConnection(username, migrationConfig.getDbPassword());
     } catch (SQLException e) {
-      throw new IllegalArgumentException("Error trying to connect to database using DB Migration user [" + username + "]", e);
+      String msgSuffix = (username == null) ? "" : " using user [" + username + "]";
+      throw new IllegalArgumentException("Error trying to connect to database for DB Migration" + msgSuffix, e);
     }
   }
 
