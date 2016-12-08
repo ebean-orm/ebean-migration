@@ -52,7 +52,7 @@ public class MigrationTable {
     this.migrations = new LinkedHashMap<String, MigrationMetaRow>();
 
     this.catalog = null;
-    this.schema = null;
+    this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
     this.selectSql = MigrationMetaRow.selectSql(table);
     this.insertSql = MigrationMetaRow.insertSql(table);
