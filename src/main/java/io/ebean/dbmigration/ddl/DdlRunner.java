@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class DdlRunner {
 
-  protected static final Logger logger = LoggerFactory.getLogger(DdlRunner.class);
+  protected static final Logger logger = LoggerFactory.getLogger("io.ebean.DDL");
 
   private DdlParser ddlParser = new DdlParser();
 
