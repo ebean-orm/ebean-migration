@@ -104,8 +104,7 @@ public class MigrationRunner {
     LocalMigrationResource priorVersion = null;
 
     // run migrations in order
-    for (int i = 0; i < localVersions.size(); i++) {
-      LocalMigrationResource localVersion = localVersions.get(i);
+    for (LocalMigrationResource localVersion : localVersions) {
       if (!table.shouldRun(localVersion, priorVersion)) {
         break;
       }

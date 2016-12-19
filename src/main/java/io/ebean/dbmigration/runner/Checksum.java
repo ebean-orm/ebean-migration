@@ -8,12 +8,12 @@ import java.util.zip.CRC32;
 /**
  * Calculates the checksum for the given string content.
  */
-public class Checksum {
+class Checksum {
 
   /**
    * Returns the checksum of this string.
    */
-  public static int calculate(String str) {
+  static int calculate(String str) {
 
     final CRC32 crc32 = new CRC32();
 

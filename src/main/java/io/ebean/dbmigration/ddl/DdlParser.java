@@ -42,7 +42,7 @@ public class DdlParser {
    */
   static class StatementsSeparator {
 
-    ArrayList<String> statements = new ArrayList<String>();
+    ArrayList<String> statements = new ArrayList<>();
 
     boolean trimDelimiter;
 

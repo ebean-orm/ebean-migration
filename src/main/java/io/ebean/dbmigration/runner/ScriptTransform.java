@@ -15,7 +15,7 @@ class ScriptTransform {
     return script.replace("${table}", tableName);
   }
 
-  private final Map<String,String> placeholders = new HashMap<String, String>();
+  private final Map<String,String> placeholders = new HashMap<>();
 
   ScriptTransform(Map<String,String> map) {
     for (Map.Entry<String, String> entry : map.entrySet()) {
@@ -25,13 +25,6 @@ class ScriptTransform {
 
   private String wrapKey(String key) {
     return "${"+key+"}";
-  }
-
-  /**
-   * Return true if this contains no placeholders.
-   */
-  boolean isEmpty() {
-    return placeholders.isEmpty();
   }
 
   /**

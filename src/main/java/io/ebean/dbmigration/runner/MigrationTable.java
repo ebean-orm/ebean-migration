@@ -49,7 +49,7 @@ public class MigrationTable {
   public MigrationTable(MigrationConfig config, Connection connection) {
 
     this.connection = connection;
-    this.migrations = new LinkedHashMap<String, MigrationMetaRow>();
+    this.migrations = new LinkedHashMap<>();
 
     this.catalog = null;
     this.schema = config.getDbSchema();

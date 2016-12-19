@@ -8,12 +8,12 @@ import java.util.Map;
  */
 class PlaceholderBuilder {
 
-  private final Map<String,String> map = new HashMap<String,String>();
+  private final Map<String,String> map = new HashMap<>();
 
   /**
    * Create with raw comma and equals delimited pairs plus map of key value pairs.
    */
-  public static Map<String,String> build(String commaDelimited, Map<String,String> placeholders) {
+  static Map<String,String> build(String commaDelimited, Map<String,String> placeholders) {
 
     PlaceholderBuilder builder = new PlaceholderBuilder();
     builder.add(commaDelimited);
@@ -29,7 +29,7 @@ class PlaceholderBuilder {
   /**
    * Add a comma and equals delimited string to parse for key value pairs.
    */
-  public void add(String commaDelimited) {
+  private void add(String commaDelimited) {
 
     if (commaDelimited != null) {
       String[] split = commaDelimited.split("[,;]");
@@ -45,7 +45,7 @@ class PlaceholderBuilder {
   /**
    * Add a map of key value placeholder pairs.
    */
-  public void add(Map<String,String> placeholders) {
+  private void add(Map<String,String> placeholders) {
     if (placeholders != null) {
       map.putAll(placeholders);
     }

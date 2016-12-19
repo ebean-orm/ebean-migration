@@ -45,7 +45,7 @@ public class DdlRunner {
    */
   private int runStatements(List<String> statements, Connection connection) throws SQLException {
 
-    List<String> noDuplicates = new ArrayList<String>();
+    List<String> noDuplicates = new ArrayList<>();
 
     for (String statement : statements) {
       if (!noDuplicates.contains(statement)) {
