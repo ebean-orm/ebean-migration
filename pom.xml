@@ -13,7 +13,7 @@
   </parent>
 
   <scm>
-    <developerConnection>scm:git:https://github.com/ebean-orm/ebean-dbmigration.git</developerConnection>
+    <developerConnection>scm:git:git@github.com:ebean-orm/ebean-dbmigration.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
