@@ -53,6 +53,13 @@
       <scope>test</scope>
     </dependency>
 
+    <!--<dependency>-->
+      <!--<groupId>microsoft</groupId>-->
+      <!--<artifactId>sqlserver-jdbc</artifactId>-->
+      <!--<version>6.0</version>-->
+      <!--<scope>test</scope>-->
+    <!--</dependency>-->
+
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>

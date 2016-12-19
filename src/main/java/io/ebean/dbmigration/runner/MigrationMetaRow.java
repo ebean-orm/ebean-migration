@@ -10,6 +10,8 @@ import java.sql.Timestamp;
  */
 class MigrationMetaRow {
 
+  private static final String SQLSERVER = "sqlserver";
+
   private int id;
 
   private String status;
@@ -100,9 +102,13 @@ class MigrationMetaRow {
   /**
    * Return the SQL insert given the table migration meta data is stored in.
    */
-  static String selectSql(String table) {
-    return "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from "
-        + table + " for update";
+  static String selectSql(String table, String platform) {
+    String sql = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from " + table;
+    if (SQLSERVER.equals(platform)) {
+      return sql + " with (updlock)";
+    } else {
+      return sql + " for update";
+    }
   }
 
   /**

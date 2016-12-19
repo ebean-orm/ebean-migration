@@ -31,6 +31,7 @@ public class MigrationTable {
   private final String schema;
   private final String table;
   private final String envUserName;
+  private final String platformName;
 
   private final Timestamp runOn = new Timestamp(System.currentTimeMillis());
 
@@ -54,7 +55,8 @@ public class MigrationTable {
     this.catalog = null;
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
-    this.selectSql = MigrationMetaRow.selectSql(table);
+    this.platformName = config.getPlatformName();
+    this.selectSql = MigrationMetaRow.selectSql(table, platformName);
     this.insertSql = MigrationMetaRow.insertSql(table);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
@@ -116,6 +118,10 @@ public class MigrationTable {
   private String getCreateTableScript() throws IOException {
     // supply a script to override the default table create script
     String script = readResource("migration-support/create-table.sql");
+    if (script == null && platformName != null || !platformName.isEmpty()) {
+      // look for platform specific create table
+      script = readResource("migration-support/" + platformName + "-create-table.sql");
+    }
     if (script == null) {
       // no, just use the default script
       script = readResource("migration-support/default-create-table.sql");
@@ -177,7 +183,6 @@ public class MigrationTable {
    *
    * @param local    The local migration resource
    * @param existing The information for this migration existing in the table
-   *
    * @return True if the migrations should continue
    */
   private boolean runMigration(LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {

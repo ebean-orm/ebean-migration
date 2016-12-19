@@ -93,6 +93,8 @@ public class MigrationRunner {
    */
   private void runMigrations(LocalMigrationResources resources, Connection connection) throws SQLException, IOException {
 
+    derivePlatformName(migrationConfig, connection);
+
     MigrationTable table = new MigrationTable(migrationConfig, connection);
     table.createIfNeeded();
 
@@ -110,6 +112,16 @@ public class MigrationRunner {
       }
       priorVersion = localVersion;
       connection.commit();
+    }
+  }
+
+  /**
+   * Derive and set the platform name if required.
+   */
+  private void derivePlatformName(MigrationConfig migrationConfig, Connection connection) {
+
+    if (migrationConfig.getPlatformName() == null) {
+      migrationConfig.setPlatformName(DbNameUtil.normalise(connection));
     }
   }
 

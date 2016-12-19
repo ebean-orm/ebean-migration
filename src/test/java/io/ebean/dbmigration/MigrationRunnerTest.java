@@ -15,6 +15,7 @@ public class MigrationRunnerTest {
     config.setDbPassword("");
     config.setDbDriver("org.h2.Driver");
     config.setDbUrl("jdbc:h2:mem:db1");
+
     return config;
   }
 

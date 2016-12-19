@@ -30,6 +30,7 @@ public class MigrationConfig {
 
   private String dbSchema;
   private boolean createSchemaIfNotExists;
+  private String platformName;
 
   /**
    * Return the name of the migration table.
@@ -216,6 +217,20 @@ public class MigrationConfig {
   }
 
   /**
+   * Return the DB platform name (used for platform create table and select for update syntax).
+   */
+  public String getPlatformName() {
+    return platformName;
+  }
+
+  /**
+   * Set a DB platform name (to load specific create table and select for update syntax).
+   */
+  public void setPlatformName(String platformName) {
+    this.platformName = platformName;
+  }
+
+  /**
    * Return the ClassLoader to use to load resources.
    */
   public ClassLoader getClassLoader() {
@@ -245,6 +260,7 @@ public class MigrationConfig {
     dbDriver = props.getProperty("dbmigration.driver", dbDriver);
     dbUrl = props.getProperty("dbmigration.url", dbUrl);
 
+    platformName = props.getProperty("dbmigration.platformName", platformName);
     applySuffix = props.getProperty("dbmigration.applySuffix", applySuffix);
     metaTable = props.getProperty("dbmigration.metaTable", metaTable);
     migrationPath = props.getProperty("dbmigration.migrationPath", migrationPath);
