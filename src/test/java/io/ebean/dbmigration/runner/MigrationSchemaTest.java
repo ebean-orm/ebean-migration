@@ -11,7 +11,7 @@ public class MigrationSchemaTest {
   public void testCreateAndSetIfNeeded() throws Exception {
 
     MigrationConfig config = createMigrationConfig();
-    config.setDbSchema("some_new_schema");
+    config.setDbSchema("SOME_NEW_SCHEMA");
     config.setCreateSchemaIfNotExists(true);
 
     Connection connection = config.createConnection();

@@ -78,12 +78,7 @@ public class MigrationSchema {
   private void setSchema() throws SQLException {
 
     logger.info("Setting Schema: {}", dbSchema);
-    PreparedStatement query = connection.prepareStatement("SET SCHEMA " + dbSchema);
-    try {
-      query.execute();
-    } finally {
-      JdbcClose.close(query);
-    }
+    connection.setSchema(dbSchema);
   }
 
 }
