@@ -100,9 +100,13 @@ public class DdlParser {
 
       } else {
         // semicolon in middle of line
-        String preSemi = line.substring(0, semiPos);
+        String preSemi = line.substring(0, semiPos + 1);
         endOfStatement(preSemi);
-        sb.append(line.substring(semiPos + 1));
+
+        String remaining = line.substring(semiPos + 1).trim();
+        if (!remaining.startsWith("--")) {
+          sb.append(remaining).append("\n");
+        }
       }
     }
   }
