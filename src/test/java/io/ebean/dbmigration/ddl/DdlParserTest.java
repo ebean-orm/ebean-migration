@@ -1,10 +1,8 @@
 package io.ebean.dbmigration.ddl;
 
-import org.testng.annotations.Test;
-
 import java.io.StringReader;
 import java.util.List;
-
+import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DdlParserTest {
@@ -54,5 +52,11 @@ public class DdlParserTest {
 
     assertThat(stmts).hasSize(2);
     assertThat(stmts).contains("one;","two;");
+  }
+
+  @Test
+  public void parse_ignoresEndOfLineComments() throws Exception {
+    List<String> stmts = parser.parse(new StringReader("one; -- comment\ntwo;"));
+    assertThat(stmts).containsExactly("one;", "two;");
   }
 }
