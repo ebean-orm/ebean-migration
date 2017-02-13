@@ -11,8 +11,18 @@ class ScriptTransform {
   /**
    * Transform just ${table} with the table name.
    */
-  public static String table(String tableName, String script) {
-    return script.replace("${table}", tableName);
+  public static String table(String catalog, String schema, String tableName, String script) {
+    script = script.replace("${table}", tableName);
+    if (schema != null && !schema.isEmpty()) {
+      // handle catalog and schema prefix for sqlserver
+      String tmp = schema + ".";
+
+      if (catalog != null && !catalog.isEmpty()) {
+        tmp = catalog + "." + tmp;
+      }
+      return script.replace("${catalog_schema}", tmp);
+    }
+    return script.replace("${catalog_schema}", "");
   }
 
   private final Map<String,String> placeholders = new HashMap<>();

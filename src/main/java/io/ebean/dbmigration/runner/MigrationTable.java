@@ -56,8 +56,8 @@ public class MigrationTable {
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
     this.platformName = config.getPlatformName();
-    this.selectSql = MigrationMetaRow.selectSql(table, platformName);
-    this.insertSql = MigrationMetaRow.insertSql(table);
+    this.selectSql = MigrationMetaRow.selectSql(catalog, schema, table, platformName);
+    this.insertSql = MigrationMetaRow.insertSql(catalog, schema, table);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
   }
@@ -106,7 +106,7 @@ public class MigrationTable {
 
   private void createTable(Connection connection) throws IOException, SQLException {
 
-    String script = ScriptTransform.table(table, getCreateTableScript());
+    String script = ScriptTransform.table(catalog, schema, table, getCreateTableScript());
 
     MigrationScriptRunner run = new MigrationScriptRunner(connection);
     run.runScript(false, script, "create migration table");
