@@ -102,7 +102,13 @@ class MigrationMetaRow {
   /**
    * Return the SQL insert given the table migration meta data is stored in.
    */
-  static String selectSql(String table, String platform) {
+  static String selectSql(String catalog, String schema, String table, String platform) {
+    if (schema != null && !schema.isEmpty()) {
+      table = schema + "." + table;
+    }
+    if (catalog != null && !catalog.isEmpty()) {
+      table = catalog + "." + table;
+    }
     String sql = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from " + table;
     if (SQLSERVER.equals(platform)) {
       return sql + " with (updlock)";
@@ -114,7 +120,13 @@ class MigrationMetaRow {
   /**
    * Return the SQL insert given the table migration meta data is stored in.
    */
-  static String insertSql(String table) {
+  static String insertSql(String catalog, String schema, String table) {
+    if (schema != null && !schema.isEmpty()) {
+      table = schema + "." + table;
+    }
+    if (catalog != null && !catalog.isEmpty()) {
+      table = catalog + "." + table;
+    }
     return "insert into " + table
         + " (id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time)"
         + " values (?,?,?,?,?,?,?,?,?)";
