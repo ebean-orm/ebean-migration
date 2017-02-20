@@ -59,6 +59,7 @@ class MigrationMetaRow {
     runTime = row.getLong(9);
   }
 
+  @Override
   public String toString() {
     return "id:" + id + " type:" + type + " runVersion:" + version + " comment:" + comment + " runOn:" + runOn + " runBy:" + runBy;
   }
@@ -103,7 +104,7 @@ class MigrationMetaRow {
    * Return the SQL insert given the table migration meta data is stored in.
    */
   static String selectSql(String table, String platform) {
-    String sql = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from " + table;
+    String sql = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from " + table + " order by id";
     if (SQLSERVER.equals(platform)) {
       return sql + " with (updlock)";
     } else {
