@@ -25,11 +25,14 @@ public class MigrationTable {
 
   private static final Logger logger = LoggerFactory.getLogger(MigrationTable.class);
 
+  private static final String SQLSERVER = "sqlserver";
+
   private final Connection connection;
 
   private final String catalog;
   private final String schema;
   private final String table;
+  private final String sqlTable;
   private final String envUserName;
   private final String platformName;
 
@@ -56,10 +59,19 @@ public class MigrationTable {
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
     this.platformName = config.getPlatformName();
-    this.selectSql = MigrationMetaRow.selectSql(table, platformName);
-    this.insertSql = MigrationMetaRow.insertSql(table);
+    this.sqlTable = sqlTable();
+    this.selectSql = MigrationMetaRow.selectSql(sqlTable, platformName);
+    this.insertSql = MigrationMetaRow.insertSql(sqlTable);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
+  }
+
+  private String sqlTable() {
+    if (SQLSERVER.equals(platformName) && schema != null) {
+      return schema + "." + table;
+    } else {
+      return table;
+    }
   }
 
   /**
@@ -103,10 +115,9 @@ public class MigrationTable {
     }
   }
 
-
   private void createTable(Connection connection) throws IOException, SQLException {
 
-    String script = ScriptTransform.table(table, getCreateTableScript());
+    String script = ScriptTransform.table(sqlTable, getCreateTableScript());
 
     MigrationScriptRunner run = new MigrationScriptRunner(connection);
     run.runScript(false, script, "create migration table");
