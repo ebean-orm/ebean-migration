@@ -104,11 +104,11 @@ class MigrationMetaRow {
    * Return the SQL insert given the table migration meta data is stored in.
    */
   static String selectSql(String table, String platform) {
-    String sql = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from " + table + " order by id";
+    String sql = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from " + table;
     if (SQLSERVER.equals(platform)) {
-      return sql + " with (updlock)";
+      return sql + " with (updlock) order by id";
     } else {
-      return sql + " for update";
+      return sql + " order by id for update";
     }
   }
 
