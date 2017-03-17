@@ -1,4 +1,4 @@
-create table ${table} (
+create table ${schema_prefix}${table} (
   id                           integer not null,
   mtype                        varchar(1) not null,
   mstatus                      varchar(10) not null,

@@ -32,7 +32,6 @@ public class MigrationTable {
   private final String catalog;
   private final String schema;
   private final String table;
-  private final String sqlTable;
   private final String envUserName;
   private final String platformName;
 
@@ -59,15 +58,23 @@ public class MigrationTable {
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
     this.platformName = config.getPlatformName();
-    this.sqlTable = sqlTable();
+    String sqlTable = sqlTable();
     this.selectSql = MigrationMetaRow.selectSql(sqlTable, platformName);
     this.insertSql = MigrationMetaRow.insertSql(sqlTable);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
   }
 
+  /**
+   * Platforms like SQL server do not support the {@link Connection#setSchema(String)}. Here we must prefix the schema in all queries.
+   * @return
+   */
+  private boolean platformSupportsSetSchema() {
+	  return !SQLSERVER.equals(platformName);
+  }
+  
   private String sqlTable() {
-    if (SQLSERVER.equals(platformName) && schema != null) {
+    if (!platformSupportsSetSchema() && schema != null) {
       return schema + "." + table;
     } else {
       return table;
@@ -117,7 +124,7 @@ public class MigrationTable {
 
   private void createTable(Connection connection) throws IOException, SQLException {
 
-    String script = ScriptTransform.table(sqlTable, getCreateTableScript());
+    String script = ScriptTransform.schemaTable(platformSupportsSetSchema() ? "" : schema, table, getCreateTableScript());
 
     MigrationScriptRunner run = new MigrationScriptRunner(connection);
     run.runScript(false, script, "create migration table");
