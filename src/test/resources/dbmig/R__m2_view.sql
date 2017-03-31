@@ -1,1 +1,1 @@
-create or replace view m2_vw as select * from m2;
+create or replace view m2_vw as select id, acol from m2;

@@ -67,11 +67,15 @@ public class MigrationTable {
   }
 
   private String sqlTable() {
-    if (SQLSERVER.equals(platformName) && schema != null) {
+    if (schema != null) {
       return schema + "." + table;
     } else {
       return table;
     }
+  }
+
+  private String sqlPrimaryKey() {
+    return "pk_" + table;
   }
 
   /**
@@ -117,10 +121,17 @@ public class MigrationTable {
 
   private void createTable(Connection connection) throws IOException, SQLException {
 
-    String script = ScriptTransform.table(sqlTable, getCreateTableScript());
-
+    String tableScript = createTableDdl();
     MigrationScriptRunner run = new MigrationScriptRunner(connection);
-    run.runScript(false, script, "create migration table");
+    run.runScript(false, tableScript, "create migration table");
+  }
+
+  /**
+   * Return the create table script.
+   */
+  String createTableDdl() throws IOException {
+    String script = ScriptTransform.replace("${table}", sqlTable, getCreateTableScript());
+    return ScriptTransform.replace("${pk_table}", sqlPrimaryKey(), script);
   }
 
   /**
@@ -129,7 +140,7 @@ public class MigrationTable {
   private String getCreateTableScript() throws IOException {
     // supply a script to override the default table create script
     String script = readResource("migration-support/create-table.sql");
-    if (script == null && platformName != null || !platformName.isEmpty()) {
+    if (script == null && platformName != null && !platformName.isEmpty()) {
       // look for platform specific create table
       script = readResource("migration-support/" + platformName + "-create-table.sql");
     }
@@ -165,7 +176,8 @@ public class MigrationTable {
     if (metaData.storesUpperCaseIdentifiers()) {
       migTable = migTable.toUpperCase();
     }
-    ResultSet tables = metaData.getTables(catalog, schema, migTable, null);
+    String checkSchema = (schema != null) ? schema : connection.getSchema();
+    ResultSet tables = metaData.getTables(catalog, checkSchema, migTable, null);
     try {
       return tables.next();
     } finally {

@@ -11,8 +11,8 @@ class ScriptTransform {
   /**
    * Transform just ${table} with the table name.
    */
-  public static String table(String tableName, String script) {
-    return script.replace("${table}", tableName);
+  static String replace(String key, String value, String script) {
+    return script.replace(key, value);
   }
 
   private final Map<String,String> placeholders = new HashMap<>();

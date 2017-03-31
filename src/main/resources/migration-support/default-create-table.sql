@@ -8,6 +8,6 @@ create table ${table} (
   run_on                       timestamp not null,
   run_by                       varchar(30) not null,
   run_time                     integer not null,
-  constraint pk_${table} primary key (id)
+  constraint ${pk_table} primary key (id)
 );
 
