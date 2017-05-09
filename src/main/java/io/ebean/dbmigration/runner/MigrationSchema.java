@@ -49,9 +49,9 @@ public class MigrationSchema {
   private void createSchemaIfNeeded() throws SQLException {
     if (!schemaExists()) {
       logger.info("Creating Schema: {}", dbSchema);
-      PreparedStatement query = connection.prepareStatement("CREATE SCHEMA " + dbSchema);
+      Statement query = connection.createStatement();
       try {
-        query.execute();
+        query.executeUpdate("CREATE SCHEMA " + dbSchema);
       } finally {
         JdbcClose.close(query);
       }
