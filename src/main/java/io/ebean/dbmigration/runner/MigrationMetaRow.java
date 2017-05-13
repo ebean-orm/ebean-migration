@@ -1,5 +1,7 @@
 package io.ebean.dbmigration.runner;
 
+import io.ebean.dbmigration.DbPlatformNames;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,8 +11,6 @@ import java.sql.Timestamp;
  * Bean holding migration execution details stored in the migration table.
  */
 class MigrationMetaRow {
-
-  private static final String SQLSERVER = "sqlserver";
 
   private int id;
 
@@ -104,11 +104,17 @@ class MigrationMetaRow {
    * Return the SQL insert given the table migration meta data is stored in.
    */
   static String selectSql(String table, String platform) {
+    if (platform == null) {
+      platform = "";
+    }
     String sql = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from " + table;
-    if (SQLSERVER.equals(platform)) {
-      return sql + " with (updlock) order by id";
-    } else {
-      return sql + " order by id for update";
+    switch (platform) {
+      case DbPlatformNames.SQLSERVER:
+        return sql + " with (updlock) order by id";
+      case DbPlatformNames.SQLITE:
+        return sql + " order by id";
+      default:
+        return sql + " order by id for update";
     }
   }
 

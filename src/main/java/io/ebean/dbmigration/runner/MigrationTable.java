@@ -25,8 +25,6 @@ public class MigrationTable {
 
   private static final Logger logger = LoggerFactory.getLogger(MigrationTable.class);
 
-  private static final String SQLSERVER = "sqlserver";
-
   private final Connection connection;
 
   private final String catalog;
