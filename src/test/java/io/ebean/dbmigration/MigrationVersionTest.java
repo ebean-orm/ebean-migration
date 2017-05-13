@@ -51,7 +51,17 @@ public class MigrationVersionTest {
 
     MigrationVersion version = MigrationVersion.parse("R__Foo");
     assertThat(version.getComment()).isEqualTo("Foo");
+    assertThat(version.isRepeatable()).isTrue();
     assertThat(version.normalised()).isEqualTo("R");
+  }
+
+  @Test
+  public void test_parse_when_repeatable_R1() throws Exception {
+
+    MigrationVersion version = MigrationVersion.parse("R1__Foo");
+    assertThat(version.getComment()).isEqualTo("Foo");
+    assertThat(version.normalised()).isEqualTo("R");
+    assertThat(version.isRepeatable()).isTrue();
   }
 
   @Test

@@ -170,7 +170,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
 
     String[] sections = value.split("[\\.-]");
 
-    if ("r".equalsIgnoreCase(sections[0])) {
+    if (sections[0].startsWith("R") || sections[0].startsWith("r")) {
       // a "repeatable" version (does not have a version number)
       return new MigrationVersion(raw, comment);
     }
