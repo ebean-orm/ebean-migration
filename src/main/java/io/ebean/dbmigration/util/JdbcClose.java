@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Utility for closing raw Jdbc resources.
@@ -37,7 +38,7 @@ public class JdbcClose {
     }
   }
 
-  public static void close(PreparedStatement query) {
+  public static void close(Statement query) {
     try {
       query.close();
     } catch (SQLException e) {
