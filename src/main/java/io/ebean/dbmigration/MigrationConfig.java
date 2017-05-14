@@ -19,6 +19,8 @@ public class MigrationConfig {
 
   private String runPlaceholders;
 
+  private boolean skipChecksum;
+
   private Map<String, String> runPlaceholderMap;
 
   private ClassLoader classLoader;
@@ -44,6 +46,23 @@ public class MigrationConfig {
    */
   public void setMetaTable(String metaTable) {
     this.metaTable = metaTable;
+  }
+
+  /**
+   * Return true if checksum check should be skipped (during development).
+   */
+  public boolean isSkipChecksum() {
+    return skipChecksum;
+  }
+
+  /**
+   * Set to true to skip the checksum check.
+   * <p>
+   * This is intended for use during development only.
+   * </p>
+   */
+  public void setSkipChecksum(boolean skipChecksum) {
+    this.skipChecksum = skipChecksum;
   }
 
   /**

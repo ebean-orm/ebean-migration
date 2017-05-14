@@ -1,9 +1,13 @@
 package io.ebean.dbmigration.runner;
 
 import io.ebean.dbmigration.MigrationConfig;
+import io.ebean.dbmigration.MigrationVersion;
+import org.avaje.classpath.scanner.Resource;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 public class MigrationTableTest {
 
@@ -33,5 +37,42 @@ public class MigrationTableTest {
     assertThat(tableSql).contains("datetime2 ");
     assertThat(tableSql).contains("create table bar.db_migration ");
     assertThat(tableSql).contains("constraint pk_db_migration primary key (id)");
+  }
+
+  @Test
+  public void test_skipMigration_Repeatable() throws Exception {
+
+    MigrationConfig config = new MigrationConfig();
+
+    LocalMigrationResource local = local("R__hello");
+    MigrationMetaRow existing = new MigrationMetaRow(12, "R", "", "comment", 42, null, null, 0);
+
+    MigrationTable mt = new MigrationTable(config, null);
+    // checksum different - no skip
+    assertFalse(mt.skipMigration(100, local, existing));
+    // checksum same - skip
+    assertTrue(mt.skipMigration(42, local, existing));
+  }
+
+  @Test
+  public void test_skipMigration_skipChecksum() throws Exception {
+
+    MigrationConfig config = new MigrationConfig();
+    config.setSkipChecksum(true);
+
+    MigrationTable mt = new MigrationTable(config, null);
+
+    // skip regardless of checksum difference
+    LocalMigrationResource local = local("R__hello");
+    MigrationMetaRow existing = new MigrationMetaRow(12, "R", "", "comment", 42, null, null, 0);
+    assertFalse(mt.skipMigration(42, local, existing));
+
+    LocalMigrationResource localVer = local("V1__hello");
+    MigrationMetaRow localExisting = new MigrationMetaRow(12, "V", "1", "comment", 42, null, null, 0);
+    assertFalse(mt.skipMigration(42, localVer, localExisting));
+  }
+
+  private LocalMigrationResource local(String raw) {
+    return new LocalMigrationResource(MigrationVersion.parse(raw), "loc", null);
   }
 }

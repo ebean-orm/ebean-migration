@@ -42,6 +42,7 @@ public class MigrationTable {
   private final String selectSql;
 
   private final LinkedHashMap<String, MigrationMetaRow> migrations;
+  private final boolean skipChecksum;
 
   private MigrationMetaRow lastMigration;
 
@@ -54,6 +55,7 @@ public class MigrationTable {
     this.migrations = new LinkedHashMap<>();
 
     this.catalog = null;
+    this.skipChecksum = config.isSkipChecksum();
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
     this.platformName = config.getPlatformName();
@@ -211,24 +213,36 @@ public class MigrationTable {
     String script = convertScript(local.getContent());
     int checksum = Checksum.calculate(script);
 
-    if (existing != null) {
-
-      boolean matchChecksum = (existing.getChecksum() == checksum);
-
-      if (!local.isRepeatable()) {
-        if (!matchChecksum) {
-          logger.error("Checksum mismatch on migration {}", local.getLocation());
-        }
-        return true;
-
-      } else if (matchChecksum) {
-        logger.trace("... skip unchanged repeatable migration {}", local.getLocation());
-        return true;
-      }
+    if (existing != null && skipMigration(checksum, local, existing)) {
+      return true;
     }
 
     runMigration(local, script, checksum);
     return true;
+  }
+
+  /**
+   * Return true if the migration should be skipped.
+   */
+  boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) {
+
+    if (skipChecksum) {
+      // during development, skip checksum checking
+      return false;
+    }
+    boolean matchChecksum = (existing.getChecksum() == checksum);
+    if (!local.isRepeatable()) {
+      if (!matchChecksum) {
+        logger.error("Checksum mismatch on migration {}", local.getLocation());
+      }
+      return true;
+
+    } else if (matchChecksum) {
+      logger.trace("... skip unchanged repeatable migration {}", local.getLocation());
+      return true;
+    }
+
+    return false;
   }
 
   /**
