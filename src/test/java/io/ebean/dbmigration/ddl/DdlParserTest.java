@@ -52,4 +52,18 @@ public class DdlParserTest {
     List<String> stmts = parser.parse(new StringReader("one; -- comment\ntwo;"));
     assertThat(stmts).containsExactly("one;", "two;");
   }
+
+  @Test
+  public void parse_semiInContent() throws Exception {
+
+    List<String> stmts = parser.parse(new StringReader("';jim';\ntwo;"));
+    assertThat(stmts).containsExactly("';jim';", "two;");
+  }
+
+  @Test
+  public void parse_semiInContent_withTailingComments() throws Exception {
+
+    List<String> stmts = parser.parse(new StringReader("insert (';one'); -- aaa\ninsert (';two'); -- bbb"));
+    assertThat(stmts).containsExactly("insert (';one');", "insert (';two');");
+  }
 }

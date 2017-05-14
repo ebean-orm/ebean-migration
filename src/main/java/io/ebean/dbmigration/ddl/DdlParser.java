@@ -90,7 +90,7 @@ public class DdlParser {
         return;
       }
 
-      int semiPos = line.indexOf(';');
+      int semiPos = line.lastIndexOf(';');
       if (semiPos == -1) {
         sb.append(line).append(" ");
 
