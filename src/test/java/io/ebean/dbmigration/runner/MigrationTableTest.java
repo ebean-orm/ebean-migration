@@ -2,7 +2,6 @@ package io.ebean.dbmigration.runner;
 
 import io.ebean.dbmigration.MigrationConfig;
 import io.ebean.dbmigration.MigrationVersion;
-import org.avaje.classpath.scanner.Resource;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,7 +16,7 @@ public class MigrationTableTest {
     MigrationConfig config = new MigrationConfig();
     config.setDbSchema("foo");
 
-    MigrationTable mt = new MigrationTable(config, null);
+    MigrationTable mt = new MigrationTable(config, null, false);
     String tableSql = mt.createTableDdl();
 
     assertThat(tableSql).contains("create table foo.db_migration ");
@@ -31,7 +30,7 @@ public class MigrationTableTest {
     config.setDbSchema("bar");
     config.setPlatformName("sqlserver");
 
-    MigrationTable mt = new MigrationTable(config, null);
+    MigrationTable mt = new MigrationTable(config, null, false);
     String tableSql = mt.createTableDdl();
 
     assertThat(tableSql).contains("datetime2 ");
@@ -47,7 +46,7 @@ public class MigrationTableTest {
     LocalMigrationResource local = local("R__hello");
     MigrationMetaRow existing = new MigrationMetaRow(12, "R", "", "comment", 42, null, null, 0);
 
-    MigrationTable mt = new MigrationTable(config, null);
+    MigrationTable mt = new MigrationTable(config, null, false);
     // checksum different - no skip
     assertFalse(mt.skipMigration(100, local, existing));
     // checksum same - skip
@@ -60,7 +59,7 @@ public class MigrationTableTest {
     MigrationConfig config = new MigrationConfig();
     config.setSkipChecksum(true);
 
-    MigrationTable mt = new MigrationTable(config, null);
+    MigrationTable mt = new MigrationTable(config, null, false);
 
     // skip regardless of checksum difference
     LocalMigrationResource local = local("R__hello");

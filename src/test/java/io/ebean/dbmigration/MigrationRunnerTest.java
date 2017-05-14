@@ -1,11 +1,15 @@
 package io.ebean.dbmigration;
 
+import io.ebean.dbmigration.runner.LocalMigrationResource;
 import org.avaje.datasource.DataSourceConfig;
 import org.avaje.datasource.DataSourcePool;
 import org.avaje.datasource.Factory;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MigrationRunnerTest {
 
@@ -26,6 +30,10 @@ public class MigrationRunnerTest {
 
     config.setMigrationPath("dbmig");
     MigrationRunner runner = new MigrationRunner(config);
+
+    List<LocalMigrationResource> check = runner.checkState();
+    assertThat(check).hasSize(3);
+
     runner.run();
   }
 

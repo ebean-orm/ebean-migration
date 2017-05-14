@@ -14,8 +14,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,6 +28,7 @@ public class MigrationTable {
   private static final Logger logger = LoggerFactory.getLogger(MigrationTable.class);
 
   private final Connection connection;
+  private final boolean checkState;
 
   private final String catalog;
   private final String schema;
@@ -46,12 +49,15 @@ public class MigrationTable {
 
   private MigrationMetaRow lastMigration;
 
+  private final List<LocalMigrationResource> checkMigrations = new ArrayList<>();
+
   /**
    * Construct with server, configuration and jdbc connection (DB admin user).
    */
-  public MigrationTable(MigrationConfig config, Connection connection) {
+  public MigrationTable(MigrationConfig config, Connection connection, boolean checkState) {
 
     this.connection = connection;
+    this.checkState = checkState;
     this.migrations = new LinkedHashMap<>();
 
     this.catalog = null;
@@ -64,6 +70,13 @@ public class MigrationTable {
     this.insertSql = MigrationMetaRow.insertSql(sqlTable);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
+  }
+
+  /**
+   * Return the migrations that have been run.
+   */
+  public List<LocalMigrationResource> ran() {
+    return checkMigrations;
   }
 
   private String sqlTable() {
@@ -249,6 +262,13 @@ public class MigrationTable {
    * Run a migration script as new migration or update on existing repeatable migration.
    */
   private void runMigration(LocalMigrationResource local, String script, int checksum) throws SQLException {
+
+    if (checkState) {
+      checkMigrations.add(local);
+      // simulate the migration being run such that following migrations also match
+      addMigration(local.key(), createMetaRow(local, checksum, 1));
+      return;
+    }
 
     logger.debug("run migration {}", local.getLocation());
 

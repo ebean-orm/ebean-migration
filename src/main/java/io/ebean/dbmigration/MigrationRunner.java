@@ -23,6 +23,13 @@ public class MigrationRunner {
 
   private final MigrationConfig migrationConfig;
 
+  /**
+   * Set to true when only checking as to what migrations will run.
+   */
+  private boolean checkStateMode;
+
+  private List<LocalMigrationResource> checkMigrations;
+
   public MigrationRunner(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
   }
@@ -31,9 +38,17 @@ public class MigrationRunner {
    * Run by creating a DB connection from driver, url, username defined in MigrationConfig.
    */
   public void run() {
+    this.checkStateMode = false;
+    run(migrationConfig.createConnection());
+  }
 
-    Connection connection = migrationConfig.createConnection();
-    run(connection);
+  /**
+   * Return the migrations that would be applied if the migration is run.
+   */
+  public List<LocalMigrationResource> checkState() {
+    this.checkStateMode = true;
+    run(migrationConfig.createConnection());
+    return checkMigrations;
   }
 
   /**
@@ -76,7 +91,6 @@ public class MigrationRunner {
       schema.createAndSetIfNeeded();
 
       runMigrations(resources, connection);
-
       connection.commit();
 
     } catch (Exception e) {
@@ -95,7 +109,7 @@ public class MigrationRunner {
 
     derivePlatformName(migrationConfig, connection);
 
-    MigrationTable table = new MigrationTable(migrationConfig, connection);
+    MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode);
     table.createIfNeeded();
 
     // get the migrations in version order
@@ -112,6 +126,9 @@ public class MigrationRunner {
       }
       priorVersion = localVersion;
       connection.commit();
+    }
+    if (checkStateMode) {
+      checkMigrations = table.ran();
     }
   }
 
