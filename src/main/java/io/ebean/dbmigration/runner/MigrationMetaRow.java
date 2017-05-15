@@ -1,7 +1,9 @@
 package io.ebean.dbmigration.runner;
 
 import io.ebean.dbmigration.DbPlatformNames;
+import io.ebean.dbmigration.util.JdbcClose;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -101,6 +103,17 @@ class MigrationMetaRow {
   }
 
   /**
+   * Bind to the insert statement.
+   */
+  void bindUpdate(PreparedStatement update) throws SQLException {
+    update.setInt(1, checksum);
+    update.setTimestamp(2, runOn);
+    update.setString(3, runBy);
+    update.setLong(4, runTime);
+    update.setInt(5, id);
+  }
+
+  /**
    * Return the SQL insert given the table migration meta data is stored in.
    */
   static String selectSql(String table, String platform) {
@@ -127,4 +140,39 @@ class MigrationMetaRow {
         + " values (?,?,?,?,?,?,?,?,?)";
   }
 
+  /**
+   * Return the SQL insert given the table migration meta data is stored in.
+   */
+  static String updateSql(String table) {
+    return "update " + table
+      + " set mchecksum=?, run_on=?, run_by=?, run_time=? "
+      + " where id = ?";
+  }
+
+  void rerun(int checksum, long exeMillis, String envUserName, Timestamp runOn) {
+    this.checksum = checksum;
+    this.runTime = exeMillis;
+    this.runBy = envUserName;
+    this.runOn = runOn;
+  }
+
+  void executeUpdate(Connection connection, String updateSql) throws SQLException {
+    PreparedStatement statement = connection.prepareStatement(updateSql);
+    try {
+      bindUpdate(statement);
+      statement.executeUpdate();
+    } finally {
+      JdbcClose.close(statement);
+    }
+  }
+
+  void executeInsert(Connection connection, String insertSql) throws SQLException {
+    PreparedStatement statement = connection.prepareStatement(insertSql);
+    try {
+      bindInsert(statement);
+      statement.executeUpdate();
+    } finally {
+      JdbcClose.close(statement);
+    }
+  }
 }

@@ -42,6 +42,7 @@ public class MigrationTable {
   private final ScriptTransform scriptTransform;
 
   private final String insertSql;
+  private final String updateSql;
   private final String selectSql;
 
   private final LinkedHashMap<String, MigrationMetaRow> migrations;
@@ -68,6 +69,7 @@ public class MigrationTable {
     this.sqlTable = sqlTable();
     this.selectSql = MigrationMetaRow.selectSql(sqlTable, platformName);
     this.insertSql = MigrationMetaRow.insertSql(sqlTable);
+    this.updateSql = MigrationMetaRow.updateSql(sqlTable);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
   }
@@ -230,7 +232,7 @@ public class MigrationTable {
       return true;
     }
 
-    runMigration(local, script, checksum);
+    executeMigration(local, script, checksum, existing);
     return true;
   }
 
@@ -261,7 +263,7 @@ public class MigrationTable {
   /**
    * Run a migration script as new migration or update on existing repeatable migration.
    */
-  private void runMigration(LocalMigrationResource local, String script, int checksum) throws SQLException {
+  private void executeMigration(LocalMigrationResource local, String script, int checksum, MigrationMetaRow existing) throws SQLException {
 
     if (checkState) {
       checkMigrations.add(local);
@@ -278,14 +280,14 @@ public class MigrationTable {
 
     long exeMillis = System.currentTimeMillis() - start;
 
-    MigrationMetaRow metaRow = createMetaRow(local, checksum, exeMillis);
-    PreparedStatement statement = connection.prepareStatement(insertSql);
-    try {
-      metaRow.bindInsert(statement);
-      statement.executeUpdate();
+    if (existing != null) {
+      existing.rerun(checksum, exeMillis, envUserName, runOn);
+      existing.executeUpdate(connection, updateSql);
+
+    } else {
+      MigrationMetaRow metaRow = createMetaRow(local, checksum, exeMillis);
+      metaRow.executeInsert(connection, insertSql);
       addMigration(local.key(), metaRow);
-    } finally {
-      JdbcClose.close(statement);
     }
   }
 
