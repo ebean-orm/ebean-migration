@@ -279,6 +279,10 @@ public class MigrationConfig {
     dbDriver = props.getProperty("dbmigration.driver", dbDriver);
     dbUrl = props.getProperty("dbmigration.url", dbUrl);
 
+    String skip = props.getProperty("dbmigration.skipchecksum");
+    if (skip != null) {
+      skipChecksum = Boolean.parseBoolean(skip);
+    }
     platformName = props.getProperty("dbmigration.platformName", platformName);
     applySuffix = props.getProperty("dbmigration.applySuffix", applySuffix);
     metaTable = props.getProperty("dbmigration.metaTable", metaTable);

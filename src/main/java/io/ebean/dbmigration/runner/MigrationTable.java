@@ -1,6 +1,7 @@
 package io.ebean.dbmigration.runner;
 
 import io.ebean.dbmigration.MigrationConfig;
+import io.ebean.dbmigration.MigrationException;
 import io.ebean.dbmigration.util.IOUtils;
 import io.ebean.dbmigration.util.JdbcClose;
 import org.slf4j.Logger;
@@ -241,23 +242,16 @@ public class MigrationTable {
    */
   boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) {
 
-    if (skipChecksum) {
-      // during development, skip checksum checking
-      return false;
-    }
     boolean matchChecksum = (existing.getChecksum() == checksum);
-    if (!local.isRepeatable()) {
-      if (!matchChecksum) {
-        logger.error("Checksum mismatch on migration {}", local.getLocation());
-      }
+    if (matchChecksum) {
+      logger.trace("... skip unchanged migration {}", local.getLocation());
       return true;
-
-    } else if (matchChecksum) {
-      logger.trace("... skip unchanged repeatable migration {}", local.getLocation());
-      return true;
+    } else if (local.isRepeatable() || skipChecksum) {
+      // re-run the migration
+      return false;
+    } else {
+      throw new MigrationException("Checksum mismatch on migration " + local.getLocation());
     }
-
-    return false;
   }
 
   /**

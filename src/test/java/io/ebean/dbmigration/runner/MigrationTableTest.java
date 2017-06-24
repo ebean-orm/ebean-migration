@@ -64,11 +64,21 @@ public class MigrationTableTest {
     // skip regardless of checksum difference
     LocalMigrationResource local = local("R__hello");
     MigrationMetaRow existing = new MigrationMetaRow(12, "R", "", "comment", 42, null, null, 0);
-    assertFalse(mt.skipMigration(42, local, existing));
+
+    // repeatable checksum mismatch
+    assertFalse(mt.skipMigration(44, local, existing));
+
+    // repeatable match checksum
+    assertTrue(mt.skipMigration(42, local, existing));
 
     LocalMigrationResource localVer = local("V1__hello");
     MigrationMetaRow localExisting = new MigrationMetaRow(12, "V", "1", "comment", 42, null, null, 0);
-    assertFalse(mt.skipMigration(42, localVer, localExisting));
+
+    // re-run on checksum mismatch and skipChecksum
+    assertFalse(mt.skipMigration(44, localVer, localExisting));
+
+    // match checksum so skip
+    assertTrue(mt.skipMigration(42, localVer, localExisting));
   }
 
   private LocalMigrationResource local(String raw) {

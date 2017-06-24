@@ -93,6 +93,10 @@ public class MigrationRunner {
       runMigrations(resources, connection);
       connection.commit();
 
+    } catch (MigrationException e) {
+      JdbcClose.rollback(connection);
+      throw e;
+
     } catch (Exception e) {
       JdbcClose.rollback(connection);
       throw new RuntimeException(e);
