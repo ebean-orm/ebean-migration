@@ -192,8 +192,9 @@ public class MigrationTable {
     if (metaData.storesUpperCaseIdentifiers()) {
       migTable = migTable.toUpperCase();
     }
+    String checkCatalog = (catalog != null) ? catalog : connection.getCatalog();
     String checkSchema = (schema != null) ? schema : connection.getSchema();
-    ResultSet tables = metaData.getTables(catalog, checkSchema, migTable, null);
+    ResultSet tables = metaData.getTables(checkCatalog, checkSchema, migTable, null);
     try {
       return tables.next();
     } finally {
