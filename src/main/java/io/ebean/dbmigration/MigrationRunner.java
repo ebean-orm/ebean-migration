@@ -114,7 +114,7 @@ public class MigrationRunner {
     derivePlatformName(migrationConfig, connection);
 
     MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode);
-    table.createIfNeeded();
+    table.createIfNeededAndLock();
 
     // get the migrations in version order
     List<LocalMigrationResource> localVersions = resources.getVersions();
@@ -129,7 +129,6 @@ public class MigrationRunner {
         break;
       }
       priorVersion = localVersion;
-      connection.commit();
     }
     if (checkStateMode) {
       checkMigrations = table.ran();

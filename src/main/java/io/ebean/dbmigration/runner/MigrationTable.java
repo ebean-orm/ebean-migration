@@ -112,13 +112,17 @@ public class MigrationTable {
 
   /**
    * Create the table is it does not exist.
+   * <p>
+   * Also holds DB lock on migration table and loads existing migrations.
+   * </p>
    */
-  public void createIfNeeded() throws SQLException, IOException {
+  public void createIfNeededAndLock() throws SQLException, IOException {
 
     if (!tableExists(connection)) {
       createTable(connection);
     }
 
+    // load existing migrations, hold DB lock on migration table
     PreparedStatement query = connection.prepareStatement(selectSql);
     try {
       ResultSet resultSet = query.executeQuery();
