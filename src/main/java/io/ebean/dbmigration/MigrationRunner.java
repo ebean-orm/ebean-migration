@@ -52,6 +52,24 @@ public class MigrationRunner {
   }
 
   /**
+   * Return the migrations that would be applied if the migration is run.
+   */
+  public List<LocalMigrationResource> checkState(DataSource dataSource) {
+    this.checkStateMode = true;
+    run(getConnection(dataSource));
+    return checkMigrations;
+  }
+
+  /**
+   * Return the migrations that would be applied if the migration is run.
+   */
+  public List<LocalMigrationResource> checkState(Connection connection) {
+    this.checkStateMode = true;
+    run(connection);
+    return checkMigrations;
+  }
+
+  /**
    * Run using the connection from the DataSource.
    */
   public void run(DataSource dataSource) {
