@@ -1,5 +1,5 @@
-# avaje-dbmigration
-DB Migration runner (similar to FlywayDB) which can be used standalone or with Ebean (run migrations on EbeanServer start)
+# Ebean DBMigration
+DB Migration runner (similar to FlywayDB) which can be used standalone or with Ebean (to run DB Migrations on EbeanServer start)
 
 ## Example use
 To use firstly create a MigrationConfig and set properties (or load then from Properties).
