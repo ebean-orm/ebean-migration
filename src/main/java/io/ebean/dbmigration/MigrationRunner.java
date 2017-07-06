@@ -23,11 +23,6 @@ public class MigrationRunner {
 
   private final MigrationConfig migrationConfig;
 
-  /**
-   * Set to true when only checking as to what migrations will run.
-   */
-  private boolean checkStateMode;
-
   private List<LocalMigrationResource> checkMigrations;
 
   public MigrationRunner(MigrationConfig migrationConfig) {
@@ -38,7 +33,6 @@ public class MigrationRunner {
    * Run by creating a DB connection from driver, url, username defined in MigrationConfig.
    */
   public void run() {
-    this.checkStateMode = false;
     run(migrationConfig.createConnection());
   }
 
@@ -46,8 +40,23 @@ public class MigrationRunner {
    * Return the migrations that would be applied if the migration is run.
    */
   public List<LocalMigrationResource> checkState() {
-    this.checkStateMode = true;
-    run(migrationConfig.createConnection());
+    run(migrationConfig.createConnection(), true);
+    return checkMigrations;
+  }
+
+  /**
+   * Return the migrations that would be applied if the migration is run.
+   */
+  public List<LocalMigrationResource> checkState(DataSource dataSource) {
+    run(getConnection(dataSource), true);
+    return checkMigrations;
+  }
+
+  /**
+   * Return the migrations that would be applied if the migration is run.
+   */
+  public List<LocalMigrationResource> checkState(Connection connection) {
+    run(connection, true);
     return checkMigrations;
   }
 
@@ -77,6 +86,13 @@ public class MigrationRunner {
    * Run the migrations if there are any that need running.
    */
   public void run(Connection connection) {
+    run(connection, false);
+  }
+
+  /**
+   * Run the migrations if there are any that need running.
+   */
+  public void run(Connection connection, boolean checkStateMode) {
 
     LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
     if (!resources.readResources()) {
@@ -90,7 +106,7 @@ public class MigrationRunner {
       MigrationSchema schema = new MigrationSchema(migrationConfig, connection);
       schema.createAndSetIfNeeded();
 
-      runMigrations(resources, connection);
+      runMigrations(resources, connection, checkStateMode);
       connection.commit();
 
     } catch (MigrationException e) {
@@ -109,8 +125,7 @@ public class MigrationRunner {
   /**
    * Run all the migrations as needed.
    */
-  private void runMigrations(LocalMigrationResources resources, Connection connection) throws SQLException, IOException {
-
+  private void runMigrations(LocalMigrationResources resources, Connection connection, boolean checkStateMode) throws SQLException, IOException {
     derivePlatformName(migrationConfig, connection);
 
     MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode);
@@ -133,6 +148,13 @@ public class MigrationRunner {
     if (checkStateMode) {
       checkMigrations = table.ran();
     }
+  }
+
+  /**
+   * Run all the migrations as needed.
+   */
+  private void runMigrations(LocalMigrationResources resources, Connection connection) throws SQLException, IOException {
+    runMigrations(resources, connection, false);
   }
 
   /**
