@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.ebean</groupId>
-  <artifactId>ebean-dbmigration</artifactId>
-  <version>10.1.12-SNAPSHOT</version>
+  <artifactId>ebean-migration</artifactId>
+  <version>10.2.1-SNAPSHOT</version>
 
   <parent>
     <groupId>org.avaje</groupId>
@@ -73,5 +73,20 @@
     </dependency>
 
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <archive>
+            <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
