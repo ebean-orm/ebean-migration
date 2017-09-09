@@ -1,4 +1,4 @@
-# Ebean DBMigration
+# Ebean Migration
 DB Migration runner (similar to FlywayDB) which can be used standalone or with Ebean (to run DB Migrations on EbeanServer start)
 
 ## Example use
