@@ -4,7 +4,7 @@ import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
 import org.avaje.classpath.scanner.Resource;
 import org.avaje.classpath.scanner.ResourceFilter;
-import org.avaje.classpath.scanner.Scanner;
+import org.avaje.classpath.scanner.core.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,17 +19,14 @@ public class LocalMigrationResources {
 
   private static final Logger logger = LoggerFactory.getLogger(LocalMigrationResources.class);
 
-  //private final ServerConfig serverConfig;
-
   private final MigrationConfig migrationConfig;
 
-  private final List<LocalMigrationResource> versions = new ArrayList<LocalMigrationResource>();
+  private final List<LocalMigrationResource> versions = new ArrayList<>();
 
   /**
    * Construct with configuration options.
    */
   public LocalMigrationResources(MigrationConfig migrationConfig) {
-    //this.serverConfig = serverConfig;
     this.migrationConfig = migrationConfig;
   }
 
