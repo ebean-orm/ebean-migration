@@ -25,7 +25,7 @@ public class DdlParser {
         s = s.trim();
         statements.nextLine(s);
       }
-
+      statements.endOfContent();
       return statements.statements;
 
     } catch (IOException e) {
@@ -107,6 +107,17 @@ public class DdlParser {
         if (!remaining.startsWith("--")) {
           sb.append(remaining).append("\n");
         }
+      }
+    }
+
+    /**
+     * Append trailing non-terminated content as an extra statement.
+     */
+    void endOfContent() {
+      String remaining = sb.toString().trim();
+      if (remaining.length() > 0) {
+        statements.add(remaining);
+        sb = new StringBuilder();
       }
     }
   }

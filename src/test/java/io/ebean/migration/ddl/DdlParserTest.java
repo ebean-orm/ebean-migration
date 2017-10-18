@@ -66,4 +66,18 @@ public class DdlParserTest {
     List<String> stmts = parser.parse(new StringReader("insert (';one'); -- aaa\ninsert (';two'); -- bbb"));
     assertThat(stmts).containsExactly("insert (';one');", "insert (';two');");
   }
+
+  @Test
+  public void parse_noTailingSemi() throws Exception {
+
+    List<String> stmts = parser.parse(new StringReader("one"));
+    assertThat(stmts).containsExactly("one");
+  }
+
+  @Test
+  public void parse_noTailingSemi_multiLine() throws Exception {
+
+    List<String> stmts = parser.parse(new StringReader("one\ntwo"));
+    assertThat(stmts).containsExactly("one two");
+  }
 }
