@@ -67,16 +67,6 @@ public class MigrationRunner {
     run(getConnection(dataSource));
   }
 
-  /**
-   * Return the migrations that would be applied if the migration is run.
-   */
-  public List<LocalMigrationResource> checkState(DataSource dataSource) {
-    this.checkStateMode = true;
-    run(dataSource);
-    this.checkStateMode = false;
-    return checkMigrations;
-  }
-
   private Connection getConnection(DataSource dataSource) {
 
     String username = migrationConfig.getDbUsername();
@@ -158,13 +148,6 @@ public class MigrationRunner {
     if (checkStateMode) {
       checkMigrations = table.ran();
     }
-  }
-
-  /**
-   * Run all the migrations as needed.
-   */
-  private void runMigrations(LocalMigrationResources resources, Connection connection) throws SQLException, IOException {
-    runMigrations(resources, connection, false);
   }
 
   /**
