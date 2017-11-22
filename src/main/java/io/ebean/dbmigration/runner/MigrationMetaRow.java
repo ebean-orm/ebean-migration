@@ -149,6 +149,13 @@ class MigrationMetaRow {
       + " where id = ?";
   }
 
+  /**
+   * Return the SQL update for resetting the checksum of an existing migration.
+   */
+  static String updateChecksumSql(String table) {
+    return "update " + table + " set mchecksum=? where id = ?";
+  }
+
   void rerun(int checksum, long exeMillis, String envUserName, Timestamp runOn) {
     this.checksum = checksum;
     this.runTime = exeMillis;
@@ -170,6 +177,17 @@ class MigrationMetaRow {
     PreparedStatement statement = connection.prepareStatement(insertSql);
     try {
       bindInsert(statement);
+      statement.executeUpdate();
+    } finally {
+      JdbcClose.close(statement);
+    }
+  }
+
+  void resetChecksum(int newChecksum, Connection connection, String updateChecksumSql) throws SQLException {
+    PreparedStatement statement = connection.prepareStatement(updateChecksumSql);
+    try {
+      statement.setInt(1, newChecksum);
+      statement.setInt(2, id);
       statement.executeUpdate();
     } finally {
       JdbcClose.close(statement);

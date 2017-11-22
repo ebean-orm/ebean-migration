@@ -20,6 +20,7 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Manages the migration table.
@@ -44,10 +45,14 @@ public class MigrationTable {
 
   private final String insertSql;
   private final String updateSql;
+  private final String updateChecksumSql;
   private final String selectSql;
 
   private final LinkedHashMap<String, MigrationMetaRow> migrations;
   private final boolean skipChecksum;
+
+  private final Set<String> patchInsertVersions;
+  private final Set<String> patchResetChecksumVersions;
 
   private MigrationMetaRow lastMigration;
 
@@ -63,6 +68,8 @@ public class MigrationTable {
     this.migrations = new LinkedHashMap<>();
 
     this.catalog = null;
+    this.patchResetChecksumVersions = config.getPatchResetChecksumOn();
+    this.patchInsertVersions = config.getPatchInsertOn();
     this.skipChecksum = config.isSkipChecksum();
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
@@ -71,6 +78,7 @@ public class MigrationTable {
     this.selectSql = MigrationMetaRow.selectSql(sqlTable, platformName);
     this.insertSql = MigrationMetaRow.insertSql(sqlTable);
     this.updateSql = MigrationMetaRow.updateSql(sqlTable);
+    this.updateChecksumSql = MigrationMetaRow.updateChecksumSql(sqlTable);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
   }
@@ -229,29 +237,69 @@ public class MigrationTable {
     String script = convertScript(local.getContent());
     int checksum = Checksum.calculate(script);
 
+    if (existing == null && patchInsertMigration(local, checksum)) {
+      return true;
+    }
     if (existing != null && skipMigration(checksum, local, existing)) {
       return true;
     }
-
     executeMigration(local, script, checksum, existing);
     return true;
   }
 
   /**
+   * Return true if we 'patch history' inserting a DB migration without running it.
+   */
+  private boolean patchInsertMigration(LocalMigrationResource local, int checksum) throws SQLException {
+    if (patchInsertVersions != null && patchInsertVersions.contains(local.key())) {
+      logger.info("patch migration - insert into history {}", local.getLocation());
+      if (!checkState) {
+        insertIntoHistory(local, checksum, 0);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Return true if the migration should be skipped.
    */
-  boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) {
+  boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
 
     boolean matchChecksum = (existing.getChecksum() == checksum);
     if (matchChecksum) {
       logger.trace("... skip unchanged migration {}", local.getLocation());
       return true;
+
+    } else if (patchResetChecksum(existing, checksum)) {
+      logger.info("patch migration - reset checksum on {}", local.getLocation());
+      return true;
+
     } else if (local.isRepeatable() || skipChecksum) {
       // re-run the migration
       return false;
     } else {
       throw new MigrationException("Checksum mismatch on migration " + local.getLocation());
     }
+  }
+
+  /**
+   * Return true if the checksum is reset on the existing migration.
+   */
+  private boolean patchResetChecksum(MigrationMetaRow existing, int newChecksum) throws SQLException {
+
+    if (isResetOnVersion(existing.getVersion())) {
+      if (!checkState) {
+        existing.resetChecksum(newChecksum, connection, updateChecksumSql);
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private boolean isResetOnVersion(String version) {
+    return patchResetChecksumVersions != null && patchResetChecksumVersions.contains(version);
   }
 
   /**
@@ -279,10 +327,14 @@ public class MigrationTable {
       existing.executeUpdate(connection, updateSql);
 
     } else {
-      MigrationMetaRow metaRow = createMetaRow(local, checksum, exeMillis);
-      metaRow.executeInsert(connection, insertSql);
-      addMigration(local.key(), metaRow);
+      insertIntoHistory(local, checksum, exeMillis);
     }
+  }
+
+  private void insertIntoHistory(LocalMigrationResource local, int checksum, long exeMillis) throws SQLException {
+    MigrationMetaRow metaRow = createMetaRow(local, checksum, exeMillis);
+    metaRow.executeInsert(connection, insertSql);
+    addMigration(local.key(), metaRow);
   }
 
   /**

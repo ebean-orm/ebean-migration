@@ -58,6 +58,16 @@ public class MigrationRunner {
     run(getConnection(dataSource));
   }
 
+  /**
+   * Return the migrations that would be applied if the migration is run.
+   */
+  public List<LocalMigrationResource> checkState(DataSource dataSource) {
+    this.checkStateMode = true;
+    run(dataSource);
+    this.checkStateMode = false;
+    return checkMigrations;
+  }
+
   private Connection getConnection(DataSource dataSource) {
 
     String username = migrationConfig.getDbUsername();
@@ -119,7 +129,7 @@ public class MigrationRunner {
     // get the migrations in version order
     List<LocalMigrationResource> localVersions = resources.getVersions();
 
-    logger.info("local migrations:{}  existing migrations:{}", localVersions.size(), table.size());
+    logger.info("local migrations:{}  existing migrations:{}  checkState:{}", localVersions.size(), table.size(), checkStateMode);
 
     LocalMigrationResource priorVersion = null;
 

@@ -3,8 +3,10 @@ package io.ebean.dbmigration;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Configuration used to run the migration.
@@ -35,6 +37,16 @@ public class MigrationConfig {
   private String platformName;
 
   /**
+   * Versions that we want to insert into migration history without actually running.
+   */
+  private Set<String> patchInsertOn;
+
+  /**
+   * Versions that we want to update the checksum on without actually running.
+   */
+  private Set<String> patchResetChecksumOn;
+
+  /**
    * Return the name of the migration table.
    */
   public String getMetaTable() {
@@ -46,6 +58,71 @@ public class MigrationConfig {
    */
   public void setMetaTable(String metaTable) {
     this.metaTable = metaTable;
+  }
+
+  /**
+   * Parse as comma delimited versions.
+   */
+  private Set<String> parseCommaDelimited(String versionsCommaDelimited) {
+    if (versionsCommaDelimited != null) {
+      Set<String> versions = new HashSet<>();
+      String[] split = versionsCommaDelimited.split(",");
+      for (String version : split) {
+        if (version.startsWith("R__")) {
+          version = version.substring(3);
+        }
+        versions.add(version);
+      }
+      return versions;
+    }
+    return null;
+  }
+
+  /**
+   * Set the migrations that should have their checksum reset as a comma delimited list.
+   */
+  public void setPatchResetChecksumOn(String versionsCommaDelimited) {
+    patchResetChecksumOn = parseCommaDelimited(versionsCommaDelimited);
+  }
+
+  /**
+   * Set the migrations that should have their checksum reset.
+   */
+  public void setPatchResetChecksumOn(Set<String> patchResetChecksumOn) {
+    this.patchResetChecksumOn = patchResetChecksumOn;
+  }
+
+  /**
+   * Return the migrations that should have their checksum reset.
+   */
+  public Set<String> getPatchResetChecksumOn() {
+    return patchResetChecksumOn;
+  }
+
+  /**
+   * Set the migrations that should not be run but inserted into history as if they have run.
+   */
+  public void setPatchInsertOn(String versionsCommaDelimited) {
+    patchInsertOn = parseCommaDelimited(versionsCommaDelimited);
+  }
+
+  /**
+   * Set the migrations that should not be run but inserted into history as if they have run.
+   * <p>
+   * This can be useful when we need to pull out DDL from a repeatable migration that should really
+   * only run once. We can pull out that DDL as a new migration and add it to history as if it had been
+   * run (we can only do this when we know it exists in all environments including production).
+   * </p>
+   */
+  public void setPatchInsertOn(Set<String> patchInsertOn) {
+    this.patchInsertOn = patchInsertOn;
+  }
+
+  /**
+   * Return the migrations that should not be run but inserted into history as if they have run.
+   */
+  public Set<String> getPatchInsertOn() {
+    return patchInsertOn;
   }
 
   /**

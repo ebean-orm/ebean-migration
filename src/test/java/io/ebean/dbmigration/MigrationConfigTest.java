@@ -4,7 +4,9 @@ import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.util.Properties;
+import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.*;
 
 public class MigrationConfigTest {
@@ -70,5 +72,21 @@ public class MigrationConfigTest {
 
     Connection connection = config.createConnection();
     assertNotNull(connection);
+  }
+
+  @Test
+  public void setResetChecksumVersionsOn() {
+
+    MigrationConfig config = new MigrationConfig();
+    config.setPatchResetChecksumOn("1.3,2.1,3.4.5,R__foo_bar");
+    config.setPatchInsertOn("2.1,R__foo_bar");
+
+    Set<String> resetVersions = config.getPatchResetChecksumOn();
+    assertThat(resetVersions).contains("1.3", "2.1", "3.4.5", "foo_bar");
+    assertThat(resetVersions).hasSize(4);
+
+    Set<String> insertVersions = config.getPatchInsertOn();
+    assertThat(insertVersions).contains("2.1", "foo_bar");
+    assertThat(insertVersions).hasSize(2);
   }
 }

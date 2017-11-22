@@ -83,6 +83,25 @@ public class MigrationRunnerTest {
     System.out.println("-- run third time --");
     runner.run(dataSource);
 
+    config.setMigrationPath("dbmig4");
+
+    config.setPatchResetChecksumOn("m2_view,1.2");
+    List<LocalMigrationResource> checkState = runner.checkState(dataSource);
+    assertThat(checkState).hasSize(1);
+    assertThat(checkState.get(0).getVersion().asString()).isEqualTo("1.3");
+
+    config.setPatchInsertOn("1.3");
+    checkState = runner.checkState(dataSource);
+    assertThat(checkState).isEmpty();
+
+    System.out.println("-- run forth time --");
+    runner.run(dataSource);
+
+    System.out.println("-- run fifth time --");
+    checkState = runner.checkState(dataSource);
+    assertThat(checkState).isEmpty();
+    runner.run(dataSource);
+
   }
 
 }
