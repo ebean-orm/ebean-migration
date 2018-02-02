@@ -79,6 +79,11 @@ public class DdlRunner {
         stmt = stmt.substring(0, stmt.length() - 1);
       }
 
+      if (stmt.isEmpty()) {
+        logger.debug("skip empty statement at " + oneOf);
+        return;
+      }
+
       if (logger.isDebugEnabled()) {
         logger.debug("executing " + oneOf + " " + getSummary(stmt));
       }
