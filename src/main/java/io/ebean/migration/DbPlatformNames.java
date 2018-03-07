@@ -14,4 +14,5 @@ public interface DbPlatformNames {
   String H2 = "h2";
   String HSQL = "hsql";
   String SQLANYWHERE = "sqlanywhere";
+  String COCKROACH = "cockroach";
 }

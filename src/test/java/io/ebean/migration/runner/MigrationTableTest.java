@@ -1,5 +1,6 @@
 package io.ebean.migration.runner;
 
+import io.ebean.migration.DbPlatformNames;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
 import org.testng.annotations.Test;
@@ -28,7 +29,7 @@ public class MigrationTableTest {
 
     MigrationConfig config = new MigrationConfig();
     config.setDbSchema("bar");
-    config.setPlatformName("sqlserver");
+    config.setPlatformName(DbPlatformNames.SQLSERVER);
 
     MigrationTable mt = new MigrationTable(config, null, false);
     String tableSql = mt.createTableDdl();

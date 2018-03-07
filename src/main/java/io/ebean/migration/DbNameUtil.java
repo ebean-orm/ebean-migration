@@ -16,8 +16,24 @@ class DbNameUtil implements DbPlatformNames {
   static String normalise(Connection connection) {
 
     try {
-      String productName = connection.getMetaData().getDatabaseProductName().toLowerCase();
+      final String productName = connection.getMetaData().getDatabaseProductName().toLowerCase();
       if (productName.contains(POSTGRES)) {
+        // PostgreSQL driver use a non-trustable hardcoded product name.
+        // The following block try to retrieve DBMS version to determine
+        // if used DBMS is PostgreSQL or Cockroach.
+        try {
+          final String productVersion = connection
+                  .prepareStatement("SELECT version() AS \"version\"")
+                  .executeQuery()
+                  .getString("version")
+                  .toLowerCase();
+          if (productVersion.contains("cockroach")) {
+            return COCKROACH;
+          }
+        } catch (final java.sql.SQLException ignore) {
+        }
+
+        // Real PostgreSQL DB
         return POSTGRES;
       } else if (productName.contains(MYSQL)) {
         return MYSQL;
