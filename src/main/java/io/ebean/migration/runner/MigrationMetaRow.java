@@ -126,6 +126,8 @@ class MigrationMetaRow {
         return sql + " with (updlock) order by id";
       case DbPlatformNames.SQLITE:
         return sql + " order by id";
+      case DbPlatformNames.COCKROACH:
+        return sql + " order by id";
       default:
         return sql + " order by id for update";
     }
