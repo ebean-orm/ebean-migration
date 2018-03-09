@@ -23,12 +23,21 @@ public class DdlRunner {
 
   private final boolean expectErrors;
 
+  private boolean commitOnCreateIndex;
+
   /**
    * Construct with a script name (for logging) and flag indicating if errors are expected.
    */
   public DdlRunner(boolean expectErrors, String scriptName) {
     this.expectErrors = expectErrors;
     this.scriptName = scriptName;
+  }
+
+  /**
+   * Needed for Cockroach DB. Needs commit after create index and before alter table add FK.
+   */
+  public void setCommitOnCreateIndex() {
+    commitOnCreateIndex = true;
   }
 
   /**
@@ -57,7 +66,12 @@ public class DdlRunner {
 
     for (int i = 0; i < noDuplicates.size(); i++) {
       String xOfy = (i + 1) + " of " + noDuplicates.size();
-      runStatement(expectErrors, xOfy, noDuplicates.get(i), connection);
+      String ddl = noDuplicates.get(i);
+      runStatement(expectErrors, xOfy, ddl, connection);
+      if (commitOnCreateIndex && ddl.startsWith("create index ")) {
+        logger.debug("commit on create index ...");
+        connection.commit();
+      }
     }
 
     return noDuplicates.size();
