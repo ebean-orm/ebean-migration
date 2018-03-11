@@ -1,6 +1,7 @@
 package io.ebean.migration;
 
 import io.ebean.migration.runner.LocalMigrationResource;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.avaje.datasource.DataSourceConfig;
 import org.avaje.datasource.DataSourcePool;
 import org.avaje.datasource.Factory;
@@ -24,7 +25,7 @@ public class MigrationRunnerTest {
   }
 
   @Test
-  public void run_when_createConnection() throws Exception {
+  public void run_when_createConnection() {
 
     MigrationConfig config = createMigrationConfig();
 
@@ -38,7 +39,7 @@ public class MigrationRunnerTest {
   }
 
   @Test
-  public void run_when_fileSystemResources() throws Exception {
+  public void run_when_fileSystemResources() {
 
     MigrationConfig config = createMigrationConfig();
 
@@ -59,7 +60,7 @@ public class MigrationRunnerTest {
   }
 
   @Test
-  public void run_when_suppliedDataSource() throws Exception {
+  public void run_when_suppliedDataSource() {
 
     DataSourceConfig dataSourceConfig = new DataSourceConfig();
     dataSourceConfig.setDriver("org.h2.Driver");
@@ -104,4 +105,23 @@ public class MigrationRunnerTest {
 
   }
 
+  /**
+   * Run this integration test manually against CockroachDB.
+   */
+  @Ignore
+  @Test
+  public void cockroach_integrationTest() {
+
+    MigrationConfig config = createMigrationConfig();
+    config.setDbUsername("unit");
+    config.setDbPassword("unit");
+    config.setDbDriver("org.postgresql.Driver");
+    config.setDbUrl("jdbc:postgresql://127.0.0.1:26257/unit");
+    config.setMigrationPath("dbmig-roach");
+
+
+    MigrationRunner runner = new MigrationRunner(config);
+    runner.run();
+
+  }
 }
