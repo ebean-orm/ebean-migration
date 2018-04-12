@@ -1,6 +1,5 @@
 package io.ebean.migration;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
@@ -13,8 +12,7 @@ public class DbNameUtilTest {
   /**
    * Run manually against Postgres database.
    */
-  @Ignore
-  @Test
+  @Test(enabled = false)
   public void normalise_when_realPostgres() throws SQLException {
 
     MigrationConfig config = createConfig();
@@ -33,8 +31,7 @@ public class DbNameUtilTest {
   /**
    * Run manually against cockroach database.
    */
-  @Ignore
-  @Test
+  @Test(enabled = false)
   public void normalise_when_cockroach() throws SQLException {
 
     MigrationConfig config = createConfig();
