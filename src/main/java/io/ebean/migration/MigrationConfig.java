@@ -365,6 +365,19 @@ public class MigrationConfig {
     metaTable = props.getProperty("dbmigration.metaTable", metaTable);
     migrationPath = props.getProperty("dbmigration.migrationPath", migrationPath);
     runPlaceholders = props.getProperty("dbmigration.placeholders", runPlaceholders);
+    
+    String patchInsertOn = props.getProperty("dbmigration.patchinserton");
+    if (patchInsertOn != null) {
+      setPatchInsertOn(patchInsertOn);
+    }
+    String patchResetChecksumOn = props.getProperty("dbmigration.patchresetchecksumon");
+    if (patchInsertOn != null) {
+      setPatchResetChecksumOn(patchResetChecksumOn);
+    }
+    String runPlaceholders = props.getProperty("dbmigration.runplaceholders");
+    if (runPlaceholders != null) {
+      setRunPlaceholders(runPlaceholders);
+    }
   }
 
   /**
