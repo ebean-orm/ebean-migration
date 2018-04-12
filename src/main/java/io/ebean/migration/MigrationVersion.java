@@ -2,11 +2,16 @@ package io.ebean.migration;
 
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * The version of a migration used so that migrations are processed in order.
  */
 public class MigrationVersion implements Comparable<MigrationVersion> {
 
+  private static final Logger logger = LoggerFactory.getLogger(MigrationVersion.class);
+  
   private static final int[] REPEAT_ORDERING = {Integer.MAX_VALUE};
 
   private static final boolean[] REPEAT_UNDERSCORES = {false};
@@ -190,6 +195,8 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
         delimiterPos++;
       } catch (NumberFormatException e) {
         // stop parsing
+        logger.warn("The migrationscript '{}' contains non numeric version part. "
+            + "This may lead to misordered version scripts. NumberFormatException {}", raw, e.getMessage());
         break;
       }
     }
