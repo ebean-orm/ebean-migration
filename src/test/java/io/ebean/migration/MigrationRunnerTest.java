@@ -1,7 +1,6 @@
 package io.ebean.migration;
 
 import io.ebean.migration.runner.LocalMigrationResource;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.avaje.datasource.DataSourceConfig;
 import org.avaje.datasource.DataSourcePool;
 import org.avaje.datasource.Factory;
@@ -108,8 +107,7 @@ public class MigrationRunnerTest {
   /**
    * Run this integration test manually against CockroachDB.
    */
-  @Ignore
-  @Test
+  @Test(enabled = false)
   public void cockroach_integrationTest() {
 
     MigrationConfig config = createMigrationConfig();
@@ -122,6 +120,5 @@ public class MigrationRunnerTest {
 
     MigrationRunner runner = new MigrationRunner(config);
     runner.run();
-
   }
 }
