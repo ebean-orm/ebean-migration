@@ -138,6 +138,9 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
         return (ordering[i] > other.ordering[i]) ? 1 : -1;
       }
     }
+    if (ordering.length < otherLength) {
+      return -1;
+    }
     return comment.compareTo(other.comment);
   }
 
