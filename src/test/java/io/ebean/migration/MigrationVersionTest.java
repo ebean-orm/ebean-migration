@@ -29,6 +29,16 @@ public class MigrationVersionTest {
     assertThat(list.get(3).getComment()).isEqualTo("alpha");
     assertThat(list.get(4).getComment()).isEqualTo("beta");
   }
+  
+  @Test
+  public void test_subversions() {
+
+    MigrationVersion v141 = MigrationVersion.parse("V1.4.1__comment");
+    MigrationVersion v14 = MigrationVersion.parse("V1.4__comment");
+    assertThat(v141).isGreaterThan(v14);
+    assertThat(v14).isLessThan(v141);
+    
+  }
 
   @Test
   public void test_parse_hyphenSnapshot() {
