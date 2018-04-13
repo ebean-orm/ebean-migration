@@ -29,7 +29,7 @@
     <dependency>
       <groupId>org.avaje</groupId>
       <artifactId>avaje-classpath-scanner</artifactId>
-      <version>2.2.4</version>
+      <version>3.1.1</version>
     </dependency>
 
     <dependency>
