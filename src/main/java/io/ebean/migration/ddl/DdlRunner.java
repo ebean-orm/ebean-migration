@@ -25,6 +25,7 @@ public class DdlRunner {
 
   private boolean commitOnCreateIndex;
 
+  private CustomStatementHandler customStatementHandler;
   /**
    * Construct with a script name (for logging) and flag indicating if errors are expected.
    */
@@ -38,6 +39,20 @@ public class DdlRunner {
    */
   public void setCommitOnCreateIndex() {
     commitOnCreateIndex = true;
+  }
+  
+  /**
+   * Returns the customStatementHandler.
+   */
+  public CustomStatementHandler getCustomStatementHandler() {
+    return customStatementHandler;
+  }
+  
+  /**
+   * Sets the customStatementHandler to handle custom migration commands.
+   */
+  public void setCustomStatementHandler(CustomStatementHandler customStatementHandler) {
+    this.customStatementHandler = customStatementHandler;
   }
 
   /**
@@ -101,9 +116,11 @@ public class DdlRunner {
       if (logger.isDebugEnabled()) {
         logger.debug("executing " + oneOf + " " + getSummary(stmt));
       }
-
-      pstmt = c.prepareStatement(stmt);
-      pstmt.execute();
+      
+      if (customStatementHandler == null || !customStatementHandler.handle(stmt, c)) {
+        pstmt = c.prepareStatement(stmt);
+        pstmt.execute();
+      }
 
     } catch (SQLException e) {
       if (expectErrors) {

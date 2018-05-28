@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import io.ebean.migration.ddl.CustomStatementHandler;
+
 /**
  * Configuration used to run the migration.
  */
@@ -45,6 +47,8 @@ public class MigrationConfig {
    * Versions that we want to update the checksum on without actually running.
    */
   private Set<String> patchResetChecksumOn;
+  
+  private CustomStatementHandler customStatementHandler;
 
   /**
    * Return the name of the migration table.
@@ -326,6 +330,20 @@ public class MigrationConfig {
     this.platformName = platformName;
   }
 
+  /**
+   * Returns the customStatementHandler.
+   */
+  public CustomStatementHandler getCustomStatementHandler() {
+    return customStatementHandler;
+  }
+  
+  /**
+   * Sets the customStatementHandler.
+   */
+  public void setCustomStatementHandler(CustomStatementHandler customStatementHandler) {
+    this.customStatementHandler = customStatementHandler;
+  }
+  
   /**
    * Return the ClassLoader to use to load resources.
    */

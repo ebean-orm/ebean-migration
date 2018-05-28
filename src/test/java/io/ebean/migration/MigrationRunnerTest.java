@@ -13,6 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class MigrationRunnerTest {
 
+  private static String staticCalledText;
+
   private MigrationConfig createMigrationConfig() {
     MigrationConfig config = new MigrationConfig();
     config.setDbUsername("sa");
@@ -107,6 +109,29 @@ public class MigrationRunnerTest {
   /**
    * Run this integration test manually against CockroachDB.
    */
+  @Test
+  public void run_with_handler() {
+
+    MigrationConfig config = createMigrationConfig();
+    config.setDbUsername("sa");
+    config.setDbPassword("");
+    config.setDbDriver("org.h2.Driver");
+    config.setDbUrl("jdbc:h2:mem:test-handler");
+    config.setMigrationPath("dbmig-handler");
+    config.setCustomStatementHandler(new JavaScriptHandler());
+
+
+    staticCalledText = null;
+
+    MigrationRunner runner = new MigrationRunner(config);
+    runner.run();
+
+    assertThat(staticCalledText).isEqualTo("hello");
+  }
+
+  /**
+   * Run this integration test manually against CockroachDB.
+   */
   @Test(enabled = false)
   public void cockroach_integrationTest() {
 
@@ -117,8 +142,14 @@ public class MigrationRunnerTest {
     config.setDbUrl("jdbc:postgresql://127.0.0.1:26257/unit");
     config.setMigrationPath("dbmig-roach");
 
-
     MigrationRunner runner = new MigrationRunner(config);
     runner.run();
+
   }
+
+  public static void runStatic(Connection c, String txt) {
+    System.out.println(txt);
+    staticCalledText = txt;
+  }
+
 }
