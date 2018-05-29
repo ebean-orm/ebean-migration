@@ -3,10 +3,13 @@ package io.ebean.migration;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import io.ebean.migration.custom.CustomCommandHandler;
 
 /**
  * Configuration used to run the migration.
@@ -45,6 +48,11 @@ public class MigrationConfig {
    * Versions that we want to update the checksum on without actually running.
    */
   private Set<String> patchResetChecksumOn;
+
+  /**
+   * Holds a map of CustomCommandHandlers
+   */
+  private Map<String, CustomCommandHandler> customCommandHandlers;
 
   /**
    * Return the name of the migration table.
@@ -327,6 +335,30 @@ public class MigrationConfig {
   }
 
   /**
+   * Returns the CustomCommandHandler.
+   */
+  public Map<String, CustomCommandHandler> getCustomCommandHandlers() {
+    return customCommandHandlers;
+  }
+
+  /**
+   * Sets the CustomCommandHandler to handle custom migration commands.
+   */
+  public void setCustomCommandHandlers(Map<String, CustomCommandHandler> customCommandHandlers) {
+    this.customCommandHandlers = customCommandHandlers;
+  }
+
+  /**
+   * Registers a CustomCommandHandler to handle custom migration commands.
+   */
+  public void registerCustomCommandHandler(String prefix, CustomCommandHandler customCommandHandler) {
+    if (customCommandHandlers == null) {
+      customCommandHandlers = new HashMap<>();
+    }
+    this.customCommandHandlers.put(prefix, customCommandHandler);
+  }
+
+  /**
    * Return the ClassLoader to use to load resources.
    */
   public ClassLoader getClassLoader() {
@@ -365,7 +397,7 @@ public class MigrationConfig {
     metaTable = props.getProperty("dbmigration.metaTable", metaTable);
     migrationPath = props.getProperty("dbmigration.migrationPath", migrationPath);
     runPlaceholders = props.getProperty("dbmigration.placeholders", runPlaceholders);
-    
+
     String patchInsertOn = props.getProperty("dbmigration.patchInsertOn");
     if (patchInsertOn != null) {
       setPatchInsertOn(patchInsertOn);

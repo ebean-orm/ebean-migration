@@ -3,12 +3,16 @@ package io.ebean.migration.ddl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.ebean.migration.custom.CustomCommandHandler;
+
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Runs DDL scripts.
@@ -25,6 +29,7 @@ public class DdlRunner {
 
   private boolean commitOnCreateIndex;
 
+  private Map<String, CustomCommandHandler> customCommandHandlers;
   /**
    * Construct with a script name (for logging) and flag indicating if errors are expected.
    */
@@ -38,6 +43,34 @@ public class DdlRunner {
    */
   public void setCommitOnCreateIndex() {
     commitOnCreateIndex = true;
+  }
+
+  /**
+   * Returns the CustomCommandHandler.
+   */
+  public Map<String, CustomCommandHandler> getCustomCommandHandlers() {
+    return customCommandHandlers;
+  }
+
+  /**
+   * Sets the CustomCommandHandler to handle custom migration commands.
+   */
+  public void setCustomCommandHandlers(Map<String, CustomCommandHandler> customCommandHandlers) {
+    if (customCommandHandlers == null) {
+      this.customCommandHandlers = null;
+    } else {
+      this.customCommandHandlers = new HashMap<>(customCommandHandlers);
+    }
+  }
+
+  /**
+   * Registers a CustomCommandHandler to handle custom migration commands.
+   */
+  public void registerCustomCommandHandler(String prefix, CustomCommandHandler customCommandHandler) {
+    if (customCommandHandlers == null) {
+      customCommandHandlers = new HashMap<>();
+    }
+    this.customCommandHandlers.put(prefix, customCommandHandler);
   }
 
   /**
@@ -102,8 +135,10 @@ public class DdlRunner {
         logger.debug("executing " + oneOf + " " + getSummary(stmt));
       }
 
-      pstmt = c.prepareStatement(stmt);
-      pstmt.execute();
+      if (!handleCustomCommand(stmt, c)) {
+        pstmt = c.prepareStatement(stmt);
+        pstmt.execute();
+      }
 
     } catch (SQLException e) {
       if (expectErrors) {
@@ -124,11 +159,33 @@ public class DdlRunner {
     }
   }
 
+  /**
+   * Checks if this is a custom command and handles it.
+   */
+  private boolean handleCustomCommand(String stmt, Connection c) throws SQLException {
+    if (customCommandHandlers == null || customCommandHandlers.isEmpty()) {
+      return false;
+    }
+    int pos = stmt.indexOf(':');
+    if (pos == -1) {
+      return false;
+    }
+    String key = stmt.substring(0, pos);
+    CustomCommandHandler handler = customCommandHandlers.get(key);
+    if (handler == null) {
+      return false;
+    }
+    String cmd = stmt.substring(pos+1);
+    handler.handle(c, cmd);
+    return true;
+  }
+
   private String getSummary(String s) {
     if (s.length() > 80) {
       return s.substring(0, 80).trim() + "...";
     }
     return s;
   }
+
 
 }
