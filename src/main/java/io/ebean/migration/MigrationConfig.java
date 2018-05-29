@@ -3,12 +3,15 @@ package io.ebean.migration;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import io.ebean.migration.ddl.CustomStatementHandler;
+import io.ebean.migration.custom.CustomCommandHandler;
 
 /**
  * Configuration used to run the migration.
@@ -47,8 +50,11 @@ public class MigrationConfig {
    * Versions that we want to update the checksum on without actually running.
    */
   private Set<String> patchResetChecksumOn;
-  
-  private CustomStatementHandler customStatementHandler;
+
+  /**
+   * Holds a map of CustomCommandHandlers
+   */
+  private Map<String, CustomCommandHandler> customCommandHandlers;
 
   /**
    * Return the name of the migration table.
@@ -331,19 +337,29 @@ public class MigrationConfig {
   }
 
   /**
-   * Returns the customStatementHandler.
+   * Returns the CustomCommandHandler.
    */
-  public CustomStatementHandler getCustomStatementHandler() {
-    return customStatementHandler;
+  public Map<String, CustomCommandHandler> getCustomCommandHandlers() {
+    return customCommandHandlers;
   }
-  
+
   /**
-   * Sets the customStatementHandler.
+   * Sets the CustomCommandHandler to handle custom migration commands.
    */
-  public void setCustomStatementHandler(CustomStatementHandler customStatementHandler) {
-    this.customStatementHandler = customStatementHandler;
+  public void setCustomCommandHandlers(Map<String, CustomCommandHandler> customCommandHandlers) {
+    this.customCommandHandlers = customCommandHandlers;
   }
-  
+
+  /**
+   * Registers a CustomCommandHandler to handle custom migration commands.
+   */
+  public void registerCustomCommandHandler(String prefix, CustomCommandHandler customCommandHandler) {
+    if (customCommandHandlers == null) {
+      customCommandHandlers = new HashMap<>();
+    }
+    this.customCommandHandlers.put(prefix, customCommandHandler);
+  }
+
   /**
    * Return the ClassLoader to use to load resources.
    */
@@ -383,7 +399,7 @@ public class MigrationConfig {
     metaTable = props.getProperty("dbmigration.metaTable", metaTable);
     migrationPath = props.getProperty("dbmigration.migrationPath", migrationPath);
     runPlaceholders = props.getProperty("dbmigration.placeholders", runPlaceholders);
-    
+
     String patchInsertOn = props.getProperty("dbmigration.patchInsertOn");
     if (patchInsertOn != null) {
       setPatchInsertOn(patchInsertOn);

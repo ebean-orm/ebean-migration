@@ -2,7 +2,7 @@ package io.ebean.migration.runner;
 
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationException;
-import io.ebean.migration.ddl.CustomStatementHandler;
+import io.ebean.migration.custom.CustomCommandHandler;
 import io.ebean.migration.util.IOUtils;
 import io.ebean.migration.util.JdbcClose;
 import org.slf4j.Logger;
@@ -59,7 +59,7 @@ public class MigrationTable {
 
   private final List<LocalMigrationResource> checkMigrations = new ArrayList<>();
 
-  private CustomStatementHandler customStatementHandler;
+  private Map<String, CustomCommandHandler> customCommandHandlers;
 
   /**
    * Construct with server, configuration and jdbc connection (DB admin user).
@@ -84,7 +84,7 @@ public class MigrationTable {
     this.updateChecksumSql = MigrationMetaRow.updateChecksumSql(sqlTable);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
-    this.customStatementHandler = config.getCustomStatementHandler();
+    this.customCommandHandlers = config.getCustomCommandHandlers();
   }
 
   /**
@@ -155,7 +155,7 @@ public class MigrationTable {
 
     String tableScript = createTableDdl();
     MigrationScriptRunner run = new MigrationScriptRunner(connection);
-    run.runScript(false, tableScript, "create migration table", customStatementHandler);
+    run.runScript(false, tableScript, "create migration table", customCommandHandlers);
   }
 
   /**
@@ -327,7 +327,7 @@ public class MigrationTable {
 
     long start = System.currentTimeMillis();
     MigrationScriptRunner run = new MigrationScriptRunner(connection);
-    run.runScript(false, script, "run migration version: " + local.getVersion(), customStatementHandler);
+    run.runScript(false, script, "run migration version: " + local.getVersion(), customCommandHandlers);
 
     long exeMillis = System.currentTimeMillis() - start;
 

@@ -3,7 +3,7 @@
  * (C) Copyright FOCONIS AG.
  */
 
-package io.ebean.migration.ddl;
+package io.ebean.migration.custom;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -15,11 +15,11 @@ import java.sql.SQLException;
  *
  */
 @FunctionalInterface
-public interface CustomStatementHandler {
+public interface CustomCommandHandler {
 
   /**
-   * This method is called for each statement. If it returns true, it signalizes, that it has handeld the command.
+   * This method is called for each statement that starts with the registered prefix.
    */
-  boolean handle(String stmt, Connection c) throws SQLException;
+  void handle(Connection conn, String cmd) throws SQLException;
 
 }
