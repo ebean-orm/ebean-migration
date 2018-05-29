@@ -5,7 +5,6 @@ import io.ebean.migration.ddl.DdlRunner;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,6 +21,9 @@ public class MigrationScriptRunner {
     this.connection = connection;
   }
 
+  /**
+   * @deprecated for API compatibility
+   */
   int runScript(boolean expectErrors, String content, String scriptName) throws SQLException {
     return runScript(expectErrors, content, scriptName, null);
   }

@@ -1,8 +1,3 @@
-/*
- * Licensed Materials - Property of FOCONIS AG
- * (C) Copyright FOCONIS AG.
- */
-
 package io.ebean.migration.custom.parse;
 
 import java.util.List;
@@ -11,6 +6,10 @@ import java.util.List;
  * Produced by the JavaCallParser.
  *
  * it contains the class/bean name and the arguments.
+ *
+ * Note:<br/>
+ * Numeric arguments are instances of Integer or Double<br/>
+ * Date/Time/DateTime arguments are instances of LocalDate/LocalTime/OffsetDateTime<br/>
  *
  * @author Roland Praml, FOCONIS AG
  *
