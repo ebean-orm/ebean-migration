@@ -1,5 +1,7 @@
 package io.ebean.migration.runner;
 
+import io.ebean.migration.ConfigurationAware;
+import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
 import org.avaje.classpath.scanner.Resource;
@@ -51,7 +53,16 @@ public class LocalMigrationResources {
         String mainName = filename.substring(0, pos);
 
         MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
-        LocalMigrationResource res = new LocalMigrationResource(migrationVersion, resource.getLocation(), resource);
+        LocalMigrationResource res = new LocalDdlMigrationResource(migrationVersion, resource.getLocation(), resource);
+        versions.add(res);
+      } else if (migrationConfig.getJdbcMigrationFactory() != null && filename.endsWith(".class")) {
+        int pos = filename.lastIndexOf(".class");
+        String mainName = filename.substring(0, pos);
+        MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
+        String className = resource.getLocation().replace('/', '.');
+        className = className.substring(0, className.length()-6);
+        JdbcMigration instance = migrationConfig.getJdbcMigrationFactory().createInstance(className);
+        LocalMigrationResource res = new LocalJdbcMigrationResource(migrationVersion, resource.getLocation(), instance);
         versions.add(res);
       }
     }
@@ -81,7 +92,8 @@ public class LocalMigrationResources {
 
     @Override
     public boolean isMatch(String name) {
-      return name.endsWith(migrationConfig.getApplySuffix());
+      return name.endsWith(migrationConfig.getApplySuffix())
+          || migrationConfig.getJdbcMigrationFactory() != null && name.endsWith(".class");
     }
   }
 }

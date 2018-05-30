@@ -4,9 +4,9 @@ import io.ebean.migration.MigrationVersion;
 import org.avaje.classpath.scanner.Resource;
 
 /**
- * A DB migration resource (DDL script with version).
+ * A DB migration resource (DDL or Jdbc)
  */
-public class LocalMigrationResource implements Comparable<LocalMigrationResource> {
+public abstract class LocalMigrationResource implements Comparable<LocalMigrationResource> {
 
   /**
    * Code for repeatable migrations.
@@ -22,15 +22,13 @@ public class LocalMigrationResource implements Comparable<LocalMigrationResource
 
   private final String location;
 
-  private final Resource resource;
 
   /**
    * Construct with version and resource.
    */
-  public LocalMigrationResource(MigrationVersion version, String location, Resource resource) {
+  public LocalMigrationResource(MigrationVersion version, String location) {
     this.version = version;
     this.location = location;
-    this.resource = resource;
   }
 
   public String toString() {
@@ -83,13 +81,6 @@ public class LocalMigrationResource implements Comparable<LocalMigrationResource
    */
   public String getLocation() {
     return location;
-  }
-
-  /**
-   * Return the content for the migration apply ddl script.
-   */
-  public String getContent() {
-    return resource.loadAsString("UTF-8");
   }
 
   /**

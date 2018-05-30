@@ -36,6 +36,8 @@ public class MigrationConfig {
   private boolean createSchemaIfNotExists;
   private String platformName;
 
+  private JdbcMigrationFactory jdbcMigrationFactory = new DefaultMigrationFactory();
+
   /**
    * Versions that we want to insert into migration history without actually running.
    */
@@ -347,6 +349,20 @@ public class MigrationConfig {
   }
 
   /**
+   * Returns the jdbcMigrationFactory.
+   */
+  public JdbcMigrationFactory getJdbcMigrationFactory() {
+    return jdbcMigrationFactory;
+  }
+
+  /**
+   * Sets the jdbcMigrationFactory.
+   */
+  public void setJdbcMigrationFactory(JdbcMigrationFactory jdbcMigrationFactory) {
+    this.jdbcMigrationFactory = jdbcMigrationFactory;
+  }
+
+  /**
    * Load configuration from standard properties.
    */
   public void load(Properties props) {
@@ -365,7 +381,7 @@ public class MigrationConfig {
     metaTable = props.getProperty("dbmigration.metaTable", metaTable);
     migrationPath = props.getProperty("dbmigration.migrationPath", migrationPath);
     runPlaceholders = props.getProperty("dbmigration.placeholders", runPlaceholders);
-    
+
     String patchInsertOn = props.getProperty("dbmigration.patchInsertOn");
     if (patchInsertOn != null) {
       setPatchInsertOn(patchInsertOn);
@@ -412,6 +428,28 @@ public class MigrationConfig {
       Class.forName(dbDriver, true, contextLoader);
     } catch (Throwable e) {
       throw new MigrationException("Problem loading Database Driver [" + dbDriver + "]: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Default factory. Uses the migration's class loader and injects the config if necessary.
+   *
+   * @author Roland Praml, FOCONIS AG
+   */
+  public class DefaultMigrationFactory implements JdbcMigrationFactory {
+
+    @Override
+    public JdbcMigration createInstance(String className) {
+      try {
+        Class<?> clazz = Class.forName(className, true, MigrationConfig.this.getClassLoader());
+        JdbcMigration migration = (JdbcMigration)clazz.newInstance();
+        if (migration instanceof ConfigurationAware) {
+          ((ConfigurationAware) migration).setMigrationConfig(MigrationConfig.this);
+        }
+        return migration;
+      } catch (Exception e) {
+        throw new IllegalArgumentException(className + " is not a valid JdbcMigration", e);
+      }
     }
   }
 

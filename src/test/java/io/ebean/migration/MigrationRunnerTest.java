@@ -32,7 +32,7 @@ public class MigrationRunnerTest {
     MigrationRunner runner = new MigrationRunner(config);
 
     List<LocalMigrationResource> check = runner.checkState();
-    assertThat(check).hasSize(3);
+    assertThat(check).hasSize(4);
 
     runner.run();
   }
