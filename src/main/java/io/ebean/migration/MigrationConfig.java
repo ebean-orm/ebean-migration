@@ -355,17 +355,24 @@ public class MigrationConfig {
     dbPassword = props.getProperty("dbmigration.password", dbPassword);
     dbDriver = props.getProperty("dbmigration.driver", dbDriver);
     dbUrl = props.getProperty("dbmigration.url", dbUrl);
+    dbSchema = props.getProperty("dbmigration.schema", dbSchema);
 
     String skip = props.getProperty("dbmigration.skipchecksum");
     if (skip != null) {
       skipChecksum = Boolean.parseBoolean(skip);
     }
+
+    String createSchema = props.getProperty("dbmigration.createSchemaIfNotExists");
+    if (createSchema != null) {
+      createSchemaIfNotExists = Boolean.parseBoolean(createSchema);
+    }
+
     platformName = props.getProperty("dbmigration.platformName", platformName);
     applySuffix = props.getProperty("dbmigration.applySuffix", applySuffix);
     metaTable = props.getProperty("dbmigration.metaTable", metaTable);
     migrationPath = props.getProperty("dbmigration.migrationPath", migrationPath);
     runPlaceholders = props.getProperty("dbmigration.placeholders", runPlaceholders);
-    
+
     String patchInsertOn = props.getProperty("dbmigration.patchInsertOn");
     if (patchInsertOn != null) {
       setPatchInsertOn(patchInsertOn);
@@ -408,8 +415,7 @@ public class MigrationConfig {
 
   private void loadDriver() {
     try {
-      ClassLoader contextLoader = getClassLoader();
-      Class.forName(dbDriver, true, contextLoader);
+      Class.forName(dbDriver, true, getClassLoader());
     } catch (Throwable e) {
       throw new MigrationException("Problem loading Database Driver [" + dbDriver + "]: " + e.getMessage(), e);
     }

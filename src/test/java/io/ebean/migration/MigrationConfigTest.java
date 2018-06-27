@@ -36,6 +36,9 @@ public class MigrationConfigTest {
     Properties props = new Properties();
     props.setProperty("dbmigration.username","username");
     props.setProperty("dbmigration.password","password");
+    props.setProperty("dbmigration.schema","fooSchema");
+    props.setProperty("dbmigration.createSchemaIfNotExists","true");
+
     props.setProperty("dbmigration.driver","driver");
     props.setProperty("dbmigration.url","url");
     props.setProperty("dbmigration.metaTable","metaTable");
@@ -50,6 +53,8 @@ public class MigrationConfigTest {
     assertEquals(config.getDbUrl(), "url");
     assertEquals(config.getDbUsername(), "username");
     assertEquals(config.getDbPassword(), "password");
+    assertEquals(config.getDbSchema(), "fooSchema");
+    assertEquals(config.isCreateSchemaIfNotExists(), true);
 
     assertEquals(config.getApplySuffix(), "applySuffix");
     assertEquals(config.getMetaTable(), "metaTable");
