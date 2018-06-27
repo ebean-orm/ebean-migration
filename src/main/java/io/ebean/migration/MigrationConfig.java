@@ -33,7 +33,7 @@ public class MigrationConfig {
   private String dbUrl;
 
   private String dbSchema;
-  private boolean createSchemaIfNotExists;
+  private boolean createSchemaIfNotExists = true;
   private String platformName;
 
   /**
