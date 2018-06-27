@@ -20,7 +20,9 @@ public class JdbcClose {
    */
   public static void close(Connection connection) {
     try {
-      connection.close();
+      if (connection != null) {
+        connection.close();
+      }
     } catch (SQLException e) {
       logger.warn("Error closing connection", e);
     }
@@ -31,23 +33,35 @@ public class JdbcClose {
    */
   public static void rollback(Connection connection) {
     try {
-      connection.rollback();
+      if (connection != null) {
+        connection.rollback();
+      }
     } catch (SQLException e) {
       logger.warn("Error on connection rollback", e);
     }
   }
 
-  public static void close(Statement query) {
+  /**
+   * Close the resultSet logging if an error occurs.
+   */
+  public static void close(Statement statement) {
     try {
-      query.close();
+      if (statement != null) {
+        statement.close();
+      }
     } catch (SQLException e) {
-      logger.warn("Error closing PreparedStatement", e);
+      logger.warn("Error closing statement", e);
     }
   }
 
+  /**
+   * Close the resultSet logging if an error occurs.
+   */
   public static void close(ResultSet resultSet) {
     try {
-      resultSet.close();
+      if (resultSet != null) {
+        resultSet.close();
+      }
     } catch (SQLException e) {
       logger.warn("Error closing resultSet", e);
     }
