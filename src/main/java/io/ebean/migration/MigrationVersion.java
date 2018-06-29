@@ -11,8 +11,10 @@ import org.slf4j.LoggerFactory;
 public class MigrationVersion implements Comparable<MigrationVersion> {
 
   private static final Logger logger = LoggerFactory.getLogger(MigrationVersion.class);
-  
-  private static final int[] REPEAT_ORDERING = {Integer.MAX_VALUE};
+
+  private static final int[] REPEAT_ORDERING_MIN = {Integer.MIN_VALUE};
+
+  private static final int[] REPEAT_ORDERING_MAX = {Integer.MAX_VALUE};
 
   private static final boolean[] REPEAT_UNDERSCORES = {false};
 
@@ -33,10 +35,10 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
   /**
    * Construct for "repeatable" version.
    */
-  private MigrationVersion(String raw, String comment) {
+  private MigrationVersion(String raw, String comment, boolean init) {
     this.raw = raw;
     this.comment = comment;
-    this.ordering = REPEAT_ORDERING;
+    this.ordering = init ? REPEAT_ORDERING_MIN : REPEAT_ORDERING_MAX;
     this.underscores = REPEAT_UNDERSCORES;
   }
 
@@ -54,7 +56,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
    * Return true if this is a "repeatable" version.
    */
   public boolean isRepeatable() {
-    return ordering == REPEAT_ORDERING;
+    return ordering == REPEAT_ORDERING_MIN || ordering == REPEAT_ORDERING_MAX;
   }
 
   /**
@@ -111,7 +113,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
    */
   private String formattedVersion(boolean normalised, boolean nextVersion) {
 
-    if (ordering == REPEAT_ORDERING) {
+    if (isRepeatable()) {
       return "R";
     }
     StringBuilder sb = new StringBuilder();
@@ -180,7 +182,12 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
 
     if (sections[0].startsWith("R") || sections[0].startsWith("r")) {
       // a "repeatable" version (does not have a version number)
-      return new MigrationVersion(raw, comment);
+      return new MigrationVersion(raw, comment, false);
+    }
+
+    if (sections[0].startsWith("I") || sections[0].startsWith("i")) {
+      // this script will be executed before all other scripts
+      return new MigrationVersion(raw, comment, true);
     }
 
     boolean[] underscores = new boolean[sections.length];
