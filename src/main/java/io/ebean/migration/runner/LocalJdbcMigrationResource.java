@@ -1,7 +1,5 @@
 package io.ebean.migration.runner;
 
-import java.io.ObjectStreamClass;
-
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationChecksumProvider;
 import io.ebean.migration.MigrationVersion;
@@ -10,9 +8,9 @@ import io.ebean.migration.MigrationVersion;
  * A DB migration resource (JdbcMigration with version).
  *
  * @author Roland Praml, FOCONIS AG
- *
  */
 public class LocalJdbcMigrationResource extends LocalMigrationResource {
+
   private final JdbcMigration migration;
 
   /**
@@ -24,7 +22,7 @@ public class LocalJdbcMigrationResource extends LocalMigrationResource {
   }
 
   /**
-   * @return the migration
+   * Return the migration
    */
   public JdbcMigration getMigration() {
     return migration;

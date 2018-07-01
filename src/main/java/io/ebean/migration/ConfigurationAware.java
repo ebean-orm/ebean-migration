@@ -11,5 +11,8 @@ package io.ebean.migration;
  */
 public interface ConfigurationAware {
 
+  /**
+   * Set the configuration being used.
+   */
   void setMigrationConfig(MigrationConfig config);
 }

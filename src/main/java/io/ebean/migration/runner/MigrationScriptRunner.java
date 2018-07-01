@@ -8,14 +8,14 @@ import java.sql.SQLException;
 /**
  * Runs the DDL migration scripts.
  */
-public class MigrationScriptRunner {
+class MigrationScriptRunner {
 
   private final Connection connection;
 
   /**
    * Construct with a given connection.
    */
-  public MigrationScriptRunner(Connection connection) {
+  MigrationScriptRunner(Connection connection) {
     this.connection = connection;
   }
 

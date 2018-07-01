@@ -6,8 +6,11 @@ package io.ebean.migration;
  * computed or default to null (for Java Migrations).
  *
  * @author Roland Praml, FOCONIS AG
- *
  */
 public interface MigrationChecksumProvider {
+
+  /**
+   * Return the checksum for the given migration.
+   */
   int getChecksum();
 }
