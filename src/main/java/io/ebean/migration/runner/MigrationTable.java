@@ -239,8 +239,14 @@ public class MigrationTable {
    */
   private boolean runMigration(LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
 
-    String script = convertScript(local.getContent());
-    int checksum = Checksum.calculate(script);
+    String script = null;
+    int checksum;
+    if (local instanceof LocalDdlMigrationResource) {
+      script = convertScript(((LocalDdlMigrationResource) local).getContent());
+      checksum = Checksum.calculate(script);
+    } else {
+      checksum = ((LocalJdbcMigrationResource) local).getChecksum();
+    }
 
     if (existing == null && patchInsertMigration(local, checksum)) {
       return true;
@@ -322,9 +328,12 @@ public class MigrationTable {
     logger.debug("run migration {}", local.getLocation());
 
     long start = System.currentTimeMillis();
-    MigrationScriptRunner run = new MigrationScriptRunner(connection);
-    run.runScript(false, script, "run migration version: " + local.getVersion());
-
+    if (local instanceof LocalDdlMigrationResource) {
+      MigrationScriptRunner run = new MigrationScriptRunner(connection);
+      run.runScript(false, script, "run migration version: " + local.getVersion());
+    } else {
+      ((LocalJdbcMigrationResource)local).getMigration().migrate(connection);
+    }
     long exeMillis = System.currentTimeMillis() - start;
 
     if (existing != null) {
