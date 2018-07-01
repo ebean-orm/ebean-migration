@@ -1,5 +1,7 @@
 package io.ebean.migration.runner;
 
+import io.ebean.migration.ConfigurationAware;
+import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
 import org.avaje.classpath.scanner.Resource;
@@ -47,17 +49,37 @@ public class LocalMigrationResources {
     for (Resource resource : resourceList) {
       String filename = resource.getFilename();
       if (filename.endsWith(migrationConfig.getApplySuffix())) {
-        int pos = filename.lastIndexOf(migrationConfig.getApplySuffix());
-        String mainName = filename.substring(0, pos);
-
-        MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
-        LocalMigrationResource res = new LocalMigrationResource(migrationVersion, resource.getLocation(), resource);
-        versions.add(res);
+        versions.add(createScriptMigration(resource, filename));
+      } else if (migrationConfig.getJdbcMigrationFactory() != null && filename.endsWith(".class")) {
+        versions.add(createJdbcMigration(resource, filename));
       }
     }
 
     Collections.sort(versions);
     return !versions.isEmpty();
+  }
+
+  /**
+   * Return a programmatic JDBC migration.
+   */
+  private LocalMigrationResource createJdbcMigration(Resource resource, String filename) {
+    int pos = filename.lastIndexOf(".class");
+    String mainName = filename.substring(0, pos);
+    MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
+    String className = resource.getLocation().replace('/', '.');
+    className = className.substring(0, className.length()-6);
+    JdbcMigration instance = migrationConfig.getJdbcMigrationFactory().createInstance(className);
+    return new LocalJdbcMigrationResource(migrationVersion, resource.getLocation(), instance);
+  }
+
+  /**
+   * Create a script based migration.
+   */
+  private LocalMigrationResource createScriptMigration(Resource resource, String filename) {
+    int pos = filename.lastIndexOf(migrationConfig.getApplySuffix());
+    String mainName = filename.substring(0, pos);
+    MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
+    return new LocalDdlMigrationResource(migrationVersion, resource.getLocation(), resource);
   }
 
   /**
@@ -81,7 +103,8 @@ public class LocalMigrationResources {
 
     @Override
     public boolean isMatch(String name) {
-      return name.endsWith(migrationConfig.getApplySuffix());
+      return name.endsWith(migrationConfig.getApplySuffix())
+          || migrationConfig.getJdbcMigrationFactory() != null && name.endsWith(".class");
     }
   }
 }

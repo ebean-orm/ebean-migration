@@ -83,6 +83,6 @@ public class MigrationTableTest {
   }
 
   private LocalMigrationResource local(String raw) {
-    return new LocalMigrationResource(MigrationVersion.parse(raw), "loc", null);
+    return new LocalDdlMigrationResource(MigrationVersion.parse(raw), "loc", null);
   }
 }
