@@ -22,7 +22,6 @@ public class DdlParser {
 
       String s;
       while ((s = br.readLine()) != null) {
-        s = s.trim();
         statements.nextLine(s);
       }
       statements.endOfContent();
@@ -42,6 +41,8 @@ public class DdlParser {
    */
   static class StatementsSeparator {
 
+    private static final String EOL = "\n";
+
     ArrayList<String> statements = new ArrayList<>();
 
     boolean trimDelimiter;
@@ -60,7 +61,7 @@ public class DdlParser {
         // MySql style delimiter needs to be trimmed/removed
         trimDelimiter = line.equals("delimiter $$");
         if (!trimDelimiter) {
-          sb.append(line).append(" ");
+          sb.append(line).append(EOL);
         }
       }
       inDbProcedure = !inDbProcedure;
@@ -80,19 +81,18 @@ public class DdlParser {
         return;
       }
 
+      if (inDbProcedure) {
+        sb.append(line).append(EOL);
+        return;
+      }
+
       if (sb.length() == 0 && (line.isEmpty() || line.startsWith("--"))) {
         // ignore leading empty lines and sql comments
         return;
       }
-
-      if (inDbProcedure) {
-        sb.append(line).append(" ");
-        return;
-      }
-
       int semiPos = line.lastIndexOf(';');
       if (semiPos == -1) {
-        sb.append(line).append(" ");
+        sb.append(line).append(EOL);
 
       } else if (semiPos == line.length() - 1) {
         // semicolon at end of line
