@@ -126,9 +126,9 @@ public class DdlRunner {
 
   private String getSummary(String s) {
     if (s.length() > 80) {
-      return s.substring(0, 80).trim() + "...";
+      return s.substring(0, 80).trim().replace('\n', ' ') + "...";
     }
-    return s;
+    return s.replace('\n', ' ');
   }
 
 }
