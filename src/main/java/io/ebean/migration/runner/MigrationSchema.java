@@ -19,6 +19,7 @@ public class MigrationSchema {
   private final String dbSchema;
 
   private final boolean createSchemaIfNotExists;
+
   private final boolean setCurrentSchema;
 
   /**

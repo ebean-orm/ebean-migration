@@ -33,8 +33,11 @@ public class MigrationConfig {
   private String dbUrl;
 
   private String dbSchema;
+
   private boolean createSchemaIfNotExists = true;
+
   private boolean setCurrentSchema = true;
+
   private String platformName;
 
   private JdbcMigrationFactory jdbcMigrationFactory = new DefaultMigrationFactory();
@@ -324,6 +327,10 @@ public class MigrationConfig {
 
   /**
    * Set if the dbSchema should be set as current schema.
+   * <p>
+   * We want to set this to false for the case of Postgres where the dbSchema matches the DB username.
+   * If we set the dbSchema that can mess up the Postgres search path so we turn this off in that case.
+   * </p>
    */
   public void setSetCurrentSchema(boolean setCurrentSchema) {
     this.setCurrentSchema = setCurrentSchema;
