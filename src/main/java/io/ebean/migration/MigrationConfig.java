@@ -34,6 +34,7 @@ public class MigrationConfig {
 
   private String dbSchema;
   private boolean createSchemaIfNotExists = true;
+  private boolean setCurrentSchema = true;
   private String platformName;
 
   private JdbcMigrationFactory jdbcMigrationFactory = new DefaultMigrationFactory();
@@ -315,6 +316,20 @@ public class MigrationConfig {
   }
 
   /**
+   * Return true if the dbSchema should be set as current schema.
+   */
+  public boolean isSetCurrentSchema() {
+    return setCurrentSchema;
+  }
+
+  /**
+   * Set if the dbSchema should be set as current schema.
+   */
+  public void setSetCurrentSchema(boolean setCurrentSchema) {
+    this.setCurrentSchema = setCurrentSchema;
+  }
+
+  /**
    * Return the DB platform name (used for platform create table and select for update syntax).
    */
   public String getPlatformName() {
@@ -382,7 +397,10 @@ public class MigrationConfig {
     if (createSchema != null) {
       createSchemaIfNotExists = Boolean.parseBoolean(createSchema);
     }
-
+    String setSchema = props.getProperty("dbmigration.setCurrentSchema");
+    if (setSchema != null) {
+      setCurrentSchema = Boolean.parseBoolean(setSchema);
+    }
     platformName = props.getProperty("dbmigration.platformName", platformName);
     applySuffix = props.getProperty("dbmigration.applySuffix", applySuffix);
     metaTable = props.getProperty("dbmigration.metaTable", metaTable);

@@ -19,6 +19,7 @@ public class MigrationSchema {
   private final String dbSchema;
 
   private final boolean createSchemaIfNotExists;
+  private final boolean setCurrentSchema;
 
   /**
    * Construct with configuration and connection.
@@ -26,6 +27,7 @@ public class MigrationSchema {
   public MigrationSchema(MigrationConfig migrationConfig, Connection connection) {
     this.dbSchema = trim(migrationConfig.getDbSchema());
     this.createSchemaIfNotExists = migrationConfig.isCreateSchemaIfNotExists();
+    this.setCurrentSchema = migrationConfig.isSetCurrentSchema();
     this.connection = connection;
   }
 
@@ -42,7 +44,9 @@ public class MigrationSchema {
       if (createSchemaIfNotExists) {
         createSchemaIfNeeded();
       }
-      setSchema();
+      if (setCurrentSchema) {
+        setSchema();
+      }
     }
   }
 
