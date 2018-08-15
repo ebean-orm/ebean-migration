@@ -1,6 +1,5 @@
 package io.ebean.migration.runner;
 
-import io.ebean.migration.ConfigurationAware;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;

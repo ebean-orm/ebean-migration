@@ -6,14 +6,14 @@ import org.avaje.classpath.scanner.Resource;
 /**
  * A DB migration resource (DDL script with version).
  */
-class LocalDdlMigrationResource extends LocalMigrationResource {
+public class LocalDdlMigrationResource extends LocalMigrationResource {
 
   private final Resource resource;
 
   /**
    * Construct with version and resource.
    */
-  LocalDdlMigrationResource(MigrationVersion version, String location, Resource resource) {
+  public LocalDdlMigrationResource(MigrationVersion version, String location, Resource resource) {
     super(version, location);
     this.resource = resource;
   }
@@ -21,7 +21,7 @@ class LocalDdlMigrationResource extends LocalMigrationResource {
   /**
    * Return the content for the migration apply ddl script.
    */
-  String getContent() {
+  public String getContent() {
     return resource.loadAsString("UTF-8");
   }
 

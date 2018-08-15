@@ -38,4 +38,9 @@ public class LocalJdbcMigrationResource extends LocalMigrationResource {
       return 0; // maybe we can build a checksum over the byte code, but this may change on different java versions.
     }
   }
+
+  @Override
+  public String getContent() {
+    return "location:" + location;
+  }
 }

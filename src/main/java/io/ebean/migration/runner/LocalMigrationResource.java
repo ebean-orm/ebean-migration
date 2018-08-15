@@ -7,10 +7,9 @@ import io.ebean.migration.MigrationVersion;
  */
 public abstract class LocalMigrationResource implements Comparable<LocalMigrationResource> {
 
-  private final MigrationVersion version;
+  protected final MigrationVersion version;
 
-  private final String location;
-
+  protected final String location;
 
   /**
    * Construct with version and resource.
@@ -71,6 +70,11 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
   public String getLocation() {
     return location;
   }
+
+  /**
+   * Return the content of the migration.
+   */
+  public abstract String getContent();
 
   /**
    * Return the type code ("R" or "V") for this migration.

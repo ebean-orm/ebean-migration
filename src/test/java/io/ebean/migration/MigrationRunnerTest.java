@@ -34,6 +34,10 @@ public class MigrationRunnerTest {
     List<LocalMigrationResource> check = runner.checkState();
     assertThat(check).hasSize(5);
 
+    assertThat(check.get(0).getContent()).contains("-- do nothing");
+    assertThat(check.get(1).getContent()).contains("create table m1");
+    assertThat(check.get(2).getContent()).contains("create table m3");
+
     runner.run();
   }
 
