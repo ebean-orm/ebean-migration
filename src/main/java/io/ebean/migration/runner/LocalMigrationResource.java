@@ -1,22 +1,11 @@
 package io.ebean.migration.runner;
 
 import io.ebean.migration.MigrationVersion;
-import org.avaje.classpath.scanner.Resource;
 
 /**
  * A DB migration resource (DDL or Jdbc)
  */
 public abstract class LocalMigrationResource implements Comparable<LocalMigrationResource> {
-
-  /**
-   * Code for repeatable migrations.
-   */
-  private static final String REPEAT_TYPE = "R";
-
-  /**
-   * Code for version migrations.
-   */
-  private static final String VERSION_TYPE = "V";
 
   private final MigrationVersion version;
 
@@ -87,6 +76,6 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
    * Return the type code ("R" or "V") for this migration.
    */
   public String getType() {
-    return isRepeatable() ? REPEAT_TYPE : VERSION_TYPE;
+    return version.getType();
   }
 }
