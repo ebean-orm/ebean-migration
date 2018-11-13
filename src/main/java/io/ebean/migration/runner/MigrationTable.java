@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -114,8 +113,7 @@ public class MigrationTable {
    */
   private ScriptTransform createScriptTransform(MigrationConfig config) {
 
-    Map<String, String> map = PlaceholderBuilder.build(config.getRunPlaceholders(), config.getRunPlaceholderMap());
-    return new ScriptTransform(map);
+    return ScriptTransform.build(config.getRunPlaceholders(), config.getRunPlaceholderMap());
   }
 
   /**
@@ -242,7 +240,7 @@ public class MigrationTable {
     String script = null;
     int checksum;
     if (local instanceof LocalDdlMigrationResource) {
-      script = convertScript(((LocalDdlMigrationResource) local).getContent());
+      script = convertScript(local.getContent());
       checksum = Checksum.calculate(script);
     } else {
       checksum = ((LocalJdbcMigrationResource) local).getChecksum();
