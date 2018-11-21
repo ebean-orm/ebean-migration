@@ -109,6 +109,13 @@ public class MigrationTable {
   }
 
   /**
+   * Returns the versions that are already applied.
+   */
+  public Set<String> getVersions() {
+    return migrations.keySet();
+  }
+
+  /**
    * Create the ScriptTransform for placeholder key/value replacement.
    */
   private ScriptTransform createScriptTransform(MigrationConfig config) {
