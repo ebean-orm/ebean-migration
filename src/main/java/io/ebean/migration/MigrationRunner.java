@@ -144,6 +144,7 @@ public class MigrationRunner {
         break;
       }
       priorVersion = localVersion;
+      connection.commit();
     }
     if (checkStateMode) {
       checkMigrations = table.ran();
