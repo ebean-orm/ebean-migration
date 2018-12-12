@@ -3,7 +3,6 @@ package io.ebean.migration.runner;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationException;
 import io.ebean.migration.util.IOUtils;
-import io.ebean.migration.util.JdbcClose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,19 +135,13 @@ public class MigrationTable {
     }
 
     // load existing migrations, hold DB lock on migration table
-    PreparedStatement query = connection.prepareStatement(selectSql);
-    try {
-      ResultSet resultSet = query.executeQuery();
-      try {
+    try (PreparedStatement query = connection.prepareStatement(selectSql)) {
+      try (ResultSet resultSet = query.executeQuery()) {
         while (resultSet.next()) {
           MigrationMetaRow metaRow = new MigrationMetaRow(resultSet);
           addMigration(metaRow.getVersion(), metaRow);
         }
-      } finally {
-        JdbcClose.close(resultSet);
       }
-    } finally {
-      JdbcClose.close(query);
     }
   }
 
@@ -211,11 +204,8 @@ public class MigrationTable {
     }
     String checkCatalog = (catalog != null) ? catalog : connection.getCatalog();
     String checkSchema = (schema != null) ? schema : connection.getSchema();
-    ResultSet tables = metaData.getTables(checkCatalog, checkSchema, migTable, null);
-    try {
+    try (ResultSet tables = metaData.getTables(checkCatalog, checkSchema, migTable, null)) {
       return tables.next();
-    } finally {
-      JdbcClose.close(tables);
     }
   }
 
@@ -337,7 +327,7 @@ public class MigrationTable {
       MigrationScriptRunner run = new MigrationScriptRunner(connection);
       run.runScript(false, script, "run migration version: " + local.getVersion());
     } else {
-      ((LocalJdbcMigrationResource)local).getMigration().migrate(connection);
+      ((LocalJdbcMigrationResource) local).getMigration().migrate(connection);
     }
     long exeMillis = System.currentTimeMillis() - start;
 

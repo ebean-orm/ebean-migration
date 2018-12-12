@@ -1,6 +1,5 @@
 package io.ebean.migration;
 
-import io.ebean.migration.util.JdbcClose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,7 @@ class DbNameUtil implements DbPlatformNames {
 
   /**
    * Normalise the database product/platform name.
-   *
+   * <p>
    * At this point only sql server has platform specific handling required (create table and for update).
    */
   static String normalise(Connection connection) {
@@ -55,23 +54,18 @@ class DbNameUtil implements DbPlatformNames {
     // PostgreSQL driver use a non-trustable hardcoded product name.
     // The following block try to retrieve DBMS version to determine
     // if used DBMS is PostgreSQL or Cockroach.
-    PreparedStatement statement = null;
-    ResultSet resultSet = null;
-    try {
-      statement = connection.prepareStatement("SELECT version() AS \"version\"");
-      resultSet = statement.executeQuery();
-      if (resultSet.next()) {
-        String productVersion = resultSet.getString("version").toLowerCase();
-        if (productVersion.contains("cockroach")) {
-          return COCKROACH;
+
+    try (PreparedStatement statement = connection.prepareStatement("SELECT version() AS \"version\"")) {
+      try (ResultSet resultSet = statement.executeQuery()) {
+        if (resultSet.next()) {
+          String productVersion = resultSet.getString("version").toLowerCase();
+          if (productVersion.contains("cockroach")) {
+            return COCKROACH;
+          }
         }
       }
     } catch (SQLException e) {
       log.warn("Error running detection query on Postgres", e);
-
-    } finally {
-      JdbcClose.close(resultSet);
-      JdbcClose.close(statement);
     }
 
     // Real PostgreSQL DB

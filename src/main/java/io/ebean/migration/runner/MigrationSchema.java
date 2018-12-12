@@ -1,11 +1,13 @@
 package io.ebean.migration.runner;
 
 import io.ebean.migration.MigrationConfig;
-import io.ebean.migration.util.JdbcClose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Create Schema if needed and set current Schema in Migration
@@ -54,29 +56,22 @@ public class MigrationSchema {
   private void createSchemaIfNeeded() throws SQLException {
     if (!schemaExists()) {
       logger.info("Creating Schema: {}", dbSchema);
-      Statement query = connection.createStatement();
-      try {
+      try (Statement query = connection.createStatement()) {
         query.executeUpdate("CREATE SCHEMA " + dbSchema);
-      } finally {
-        JdbcClose.close(query);
       }
     }
   }
 
   private boolean schemaExists() throws SQLException {
 
-    ResultSet schemas = connection.getMetaData().getSchemas();
-    try {
+    try (ResultSet schemas = connection.getMetaData().getSchemas()) {
       while (schemas.next()) {
         String schema = schemas.getString(1);
         if (schema.equalsIgnoreCase(dbSchema)) {
           return true;
         }
       }
-    } finally {
-      JdbcClose.close(schemas);
     }
-
     return false;
   }
 

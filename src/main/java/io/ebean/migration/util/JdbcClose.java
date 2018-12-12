@@ -4,9 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 /**
  * Utility for closing raw Jdbc resources.
@@ -41,29 +39,4 @@ public class JdbcClose {
     }
   }
 
-  /**
-   * Close the resultSet logging if an error occurs.
-   */
-  public static void close(Statement statement) {
-    try {
-      if (statement != null) {
-        statement.close();
-      }
-    } catch (SQLException e) {
-      logger.warn("Error closing statement", e);
-    }
-  }
-
-  /**
-   * Close the resultSet logging if an error occurs.
-   */
-  public static void close(ResultSet resultSet) {
-    try {
-      if (resultSet != null) {
-        resultSet.close();
-      }
-    } catch (SQLException e) {
-      logger.warn("Error closing resultSet", e);
-    }
-  }
 }

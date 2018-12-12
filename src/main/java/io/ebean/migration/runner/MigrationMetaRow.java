@@ -1,7 +1,6 @@
 package io.ebean.migration.runner;
 
 import io.ebean.migration.DbPlatformNames;
-import io.ebean.migration.util.JdbcClose;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -138,8 +137,8 @@ class MigrationMetaRow {
    */
   static String insertSql(String table) {
     return "insert into " + table
-        + " (id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time)"
-        + " values (?,?,?,?,?,?,?,?,?)";
+      + " (id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time)"
+      + " values (?,?,?,?,?,?,?,?,?)";
   }
 
   /**
@@ -166,33 +165,24 @@ class MigrationMetaRow {
   }
 
   void executeUpdate(Connection connection, String updateSql) throws SQLException {
-    PreparedStatement statement = connection.prepareStatement(updateSql);
-    try {
+    try (PreparedStatement statement = connection.prepareStatement(updateSql)) {
       bindUpdate(statement);
       statement.executeUpdate();
-    } finally {
-      JdbcClose.close(statement);
     }
   }
 
   void executeInsert(Connection connection, String insertSql) throws SQLException {
-    PreparedStatement statement = connection.prepareStatement(insertSql);
-    try {
+    try (PreparedStatement statement = connection.prepareStatement(insertSql)) {
       bindInsert(statement);
       statement.executeUpdate();
-    } finally {
-      JdbcClose.close(statement);
     }
   }
 
   void resetChecksum(int newChecksum, Connection connection, String updateChecksumSql) throws SQLException {
-    PreparedStatement statement = connection.prepareStatement(updateChecksumSql);
-    try {
+    try (PreparedStatement statement = connection.prepareStatement(updateChecksumSql)) {
       statement.setInt(1, newChecksum);
       statement.setInt(2, id);
       statement.executeUpdate();
-    } finally {
-      JdbcClose.close(statement);
     }
   }
 }
