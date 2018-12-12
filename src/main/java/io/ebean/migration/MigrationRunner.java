@@ -2,8 +2,8 @@ package io.ebean.migration;
 
 import io.ebean.migration.runner.LocalMigrationResource;
 import io.ebean.migration.runner.LocalMigrationResources;
-import io.ebean.migration.runner.MigrationTable;
 import io.ebean.migration.runner.MigrationSchema;
+import io.ebean.migration.runner.MigrationTable;
 import io.ebean.migration.util.JdbcClose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,21 +134,34 @@ public class MigrationRunner {
     // get the migrations in version order
     List<LocalMigrationResource> localVersions = resources.getVersions();
 
-    logger.info("local migrations:{}  existing migrations:{}  checkState:{}", localVersions.size(), table.size(), checkStateMode);
-
-    LocalMigrationResource priorVersion = null;
-
-    // run migrations in order
-    for (LocalMigrationResource localVersion : localVersions) {
-      if (!table.shouldRun(localVersion, priorVersion)) {
-        break;
+    if (table.isEmpty()) {
+      // try to run an dbinit script
+      LocalMigrationResource initVersion = getInitVersion();
+      if (initVersion != null) {
+        table.runInit(initVersion, localVersions);
       }
-      priorVersion = localVersion;
-      connection.commit();
     }
+
+    logger.info("local migrations:{}  existing migrations:{}  checkState:{}", localVersions.size(), table.size(), checkStateMode);
+    table.runAll(localVersions);
+
     if (checkStateMode) {
       checkMigrations = table.ran();
     }
+  }
+
+  /**
+   * Return the last init migration.
+   */
+  private LocalMigrationResource getInitVersion() {
+    LocalMigrationResources initResources = new LocalMigrationResources(migrationConfig);
+    if (initResources.readInitResources()) {
+      List<LocalMigrationResource> initVersions = initResources.getVersions();
+      if (!initVersions.isEmpty()) {
+        return initVersions.get(initVersions.size() - 1);
+      }
+    }
+    return null;
   }
 
   /**

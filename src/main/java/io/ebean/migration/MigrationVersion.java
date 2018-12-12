@@ -12,6 +12,8 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
 
   private static final Logger logger = LoggerFactory.getLogger(MigrationVersion.class);
 
+  public static final String BOOTINIT_TYPE = "B";
+
   private static final String INIT_TYPE = "I";
 
   private static final String REPEAT_TYPE = "R";
@@ -63,6 +65,13 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
    */
   public boolean isRepeatable() {
     return ordering == REPEAT_ORDERING_MIN || ordering == REPEAT_ORDERING_MAX;
+  }
+
+  /**
+   * Return true if this is a "repeatable init" verision.
+   */
+  public boolean isRepeatableInit() {
+    return ordering == REPEAT_ORDERING_MIN;
   }
 
   /**

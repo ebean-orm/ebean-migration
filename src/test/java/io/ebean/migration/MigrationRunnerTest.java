@@ -108,6 +108,27 @@ public class MigrationRunnerTest {
 
   }
 
+  @Test
+  public void run_with_dbinit() {
+
+    DataSourceConfig dataSourceConfig = new DataSourceConfig();
+    dataSourceConfig.setDriver("org.h2.Driver");
+    dataSourceConfig.setUrl("jdbc:h2:mem:testsDbInit");
+    dataSourceConfig.setUsername("sa");
+    dataSourceConfig.setPassword("");
+
+    Factory factory = new Factory();
+    DataSourcePool dataSource = factory.createPool("test", dataSourceConfig);
+
+    MigrationConfig config = createMigrationConfig();
+    config.setDbUrl("jdbc:h2:mem:testsDbInit");
+    config.setMigrationPath("dbmig5_base");
+    config.setMigrationInitPath("dbmig5_init");
+
+    MigrationRunner runner = new MigrationRunner(config);
+    runner.run(dataSource);
+  }
+
   /**
    * Run this integration test manually against CockroachDB.
    */

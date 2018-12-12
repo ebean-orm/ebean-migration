@@ -32,16 +32,25 @@ public class LocalMigrationResources {
   }
 
   /**
+   * Read the init migration resources (usually only 1) returning true if there are versions.
+   */
+  public boolean readInitResources() {
+    return readResourcesForPath(migrationConfig.getMigrationInitPath());
+  }
+
+  /**
    * Read all the migration resources (SQL scripts) returning true if there are versions.
    */
   public boolean readResources() {
+    return readResourcesForPath(migrationConfig.getMigrationPath());
+  }
 
-    String migrationPath = migrationConfig.getMigrationPath();
+  private boolean readResourcesForPath(String path) {
 
     ClassLoader classLoader = migrationConfig.getClassLoader();
 
     Scanner scanner = new Scanner(classLoader);
-    List<Resource> resourceList = scanner.scanForResources(migrationPath, new Match(migrationConfig));
+    List<Resource> resourceList = scanner.scanForResources(path, new Match(migrationConfig));
 
     logger.debug("resources: {}", resourceList);
 

@@ -15,6 +15,8 @@ public class MigrationConfig {
 
   private String migrationPath = "dbmigration";
 
+  private String migrationInitPath = "dbinit";
+
   private String metaTable = "db_migration";
 
   private String applySuffix = ".sql";
@@ -188,6 +190,20 @@ public class MigrationConfig {
    */
   public void setMigrationPath(String migrationPath) {
     this.migrationPath = migrationPath;
+  }
+
+  /**
+   * Return the path for containing init migration scripts.
+   */
+  public String getMigrationInitPath() {
+    return migrationInitPath;
+  }
+
+  /**
+   * Set the path containing init migration scripts.
+   */
+  public void setMigrationInitPath(String migrationInitPath) {
+    this.migrationInitPath = migrationInitPath;
   }
 
   /**
@@ -412,6 +428,7 @@ public class MigrationConfig {
     applySuffix = props.getProperty("dbmigration.applySuffix", applySuffix);
     metaTable = props.getProperty("dbmigration.metaTable", metaTable);
     migrationPath = props.getProperty("dbmigration.migrationPath", migrationPath);
+    migrationInitPath = props.getProperty("dbmigration.migrationInitPath", migrationInitPath);
     runPlaceholders = props.getProperty("dbmigration.placeholders", runPlaceholders);
 
     String patchInsertOn = props.getProperty("dbmigration.patchInsertOn");
@@ -473,7 +490,7 @@ public class MigrationConfig {
     public JdbcMigration createInstance(String className) {
       try {
         Class<?> clazz = Class.forName(className, true, MigrationConfig.this.getClassLoader());
-        JdbcMigration migration = (JdbcMigration)clazz.newInstance();
+        JdbcMigration migration = (JdbcMigration) clazz.newInstance();
         if (migration instanceof ConfigurationAware) {
           ((ConfigurationAware) migration).setMigrationConfig(MigrationConfig.this);
         }

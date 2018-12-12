@@ -11,12 +11,15 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
 
   protected final String location;
 
+  private String type;
+
   /**
    * Construct with version and resource.
    */
   public LocalMigrationResource(MigrationVersion version, String location) {
     this.version = version;
     this.location = location;
+    this.type = version.getType();
   }
 
   public String toString() {
@@ -28,6 +31,13 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
    */
   public boolean isRepeatable() {
     return version.isRepeatable();
+  }
+
+  /**
+   * Return true if the underlying version is "repeatable init".
+   */
+  public boolean isRepeatableInit() {
+    return version.isRepeatableInit();
   }
 
   /**
@@ -80,6 +90,13 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
    * Return the type code ("R" or "V") for this migration.
    */
   public String getType() {
-    return version.getType();
+    return type;
+  }
+
+  /**
+   * Set the migration to be an Init migration.
+   */
+  public void setInitType() {
+    this.type = MigrationVersion.BOOTINIT_TYPE;
   }
 }

@@ -53,6 +53,7 @@ public class MigrationTable {
   private final Set<String> patchResetChecksumVersions;
 
   private MigrationMetaRow lastMigration;
+  private LocalMigrationResource priorVersion;
 
   private final List<LocalMigrationResource> checkMigrations = new ArrayList<>();
 
@@ -212,17 +213,24 @@ public class MigrationTable {
   /**
    * Return true if the migration ran successfully and false if the migration failed.
    */
-  public boolean shouldRun(LocalMigrationResource localVersion, LocalMigrationResource priorVersion) throws SQLException {
+  private boolean shouldRun(LocalMigrationResource localVersion, LocalMigrationResource prior) throws SQLException {
 
-    if (priorVersion != null && !localVersion.isRepeatable()) {
-      if (!migrationExists(priorVersion)) {
-        logger.error("Migration {} requires prior migration {} which has not been run", localVersion.getVersion(), priorVersion.getVersion());
+    if (prior != null && !localVersion.isRepeatable()) {
+      if (!migrationExists(prior)) {
+        logger.error("Migration {} requires prior migration {} which has not been run", localVersion.getVersion(), prior.getVersion());
         return false;
       }
     }
 
     MigrationMetaRow existing = migrations.get(localVersion.key());
-    return runMigration(localVersion, existing);
+    if (!runMigration(localVersion, existing)) {
+      return false;
+    }
+
+    // migration was run successfully ...
+    priorVersion = localVersion;
+    connection.commit();
+    return true;
   }
 
   /**
@@ -387,4 +395,51 @@ public class MigrationTable {
     }
     migrations.put(key, metaRow);
   }
+
+  /**
+   * Return true if there are no migrations.
+   */
+  public boolean isEmpty() {
+    return migrations.isEmpty();
+  }
+
+  /**
+   * Run all the migrations in order as needed.
+   */
+  public void runAll(List<LocalMigrationResource> localVersions) throws SQLException {
+    for (LocalMigrationResource localVersion : localVersions) {
+      if (!shouldRun(localVersion, priorVersion)) {
+        break;
+      }
+    }
+  }
+
+  /**
+   * Run using an init migration.
+   */
+  public void runInit(LocalMigrationResource initVersion, List<LocalMigrationResource> localVersions) throws SQLException {
+
+    runRepeatableInit(localVersions);
+
+    initVersion.setInitType();
+    if (!shouldRun(initVersion, null)) {
+      throw new IllegalStateException("Expected to run init migration but it didn't?");
+    }
+
+    // run any migrations greater that the init migration
+    for (LocalMigrationResource localVersion : localVersions) {
+      if (localVersion.compareTo(initVersion) > 0 && !shouldRun(localVersion, priorVersion)) {
+        break;
+      }
+    }
+  }
+
+  private void runRepeatableInit(List<LocalMigrationResource> localVersions) throws SQLException {
+    for (LocalMigrationResource localVersion : localVersions) {
+      if (!localVersion.isRepeatableInit() || !shouldRun(localVersion, priorVersion)) {
+        break;
+      }
+    }
+  }
+
 }
