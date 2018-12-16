@@ -2,6 +2,7 @@ package io.ebean.migration.runner;
 
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationException;
+import io.ebean.migration.MigrationVersion;
 import io.ebean.migration.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,8 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+
+import static io.ebean.migration.MigrationVersion.BOOTINIT_TYPE;
 
 /**
  * Manages the migration table.
@@ -58,6 +61,11 @@ public class MigrationTable {
   private final List<LocalMigrationResource> checkMigrations = new ArrayList<>();
 
   /**
+   * Version of a dbinit script. When set this means all migration version less than this are ignored.
+   */
+  private MigrationVersion dbInitVersion;
+
+  /**
    * Construct with server, configuration and jdbc connection (DB admin user).
    */
   public MigrationTable(MigrationConfig config, Connection connection, boolean checkState) {
@@ -80,13 +88,6 @@ public class MigrationTable {
     this.updateChecksumSql = MigrationMetaRow.updateChecksumSql(sqlTable);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
-  }
-
-  /**
-   * Return the migrations that have been run.
-   */
-  public List<LocalMigrationResource> ran() {
-    return checkMigrations;
   }
 
   private String sqlTable() {
@@ -394,6 +395,9 @@ public class MigrationTable {
       throw new IllegalStateException("No runVersion in db migration table row? " + metaRow);
     }
     migrations.put(key, metaRow);
+    if (BOOTINIT_TYPE.equals(metaRow.getType())) {
+      dbInitVersion = MigrationVersion.parse(metaRow.getVersion());
+    }
   }
 
   /**
@@ -405,19 +409,26 @@ public class MigrationTable {
 
   /**
    * Run all the migrations in order as needed.
+   *
+   * @return the migrations that have been run (collected if checkstate is true).
    */
-  public void runAll(List<LocalMigrationResource> localVersions) throws SQLException {
+  public List<LocalMigrationResource> runAll(List<LocalMigrationResource> localVersions) throws SQLException {
     for (LocalMigrationResource localVersion : localVersions) {
-      if (!shouldRun(localVersion, priorVersion)) {
+      if (!localVersion.isRepeatable() && dbInitVersion != null && dbInitVersion.compareTo(localVersion.getVersion()) >= 0) {
+        logger.debug("migration skipped by dbInitVersion {}", dbInitVersion);
+      } else if (!shouldRun(localVersion, priorVersion)) {
         break;
       }
     }
+    return checkMigrations;
   }
 
   /**
    * Run using an init migration.
+   *
+   * @return the migrations that have been run (collected if checkstate is true).
    */
-  public void runInit(LocalMigrationResource initVersion, List<LocalMigrationResource> localVersions) throws SQLException {
+  public List<LocalMigrationResource> runInit(LocalMigrationResource initVersion, List<LocalMigrationResource> localVersions) throws SQLException {
 
     runRepeatableInit(localVersions);
 
@@ -432,6 +443,7 @@ public class MigrationTable {
         break;
       }
     }
+    return checkMigrations;
   }
 
   private void runRepeatableInit(List<LocalMigrationResource> localVersions) throws SQLException {

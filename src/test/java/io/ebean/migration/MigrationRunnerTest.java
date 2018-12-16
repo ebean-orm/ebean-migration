@@ -127,6 +127,9 @@ public class MigrationRunnerTest {
 
     MigrationRunner runner = new MigrationRunner(config);
     runner.run(dataSource);
+
+    MigrationRunner runner2 = new MigrationRunner(config);
+    runner2.run(dataSource);
   }
 
   /**

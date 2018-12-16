@@ -126,6 +126,7 @@ public class MigrationRunner {
    * Run all the migrations as needed.
    */
   private void runMigrations(LocalMigrationResources resources, Connection connection, boolean checkStateMode) throws SQLException, IOException {
+
     derivePlatformName(migrationConfig, connection);
 
     MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode);
@@ -135,19 +136,17 @@ public class MigrationRunner {
     List<LocalMigrationResource> localVersions = resources.getVersions();
 
     if (table.isEmpty()) {
-      // try to run an dbinit script
       LocalMigrationResource initVersion = getInitVersion();
       if (initVersion != null) {
-        table.runInit(initVersion, localVersions);
+        // run using a dbinit script
+        logger.info("dbinit migration version:{}  local migrations:{}  checkState:{}", initVersion, localVersions.size(), checkStateMode);
+        checkMigrations = table.runInit(initVersion, localVersions);
+        return;
       }
     }
 
     logger.info("local migrations:{}  existing migrations:{}  checkState:{}", localVersions.size(), table.size(), checkStateMode);
-    table.runAll(localVersions);
-
-    if (checkStateMode) {
-      checkMigrations = table.ran();
-    }
+    checkMigrations = table.runAll(localVersions);
   }
 
   /**

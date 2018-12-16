@@ -86,6 +86,10 @@ class MigrationMetaRow {
     return checksum;
   }
 
+  String getType() {
+    return type;
+  }
+
   /**
    * Bind to the insert statement.
    */
