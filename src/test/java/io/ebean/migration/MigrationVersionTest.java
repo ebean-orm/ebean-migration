@@ -187,12 +187,12 @@ public class MigrationVersionTest {
 
     MigrationVersion v4 = MigrationVersion.parse("1.1_1.2");
 
-    assertThat(v0.compareTo(v1)).isGreaterThan(0);
-    assertThat(v1.compareTo(v0)).isLessThan(0);
+    assertThat(v0.compareTo(v1)).isEqualTo(0);
+    assertThat(v1.compareTo(v0)).isEqualTo(0);
     assertThat(v1.compareTo(v2)).isEqualTo(0);
 
-    assertThat(v0.compareTo(v3)).isLessThan(0);
-    assertThat(v3.compareTo(v0)).isGreaterThan(0);
+    assertThat(v0.compareTo(v3)).isEqualTo(0);
+    assertThat(v3.compareTo(v0)).isEqualTo(0);
 
     assertThat(v4.compareTo(v2)).isEqualTo(0);
   }

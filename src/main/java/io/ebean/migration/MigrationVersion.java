@@ -163,7 +163,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
     if (ordering.length < otherLength) {
       return -1;
     }
-    return comment.compareTo(other.comment);
+    return isRepeatable() ? comment.compareTo(other.comment) : 0;
   }
 
   /**
