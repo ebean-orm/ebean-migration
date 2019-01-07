@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Utilities for IO.
@@ -12,16 +14,23 @@ import java.io.UnsupportedEncodingException;
 public class IOUtils {
 
   /**
-   * Reads the entire contents of the specified input stream and returns them
-   * as UTF-8 string.
+   * Reads the entire contents of the specified URL and return them as UTF-8 string.
+   */
+  public static String readUtf8(URL url) throws IOException {
+    URLConnection urlConnection = url.openConnection();
+    urlConnection.setUseCaches(false);
+    return readUtf8(urlConnection.getInputStream());
+  }
+
+  /**
+   * Reads the entire contents of the specified input stream and return them as UTF-8 string.
    */
   public static String readUtf8(InputStream in) throws IOException {
     return bytesToUtf8(read(in));
   }
 
   /**
-   * Reads the entire contents of the specified input stream and returns them
-   * as a byte array.
+   * Reads the entire contents of the specified input stream and returns them as a byte array.
    */
   private static byte[] read(InputStream in) throws IOException {
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();

@@ -184,7 +184,7 @@ public class MigrationTable {
     Enumeration<URL> resources = getClassLoader().getResources(location);
     if (resources.hasMoreElements()) {
       URL url = resources.nextElement();
-      return IOUtils.readUtf8(url.openStream());
+      return IOUtils.readUtf8(url);
     }
     return null;
   }
