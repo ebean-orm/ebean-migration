@@ -26,4 +26,8 @@ public class V1_2_1__test implements JdbcMigration, ConfigurationAware{
     System.out.println("Executing migration on " + connection);
   }
 
+  @Override
+  public String toString() {
+    return "Dummy jdbc migration";
+  }
 }
