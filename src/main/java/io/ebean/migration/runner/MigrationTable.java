@@ -1,5 +1,6 @@
 package io.ebean.migration.runner;
 
+import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationException;
 import io.ebean.migration.MigrationVersion;
@@ -28,7 +29,7 @@ import static io.ebean.migration.MigrationVersion.BOOTINIT_TYPE;
  */
 public class MigrationTable {
 
-  private static final Logger logger = LoggerFactory.getLogger(MigrationTable.class);
+  private static final Logger logger = LoggerFactory.getLogger("io.ebean.DDL");
 
   private final Connection connection;
   private final boolean checkState;
@@ -336,7 +337,9 @@ public class MigrationTable {
       MigrationScriptRunner run = new MigrationScriptRunner(connection);
       run.runScript(false, script, "run migration version: " + local.getVersion());
     } else {
-      ((LocalJdbcMigrationResource) local).getMigration().migrate(connection);
+      JdbcMigration migration = ((LocalJdbcMigrationResource) local).getMigration();
+      logger.info("Executing jdbc migration version: {} - {}", local.getVersion(), migration);
+      migration.migrate(connection);
     }
     long exeMillis = System.currentTimeMillis() - start;
 
