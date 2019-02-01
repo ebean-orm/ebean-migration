@@ -29,7 +29,7 @@ import static io.ebean.migration.MigrationVersion.BOOTINIT_TYPE;
  */
 public class MigrationTable {
 
-  private static final Logger logger = LoggerFactory.getLogger(MigrationTable.class);
+  private static final Logger logger = LoggerFactory.getLogger("io.ebean.DDL");
 
   private final Connection connection;
   private final boolean checkState;
