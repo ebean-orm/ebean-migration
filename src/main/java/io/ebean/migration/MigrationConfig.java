@@ -40,6 +40,8 @@ public class MigrationConfig {
 
   private boolean setCurrentSchema = true;
 
+  private boolean allowErrorInRepeatable;
+
   private String platformName;
 
   private JdbcMigrationFactory jdbcMigrationFactory = new DefaultMigrationFactory();
@@ -84,6 +86,20 @@ public class MigrationConfig {
       return versions;
     }
     return null;
+  }
+
+  /**
+   * Return true if we continue running the migration when a repeatable migration fails.
+   */
+  public boolean isAllowErrorInRepeatable() {
+    return allowErrorInRepeatable;
+  }
+
+  /**
+   * Set to true to continue running the migration when a repeatable migration fails.
+   */
+  public void setAllowErrorInRepeatable(boolean allowErrorInRepeatable) {
+    this.allowErrorInRepeatable = allowErrorInRepeatable;
   }
 
   /**

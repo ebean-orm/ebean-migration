@@ -75,6 +75,13 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
   }
 
   /**
+   * Return true if this is a "repeatable last" verision.
+   */
+  public boolean isRepeatableLast() {
+    return ordering == REPEAT_ORDERING_MAX;
+  }
+
+  /**
    * Return the full version.
    */
   public String getFull() {

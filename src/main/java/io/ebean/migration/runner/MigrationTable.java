@@ -55,6 +55,7 @@ public class MigrationTable {
 
   private final Set<String> patchInsertVersions;
   private final Set<String> patchResetChecksumVersions;
+  private final boolean allowErrorInRepeatable;
 
   private MigrationMetaRow lastMigration;
   private LocalMigrationResource priorVersion;
@@ -76,6 +77,7 @@ public class MigrationTable {
     this.migrations = new LinkedHashMap<>();
 
     this.catalog = null;
+    this.allowErrorInRepeatable = config.isAllowErrorInRepeatable();
     this.patchResetChecksumVersions = config.getPatchResetChecksumOn();
     this.patchInsertVersions = config.getPatchInsertOn();
     this.skipChecksum = config.isSkipChecksum();
@@ -231,7 +233,6 @@ public class MigrationTable {
 
     // migration was run successfully ...
     priorVersion = localVersion;
-    connection.commit();
     return true;
   }
 
@@ -333,22 +334,31 @@ public class MigrationTable {
     logger.debug("run migration {}", local.getLocation());
 
     long start = System.currentTimeMillis();
-    if (local instanceof LocalDdlMigrationResource) {
-      MigrationScriptRunner run = new MigrationScriptRunner(connection);
-      run.runScript(false, script, "run migration version: " + local.getVersion());
-    } else {
-      JdbcMigration migration = ((LocalJdbcMigrationResource) local).getMigration();
-      logger.info("Executing jdbc migration version: {} - {}", local.getVersion(), migration);
-      migration.migrate(connection);
-    }
-    long exeMillis = System.currentTimeMillis() - start;
+    try {
+      if (local instanceof LocalDdlMigrationResource) {
+        MigrationScriptRunner run = new MigrationScriptRunner(connection);
+        run.runScript(false, script, "run migration version: " + local.getVersion());
+      } else {
+        JdbcMigration migration = ((LocalJdbcMigrationResource) local).getMigration();
+        logger.info("Executing jdbc migration version: {} - {}", local.getVersion(), migration);
+        migration.migrate(connection);
+      }
+      long exeMillis = System.currentTimeMillis() - start;
 
-    if (existing != null) {
-      existing.rerun(checksum, exeMillis, envUserName, runOn);
-      existing.executeUpdate(connection, updateSql);
+      if (existing != null) {
+        existing.rerun(checksum, exeMillis, envUserName, runOn);
+        existing.executeUpdate(connection, updateSql);
 
-    } else {
-      insertIntoHistory(local, checksum, exeMillis);
+      } else {
+        insertIntoHistory(local, checksum, exeMillis);
+      }
+    } catch (SQLException e) {
+      if (allowErrorInRepeatable && local.isRepeatableLast()) {
+        // log the exception and continue on repeatable migration
+        logger.error("Continue migration with error executing repeatable migration " + local.getVersion(), e);
+      } else {
+        throw e;
+      }
     }
   }
 

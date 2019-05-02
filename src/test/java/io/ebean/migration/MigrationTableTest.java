@@ -1,15 +1,11 @@
 package io.ebean.migration;
 
-import io.ebean.migration.runner.LocalMigrationResource;
 import io.ebean.migration.runner.MigrationTable;
-
 import org.avaje.datasource.DataSourceConfig;
 import org.avaje.datasource.DataSourcePool;
 import org.avaje.datasource.Factory;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
@@ -19,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class MigrationTableTest {
 
@@ -95,6 +90,7 @@ public class MigrationTableTest {
   public void testMigrationTableRepeatableFail() throws Exception {
 
     config.setMigrationPath("tabletest1");
+    config.setAllowErrorInRepeatable(true);
 
     MigrationRunner runner = new MigrationRunner(config);
     runner.run(dataSource);
@@ -111,8 +107,7 @@ public class MigrationTableTest {
 
     MigrationRunner runner2 = new MigrationRunner(config);
 
-    // so this run will fail, because the "R__" script contains an error
-    assertThatThrownBy(() -> runner2.run(dataSource)).hasMessageContaining("i am corrupt");
+    runner2.run(dataSource);
 
     try (Connection conn = dataSource.getConnection()) {
 

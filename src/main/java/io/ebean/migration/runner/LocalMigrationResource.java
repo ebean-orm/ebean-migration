@@ -41,6 +41,13 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
   }
 
   /**
+   * Return true if the underlying version is "repeatable last".
+   */
+  public boolean isRepeatableLast() {
+    return version.isRepeatableLast();
+  }
+
+  /**
    * Return the "key" that identifies the migration.
    */
   public String key() {
