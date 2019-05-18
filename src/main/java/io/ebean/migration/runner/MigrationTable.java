@@ -138,8 +138,32 @@ public class MigrationTable {
     if (!tableExists(connection)) {
       createTable(connection);
     }
+    obtainLockWithWait();
+    readExistingMigrations();
+  }
 
-    // load existing migrations, hold DB lock on migration table
+  /**
+   * Obtain lock with wait, note that other nodes can insert and commit
+   * into the migration table during the wait so this query result won't
+   * contain all the executed migrations in that case.
+   */
+  private void obtainLockWithWait() throws SQLException {
+    try (PreparedStatement query = connection.prepareStatement(selectSql)) {
+      try (ResultSet resultSet = query.executeQuery()) {
+        while (resultSet.next()) {
+          resultSet.getInt(1);
+        }
+      }
+    }
+  }
+
+  /**
+   * Read the migration table with details on what migrations have run.
+   * This must execute after we have completed the wait for the lock on
+   * the migration table such that it reads any migrations that have
+   * executed during the wait for the lock.
+   */
+  private void readExistingMigrations() throws SQLException {
     try (PreparedStatement query = connection.prepareStatement(selectSql)) {
       try (ResultSet resultSet = query.executeQuery()) {
         while (resultSet.next()) {
@@ -152,9 +176,8 @@ public class MigrationTable {
 
   private void createTable(Connection connection) throws IOException, SQLException {
 
-    String tableScript = createTableDdl();
     MigrationScriptRunner run = new MigrationScriptRunner(connection);
-    run.runScript(false, tableScript, "create migration table");
+    run.runScript(false, createTableDdl(), "create migration table");
   }
 
   /**
