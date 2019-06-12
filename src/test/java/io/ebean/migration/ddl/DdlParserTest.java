@@ -1,8 +1,10 @@
 package io.ebean.migration.ddl;
 
+import org.testng.annotations.Test;
+
 import java.io.StringReader;
 import java.util.List;
-import org.testng.annotations.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DdlParserTest {
@@ -70,6 +72,27 @@ public class DdlParserTest {
 
     List<String> stmts = parser.parse(new StringReader("one; -- comment\ntwo;"));
     assertThat(stmts).containsExactly("one;", "two;");
+  }
+
+  @Test
+  public void parse_semiInContent_noLinefeedInContent() {
+
+    List<String> stmts = parser.parse(new StringReader("insert ('one;x');"));
+    assertThat(stmts).containsExactly("insert ('one;x');");
+  }
+
+  @Test
+  public void parse_semiNewLineInContent_withLinefeedInContent2() {
+
+    List<String> stmts = parser.parse(new StringReader("insert ('on;e\n');"));
+    assertThat(stmts).containsExactly("insert ('on;e\n');");
+  }
+
+  @Test
+  public void parse_semiNewLineInContent_withLinefeedInContent3() {
+
+    List<String> stmts = parser.parse(new StringReader("insert ('one;\n');"));
+    assertThat(stmts).containsExactly("insert ('one;\n');");
   }
 
   @Test

@@ -51,6 +51,8 @@ public class DdlParser {
 
     StringBuilder sb = new StringBuilder();
 
+    int quoteCount;
+
     void lineContainsDollars(String line) {
       if (inDbProcedure) {
         if (trimDelimiter) {
@@ -71,6 +73,7 @@ public class DdlParser {
       // end of Db procedure
       sb.append(line);
       statements.add(sb.toString().trim());
+      quoteCount = 0;
       sb = new StringBuilder();
     }
 
@@ -90,6 +93,14 @@ public class DdlParser {
         // ignore leading empty lines and sql comments
         return;
       }
+
+      quoteCount += countQuotes(line);
+      if (hasOddQuotes()) {
+        // must continue
+        sb.append(line).append(EOL);
+        return;
+      }
+
       int semiPos = line.lastIndexOf(';');
       if (semiPos == -1) {
         sb.append(line).append(EOL);
@@ -100,14 +111,36 @@ public class DdlParser {
 
       } else {
         // semicolon in middle of line
-        String preSemi = line.substring(0, semiPos + 1);
-        endOfStatement(preSemi);
-
         String remaining = line.substring(semiPos + 1).trim();
         if (!remaining.startsWith("--")) {
-          sb.append(remaining).append("\n");
+          // remaining not an inline sql comment so keep going ...
+          sb.append(line).append(EOL);
+          return;
+        }
+
+        String preSemi = line.substring(0, semiPos + 1);
+        endOfStatement(preSemi);
+      }
+    }
+
+    /**
+     * Return true if the count of quotes is odd.
+     */
+    private boolean hasOddQuotes() {
+      return quoteCount % 2 == 1;
+    }
+
+    /**
+     * Return the count of single quotes in the content.
+     */
+    private int countQuotes(String content) {
+      int count = 0;
+      for (int i = 0; i < content.length(); i++) {
+        if (content.charAt(i) == '\'') {
+          count++;
         }
       }
+      return count;
     }
 
     /**
