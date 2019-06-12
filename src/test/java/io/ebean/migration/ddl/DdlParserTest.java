@@ -87,6 +87,13 @@ public class DdlParserTest {
   }
 
   @Test
+  public void parse_semiInContent_withLinefeedInContent() {
+
+    List<String> stmts = parser.parse(new StringReader("insert ('one;\n');"));
+    assertThat(stmts).containsExactly("insert ('one;\n');");
+  }
+
+  @Test
   public void parse_noTailingSemi() {
 
     List<String> stmts = parser.parse(new StringReader("one"));
