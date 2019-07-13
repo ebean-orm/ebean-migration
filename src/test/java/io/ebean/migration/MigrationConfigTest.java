@@ -7,7 +7,9 @@ import java.util.Properties;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
 public class MigrationConfigTest {
 
@@ -45,6 +47,7 @@ public class MigrationConfigTest {
     props.setProperty("dbmigration.applySuffix","applySuffix");
     props.setProperty("dbmigration.placeholders","placeholders");
     props.setProperty("dbmigration.migrationPath","migrationPath");
+    props.setProperty("dbmigration.patchResetChecksumOn", "1.1,1.2");
 
     MigrationConfig config = new MigrationConfig();
     config.load(props);
@@ -60,7 +63,7 @@ public class MigrationConfigTest {
     assertEquals(config.getMetaTable(), "metaTable");
     assertEquals(config.getRunPlaceholders(), "placeholders");
     assertEquals(config.getMigrationPath(), "migrationPath");
-
+    assertThat(config.getPatchResetChecksumOn()).contains("1.1", "1.2");
   }
 
   @Test

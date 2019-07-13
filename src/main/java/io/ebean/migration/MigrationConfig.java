@@ -452,7 +452,7 @@ public class MigrationConfig {
       setPatchInsertOn(patchInsertOn);
     }
     String patchResetChecksumOn = props.getProperty("dbmigration.patchResetChecksumOn");
-    if (patchInsertOn != null) {
+    if (patchResetChecksumOn != null) {
       setPatchResetChecksumOn(patchResetChecksumOn);
     }
     String runPlaceholders = props.getProperty("dbmigration.runPlaceholders");
