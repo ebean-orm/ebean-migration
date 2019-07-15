@@ -1,5 +1,6 @@
 package io.ebean.migration;
 
+import io.ebean.migration.runner.MigrationPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,5 +71,20 @@ class DbNameUtil implements DbPlatformNames {
 
     // Real PostgreSQL DB
     return POSTGRES;
+  }
+
+  static MigrationPlatform platform(String platformName) {
+
+    switch (platformName) {
+      case POSTGRES:
+        return new MigrationPlatform.Postgres();
+      case SQLSERVER:
+        return new MigrationPlatform.SqlServer();
+      case SQLITE:
+      case COCKROACH:
+        return new MigrationPlatform.NoLocking();
+      default:
+        return new MigrationPlatform();
+    }
   }
 }

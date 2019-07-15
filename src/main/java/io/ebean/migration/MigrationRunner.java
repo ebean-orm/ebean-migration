@@ -2,6 +2,7 @@ package io.ebean.migration;
 
 import io.ebean.migration.runner.LocalMigrationResource;
 import io.ebean.migration.runner.LocalMigrationResources;
+import io.ebean.migration.runner.MigrationPlatform;
 import io.ebean.migration.runner.MigrationSchema;
 import io.ebean.migration.runner.MigrationTable;
 import io.ebean.migration.util.JdbcClose;
@@ -9,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -92,7 +92,7 @@ public class MigrationRunner {
   /**
    * Run the migrations if there are any that need running.
    */
-  public void run(Connection connection, boolean checkStateMode) {
+  private void run(Connection connection, boolean checkStateMode) {
 
     LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
     if (!resources.readResources()) {
@@ -102,11 +102,14 @@ public class MigrationRunner {
 
     try {
       connection.setAutoCommit(false);
+      MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
 
-      MigrationSchema schema = new MigrationSchema(migrationConfig, connection);
-      schema.createAndSetIfNeeded();
+      new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
 
-      runMigrations(resources, connection, checkStateMode);
+      MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode);
+      table.createIfNeededAndLock(platform);
+
+      runMigrations(resources, table, checkStateMode);
       connection.commit();
 
     } catch (MigrationException e) {
@@ -125,12 +128,7 @@ public class MigrationRunner {
   /**
    * Run all the migrations as needed.
    */
-  private void runMigrations(LocalMigrationResources resources, Connection connection, boolean checkStateMode) throws SQLException, IOException {
-
-    derivePlatformName(migrationConfig, connection);
-
-    MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode);
-    table.createIfNeededAndLock();
+  private void runMigrations(LocalMigrationResources resources, MigrationTable table, boolean checkStateMode) throws SQLException {
 
     // get the migrations in version order
     List<LocalMigrationResource> localVersions = resources.getVersions();
@@ -164,13 +162,17 @@ public class MigrationRunner {
   }
 
   /**
-   * Derive and set the platform name if required.
+   * Return the platform deriving from connection if required.
    */
-  private void derivePlatformName(MigrationConfig migrationConfig, Connection connection) {
+  private MigrationPlatform derivePlatformName(MigrationConfig migrationConfig, Connection connection) {
 
-    if (migrationConfig.getPlatformName() == null) {
-      migrationConfig.setPlatformName(DbNameUtil.normalise(connection));
+    String platformName = migrationConfig.getPlatformName();
+    if (platformName == null) {
+      platformName = DbNameUtil.normalise(connection);
+      migrationConfig.setPlatformName(platformName);
     }
+
+    return DbNameUtil.platform(platformName);
   }
 
 }

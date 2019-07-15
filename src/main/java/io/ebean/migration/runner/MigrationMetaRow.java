@@ -1,7 +1,5 @@
 package io.ebean.migration.runner;
 
-import io.ebean.migration.DbPlatformNames;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -93,7 +91,7 @@ class MigrationMetaRow {
   /**
    * Bind to the insert statement.
    */
-  void bindInsert(PreparedStatement insert) throws SQLException {
+  private void bindInsert(PreparedStatement insert) throws SQLException {
     insert.setInt(1, id);
     insert.setString(2, type);
     insert.setString(3, "SUCCESS");
@@ -108,32 +106,12 @@ class MigrationMetaRow {
   /**
    * Bind to the insert statement.
    */
-  void bindUpdate(PreparedStatement update) throws SQLException {
+  private void bindUpdate(PreparedStatement update) throws SQLException {
     update.setInt(1, checksum);
     update.setTimestamp(2, runOn);
     update.setString(3, runBy);
     update.setLong(4, runTime);
     update.setInt(5, id);
-  }
-
-  /**
-   * Return the SQL insert given the table migration meta data is stored in.
-   */
-  static String selectSql(String table, String platform) {
-    if (platform == null) {
-      platform = "";
-    }
-    String sql = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from " + table;
-    switch (platform) {
-      case DbPlatformNames.SQLSERVER:
-        return sql + " with (updlock) order by id";
-      case DbPlatformNames.SQLITE:
-        return sql + " order by id";
-      case DbPlatformNames.COCKROACH:
-        return sql + " order by id";
-      default:
-        return sql + " order by id for update";
-    }
   }
 
   /**

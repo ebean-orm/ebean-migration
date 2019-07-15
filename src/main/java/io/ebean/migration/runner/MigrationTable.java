@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -48,7 +47,6 @@ public class MigrationTable {
   private final String insertSql;
   private final String updateSql;
   private final String updateChecksumSql;
-  private final String selectSql;
 
   private final LinkedHashMap<String, MigrationMetaRow> migrations;
   private final boolean skipChecksum;
@@ -84,8 +82,7 @@ public class MigrationTable {
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
     this.platformName = config.getPlatformName();
-    this.sqlTable = sqlTable();
-    this.selectSql = MigrationMetaRow.selectSql(sqlTable, platformName);
+    this.sqlTable = initSqlTable();
     this.insertSql = MigrationMetaRow.insertSql(sqlTable);
     this.updateSql = MigrationMetaRow.updateSql(sqlTable);
     this.updateChecksumSql = MigrationMetaRow.updateChecksumSql(sqlTable);
@@ -93,7 +90,7 @@ public class MigrationTable {
     this.envUserName = System.getProperty("user.name");
   }
 
-  private String sqlTable() {
+  private String initSqlTable() {
     if (schema != null) {
       return schema + "." + table;
     } else {
@@ -133,13 +130,13 @@ public class MigrationTable {
    * Also holds DB lock on migration table and loads existing migrations.
    * </p>
    */
-  public void createIfNeededAndLock() throws SQLException, IOException {
+  public void createIfNeededAndLock(MigrationPlatform platform) throws SQLException, IOException {
 
     if (!tableExists(connection)) {
       createTable(connection);
     }
-    obtainLockWithWait();
-    readExistingMigrations();
+    obtainLockWithWait(platform);
+    readExistingMigrations(platform);
   }
 
   /**
@@ -147,14 +144,8 @@ public class MigrationTable {
    * into the migration table during the wait so this query result won't
    * contain all the executed migrations in that case.
    */
-  private void obtainLockWithWait() throws SQLException {
-    try (PreparedStatement query = connection.prepareStatement(selectSql)) {
-      try (ResultSet resultSet = query.executeQuery()) {
-        while (resultSet.next()) {
-          resultSet.getInt(1);
-        }
-      }
-    }
+  private void obtainLockWithWait(MigrationPlatform platform) throws SQLException {
+    platform.lockMigrationTable(sqlTable, connection);
   }
 
   /**
@@ -163,14 +154,9 @@ public class MigrationTable {
    * the migration table such that it reads any migrations that have
    * executed during the wait for the lock.
    */
-  private void readExistingMigrations() throws SQLException {
-    try (PreparedStatement query = connection.prepareStatement(selectSql)) {
-      try (ResultSet resultSet = query.executeQuery()) {
-        while (resultSet.next()) {
-          MigrationMetaRow metaRow = new MigrationMetaRow(resultSet);
-          addMigration(metaRow.getVersion(), metaRow);
-        }
-      }
+  private void readExistingMigrations(MigrationPlatform platform) throws SQLException {
+    for (MigrationMetaRow metaRow : platform.readExistingMigrations(sqlTable, connection)) {
+      addMigration(metaRow.getVersion(), metaRow);
     }
   }
 

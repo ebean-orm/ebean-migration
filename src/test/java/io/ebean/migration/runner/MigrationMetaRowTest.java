@@ -1,6 +1,5 @@
 package io.ebean.migration.runner;
 
-import io.ebean.migration.DbPlatformNames;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,19 +8,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MigrationMetaRowTest {
 
   @Test
-  public void testSelectSql() throws Exception {
+  public void testSelectSql() {
 
-    String sql = MigrationMetaRow.selectSql("someTable", DbPlatformNames.SQLSERVER);
+    final MigrationPlatform sqlServer = new MigrationPlatform.SqlServer();
+    String sql = sqlServer.selectSql("someTable");
     assertThat(sql).isEqualTo("select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from someTable with (updlock) order by id");
 
-    sql = MigrationMetaRow.selectSql("someTable", DbPlatformNames.SQLITE);
+    final MigrationPlatform noLocking = new MigrationPlatform.NoLocking();
+    sql = noLocking.selectSql("someTable");
     assertThat(sql).isEqualTo("select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from someTable order by id");
 
-    sql = MigrationMetaRow.selectSql("someTable", DbPlatformNames.POSTGRES);
+    final MigrationPlatform postgres = new MigrationPlatform.Postgres();
+    sql = postgres.selectSql("someTable");
     assertThat(sql).isEqualTo("select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from someTable order by id for update");
 
-    sql = MigrationMetaRow.selectSql("someTable", DbPlatformNames.COCKROACH);
-    assertThat(sql).isEqualTo("select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from someTable order by id");
+    final MigrationPlatform defaultPlatform = new MigrationPlatform();
+    sql = defaultPlatform.selectSql("someTable");
+    assertThat(sql).isEqualTo("select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from someTable order by id for update");
   }
 
 }
