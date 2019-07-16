@@ -1,5 +1,10 @@
 package io.ebean.migration;
 
+import io.ebean.docker.commands.DbConfig;
+import io.ebean.docker.commands.MySqlConfig;
+import io.ebean.docker.commands.MySqlContainer;
+import io.ebean.docker.commands.OracleConfig;
+import io.ebean.docker.commands.OracleContainer;
 import io.ebean.docker.commands.PostgresConfig;
 import io.ebean.docker.commands.PostgresContainer;
 import io.ebean.docker.commands.SqlServerConfig;
@@ -15,53 +20,81 @@ public class MigrationRunner_platform_Test {
 
   private final PostgresContainer postgresContainer = createPostgres();
   private final SqlServerContainer sqlServerContainer = createSqlServer();
+  private final MySqlContainer mysqlContainer = createMySqlContainer();
+  private final OracleContainer oracleContainer = createOracleContainer();
+
+  private static void setContainerName(DbConfig config, String suffix) {
+    config.setContainerName("test_ebean_migration_" + suffix);
+    config.setUser("mig_test");
+    config.setDbName("mig_test");
+  }
 
   private static PostgresContainer createPostgres() {
     PostgresConfig config = new PostgresConfig("10.1");
-    config.setContainerName("test_ebean_migration_pg10");
     config.setPort("9823");
-    config.setFastStartMode(true);
-    config.setUser("mig_test");
-    config.setDbName("mig_test");
-
+    setContainerName(config, "pg10");
     return new PostgresContainer(config);
-  }
-
-  private MigrationConfig postgresMigrationConfig() {
-
-    MigrationConfig config = new MigrationConfig();
-    config.setDbDriver("org.postgresql.Driver");
-    config.setDbUrl("jdbc:postgresql://localhost:9823/mig_test");
-    config.setDbUsername("mig_test");
-    config.setDbPassword("mig_test");
-    return config;
   }
 
   private static SqlServerContainer createSqlServer() {
     SqlServerConfig config = new SqlServerConfig("2017-GA-ubuntu");
-    config.setContainerName("test_ebean_migration_sql17");
     config.setPort("2433");
-    config.setUser("mig_test");
-    config.setDbName("mig_test");
-
+    setContainerName(config, "sql17");
     return new SqlServerContainer(config);
   }
 
-  private MigrationConfig sqlServerMigrationConfig() {
+  private static MySqlContainer createMySqlContainer() {
+    MySqlConfig config = new MySqlConfig("8.0");
+    setContainerName(config, "mysql");
+    return new MySqlContainer(config);
+  }
 
+  private static OracleContainer createOracleContainer() {
+    OracleConfig config = new OracleConfig("latest");
+    setContainerName(config, "oracle");
+    config.setDbName("XE");
+    config.setImage("oracleinanutshell/oracle-xe-11g:latest");
+    return new OracleContainer(config);
+  }
+
+  private MigrationConfig newMigrationConfig() {
     MigrationConfig config = new MigrationConfig();
-    config.setDbDriver("com.microsoft.sqlserver.jdbc.SQLServerDriver");
     config.setDbUsername("mig_test");
+    config.setDbPassword("test");
+    return config;
+  }
+
+  private MigrationConfig postgresMigrationConfig() {
+    MigrationConfig config = newMigrationConfig();
+    config.setDbDriver("org.postgresql.Driver");
+    config.setDbUrl(postgresContainer.jdbcUrl());
+    return config;
+  }
+
+  private MigrationConfig sqlServerMigrationConfig() {
+    MigrationConfig config = newMigrationConfig();
     config.setDbPassword("SqlS3rv#r");
+    config.setDbDriver("com.microsoft.sqlserver.jdbc.SQLServerDriver");
     config.setDbUrl(sqlServerContainer.jdbcUrl());
     return config;
   }
 
-  /**
-   * Run manually against Postgres and other platforms.
-   */
+  private MigrationConfig mysqlMigrationConfig() {
+    MigrationConfig config = newMigrationConfig();
+    config.setDbDriver("com.mysql.cj.jdbc.Driver");
+    config.setDbUrl(mysqlContainer.jdbcUrl());
+    return config;
+  }
+
+  private MigrationConfig oracleMigrationConfig() {
+    MigrationConfig config = newMigrationConfig();
+    config.setDbDriver("oracle.jdbc.OracleDriver");
+    config.setDbUrl(oracleContainer.jdbcUrl());
+    return config;
+  }
+
   @Test
-  public void run_when_suppliedDataSource() throws SQLException {
+  public void postgres_migration() throws SQLException {
 
     postgresContainer.start();
 
@@ -85,7 +118,7 @@ public class MigrationRunner_platform_Test {
       readQuery(connection, "select * from m3");
     }
 
-    postgresContainer.stop();
+    postgresContainer.stopRemove();
   }
 
   @Test
@@ -95,7 +128,7 @@ public class MigrationRunner_platform_Test {
 
     MigrationConfig config = sqlServerMigrationConfig();
 
-    config.setMigrationPath("dbmig_sqlserver");
+    config.setMigrationPath("dbmig_basic");
 
     MigrationRunner runner = new MigrationRunner(config);
     runner.run();
@@ -106,7 +139,49 @@ public class MigrationRunner_platform_Test {
       readQuery(connection, "select * from m3");
     }
 
-    sqlServerContainer.stop();
+    sqlServerContainer.stopRemove();
+  }
+
+  @Test
+  public void mysql_migration() throws SQLException {
+
+    mysqlContainer.startWithDropCreate();
+
+    MigrationConfig config = mysqlMigrationConfig();
+
+    config.setMigrationPath("dbmig_basic");
+
+    MigrationRunner runner = new MigrationRunner(config);
+    runner.run();
+
+    try (Connection connection = mysqlContainer.createConnection()) {
+      readQuery(connection, "select * from m1");
+      readQuery(connection, "select * from m2");
+      readQuery(connection, "select * from m3");
+    }
+
+    mysqlContainer.stopRemove();
+  }
+
+  @Test
+  public void oracle_migration() throws SQLException {
+
+    oracleContainer.startWithDropCreate();
+
+    MigrationConfig config = oracleMigrationConfig();
+
+    config.setMigrationPath("dbmig_basic");
+
+    MigrationRunner runner = new MigrationRunner(config);
+    runner.run();
+
+    try (Connection connection = oracleContainer.createConnection()) {
+      readQuery(connection, "select * from m1");
+      readQuery(connection, "select * from m2");
+      readQuery(connection, "select * from m3");
+    }
+
+    oracleContainer.stopRemove();
   }
 
   private void readQuery(Connection connection, String sql) throws SQLException {
