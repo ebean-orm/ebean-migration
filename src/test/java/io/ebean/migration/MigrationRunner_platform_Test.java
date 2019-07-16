@@ -124,7 +124,7 @@ public class MigrationRunner_platform_Test {
   @Test
   public void sqlServer_migration() throws SQLException {
 
-    sqlServerContainer.start();
+    sqlServerContainer.startWithDropCreate();
 
     MigrationConfig config = sqlServerMigrationConfig();
 
@@ -163,7 +163,7 @@ public class MigrationRunner_platform_Test {
     mysqlContainer.stopRemove();
   }
 
-  @Test
+  @Test(enabled = false)
   public void oracle_migration() throws SQLException {
 
     oracleContainer.startWithDropCreate();
@@ -181,7 +181,7 @@ public class MigrationRunner_platform_Test {
       readQuery(connection, "select * from m3");
     }
 
-    oracleContainer.stopRemove();
+    //oracleContainer.stopRemove();
   }
 
   private void readQuery(Connection connection, String sql) throws SQLException {

@@ -29,7 +29,7 @@
     <dependency>
       <groupId>org.avaje</groupId>
       <artifactId>avaje-classpath-scanner</artifactId>
-      <version>3.1.1</version>
+      <version>3.3.1</version>
     </dependency>
 
     <!-- test dependencies -->
@@ -66,12 +66,12 @@
 mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
           -DartifactId=oracle-jdbc -Dversion=7.0 -Dpackaging=jar
 -->
-    <dependency>
-      <groupId>oracle</groupId>
-      <artifactId>oracle-jdbc</artifactId>
-      <version>8.0</version>
-      <scope>test</scope>
-    </dependency>
+    <!--    <dependency>-->
+    <!--      <groupId>oracle</groupId>-->
+    <!--      <artifactId>oracle-jdbc</artifactId>-->
+    <!--      <version>8.0</version>-->
+    <!--      <scope>test</scope>-->
+    <!--    </dependency>-->
 
     <dependency>
       <groupId>io.ebean.test</groupId>
