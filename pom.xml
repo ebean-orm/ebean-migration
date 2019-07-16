@@ -4,7 +4,7 @@
 
   <groupId>io.ebean</groupId>
   <artifactId>ebean-migration</artifactId>
-  <version>11.16.3-SNAPSHOT</version>
+  <version>11.17.1-SNAPSHOT</version>
 
   <parent>
     <groupId>org.avaje</groupId>
