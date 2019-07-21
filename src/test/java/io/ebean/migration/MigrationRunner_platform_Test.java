@@ -128,7 +128,7 @@ public class MigrationRunner_platform_Test {
 
     MigrationConfig config = sqlServerMigrationConfig();
 
-    config.setMigrationPath("dbmig_basic");
+    config.setMigrationPath("dbmig_sqlserver");
 
     MigrationRunner runner = new MigrationRunner(config);
     runner.run();
