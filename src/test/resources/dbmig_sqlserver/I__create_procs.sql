@@ -1,44 +1,23 @@
 if not exists (select name  from sys.types where name = 'ebean_bigint_tvp')
-create type ebean_bigint_tvp as table
-(
-    c1 bigint
-)
+create type ebean_bigint_tvp as table (c1 bigint)
 GO
 if not exists (select name  from sys.types where name = 'ebean_float_tvp')
-create type ebean_float_tvp as table
-(
-    c1 float
-)
+create type ebean_float_tvp as table (c1 float)
 GO
 if not exists (select name  from sys.types where name = 'ebean_bit_tvp')
-create type ebean_bit_tvp as table
-(
-    c1 bit
-)
+create type ebean_bit_tvp as table (c1 bit)
 GO
 if not exists (select name  from sys.types where name = 'ebean_date_tvp')
-create type ebean_date_tvp as table
-(
-    c1 date
-)
+create type ebean_date_tvp as table (c1 date)
 GO
 if not exists (select name  from sys.types where name = 'ebean_time_tvp')
-create type ebean_time_tvp as table
-(
-    c1 time
-)
+create type ebean_time_tvp as table (c1 time)
 GO
 if not exists (select name  from sys.types where name = 'ebean_uniqueidentifier_tvp')
-create type ebean_uniqueidentifier_tvp as table
-(
-    c1 uniqueidentifier
-)
+create type ebean_uniqueidentifier_tvp as table (c1 uniqueidentifier)
 GO
 if not exists (select name  from sys.types where name = 'ebean_nvarchar_tvp')
-create type ebean_nvarchar_tvp as table
-(
-    c1 nvarchar(max)
-)
+create type ebean_nvarchar_tvp as table (c1 nvarchar(max))
 GO
 
 --
