@@ -2,6 +2,8 @@ package io.ebean.migration.ddl;
 
 import org.testng.annotations.Test;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.StringReader;
 import java.util.List;
 
@@ -29,6 +31,31 @@ public class DdlParserTest {
 
     List<String> stmts = parser.parse(new StringReader(plpgsql));
     assertThat(stmts).containsExactly(plpgsql);
+  }
+
+  @Test
+  public void parse_sqlserver_create_procs() throws FileNotFoundException {
+
+    FileReader fr = new FileReader("src/test/resources/dbmig_sqlserver/I__create_procs.sql");
+    final List<String> statements = parser.parse(fr);
+
+    assertThat(statements).hasSize(11);
+    assertThat(statements.get(0)).isEqualTo("if not exists (select name  from sys.types where name = 'ebean_bigint_tvp')\n" +
+      "create type ebean_bigint_tvp as table (c1 bigint)");
+
+    assertThat(statements.get(6)).isEqualTo("if not exists (select name  from sys.types where name = 'ebean_nvarchar_tvp')\n" +
+      "create type ebean_nvarchar_tvp as table (c1 nvarchar(max))");
+
+    assertThat(statements.get(8)).isEqualTo("CREATE OR ALTER PROCEDURE usp_ebean_drop_default_constraint @tableName nvarchar(255), @columnName nvarchar(255)\n" +
+      "AS SET NOCOUNT ON\n" +
+      "declare @tmp nvarchar(1000)\n" +
+      "BEGIN\n" +
+      "  select @tmp = t1.name from sys.default_constraints t1\n" +
+      "    join sys.columns t2 on t1.object_id = t2.default_object_id\n" +
+      "    where t1.parent_object_id = OBJECT_ID(@tableName) and t2.name = @columnName;\n" +
+      "\n" +
+      "  if @tmp is not null EXEC('alter table ' + @tableName +' drop constraint ' + @tmp);\n" +
+      "END");
   }
 
   @Test

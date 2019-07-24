@@ -2,7 +2,7 @@ package io.ebean.migration.ddl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +14,7 @@ public class DdlParser {
   /**
    * Break up the sql in reader into a list of statements using the semi-colon and $$ delimiters;
    */
-  public List<String> parse(StringReader reader) {
+  public List<String> parse(Reader reader) {
 
     try {
       BufferedReader br = new BufferedReader(reader);
@@ -43,6 +43,9 @@ public class DdlParser {
 
     private static final String EOL = "\n";
 
+    private static final String GO = "GO";
+    private static final String PROCEDURE = " PROCEDURE ";
+
     ArrayList<String> statements = new ArrayList<>();
 
     boolean trimDelimiter;
@@ -51,6 +54,7 @@ public class DdlParser {
 
     StringBuilder sb = new StringBuilder();
 
+    int lineCount;
     int quoteCount;
 
     void lineContainsDollars(String line) {
@@ -74,10 +78,20 @@ public class DdlParser {
       sb.append(line);
       statements.add(sb.toString().trim());
       quoteCount = 0;
+      lineCount = 0;
+      inDbProcedure = false;
       sb = new StringBuilder();
     }
 
+    /**
+     * Process the next line of the script.
+     */
     void nextLine(String line) {
+
+      if (line.trim().equals(GO)) {
+        endOfStatement("");
+        return;
+      }
 
       if (line.contains("$$")) {
         lineContainsDollars(line);
@@ -94,6 +108,11 @@ public class DdlParser {
         return;
       }
 
+      if (lineCount == 0 && isStartDbProcedure(line)) {
+        inDbProcedure = true;
+      }
+
+      lineCount++;
       quoteCount += countQuotes(line);
       if (hasOddQuotes()) {
         // must continue
@@ -121,6 +140,13 @@ public class DdlParser {
         String preSemi = line.substring(0, semiPos + 1);
         endOfStatement(preSemi);
       }
+    }
+
+    /**
+     * Return true if the start of DB procedure is detected.
+     */
+    private boolean isStartDbProcedure(String line) {
+      return line.length() > 26 && line.substring(0, 26).toUpperCase().contains(PROCEDURE);
     }
 
     /**

@@ -139,7 +139,7 @@ public class MigrationRunner_platform_Test {
       readQuery(connection, "select * from m3");
     }
 
-    sqlServerContainer.stopRemove();
+//    sqlServerContainer.stopRemove();
   }
 
   @Test
