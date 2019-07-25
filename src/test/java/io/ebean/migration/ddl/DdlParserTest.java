@@ -58,6 +58,56 @@ public class DdlParserTest {
       "END");
   }
 
+
+  @Test
+  public void parse_postgres_procs() throws FileNotFoundException {
+
+    FileReader fr = new FileReader("src/test/resources/dbmig_postgres/ex1.sql");
+    final List<String> statements = parser.parse(fr);
+
+    assertThat(statements).hasSize(3);
+    assertThat(statements.get(0)).isEqualTo("create or replace function hx_link_history_version() returns trigger as $$\n" +
+      "begin\n" +
+      "\n" +
+      "end;\n" +
+      "$$ LANGUAGE plpgsql;");
+
+    assertThat(statements.get(1)).isEqualTo("create trigger hx_link_history_upd\n" +
+      "    before update or delete on hx_link\n" +
+      "    for each row execute procedure hx_link_history_version();");
+
+    assertThat(statements.get(2)).isEqualTo("create or replace function hi_link_history_version() returns trigger as $$\n" +
+      "begin\n" +
+      "end;\n" +
+      "$$ LANGUAGE plpgsql;");
+  }
+
+
+  @Test
+  public void parse_postgres_createAll() throws FileNotFoundException {
+
+    FileReader fr = new FileReader("src/test/resources/dbmig_postgres/pg-create-all.sql");
+    final List<String> statements = parser.parse(fr);
+
+    assertThat(statements).hasSize(1013);
+  }
+
+  @Test
+  public void parse_mysql_createAll() throws FileNotFoundException {
+
+    FileReader fr = new FileReader("src/test/resources/dbmig_mysql/mysql-create-all.sql");
+    final List<String> statements = parser.parse(fr);
+    assertThat(statements).hasSize(1010);
+  }
+
+  @Test
+  public void parse_mysql_dropAll() throws FileNotFoundException {
+
+    FileReader fr = new FileReader("src/test/resources/dbmig_mysql/mysql-drop-all.sql");
+    final List<String> statements = parser.parse(fr);
+    assertThat(statements).hasSize(997);
+  }
+
   @Test
   public void parse_ignoresEmptyLines() {
 

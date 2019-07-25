@@ -1,6 +1,4 @@
 *.autofetch
-*create-all.sql
-*drop-all.sql
 *.orig
 .classpath
 .project
