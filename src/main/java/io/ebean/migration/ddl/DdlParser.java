@@ -69,14 +69,18 @@ public class DdlParser {
         if (!trimDelimiter) {
           sb.append(line).append(EOL);
         }
+        inDbProcedure = true;
       }
-      inDbProcedure = !inDbProcedure;
     }
 
     void endOfStatement(String line) {
       // end of Db procedure
       sb.append(line);
       statements.add(sb.toString().trim());
+      newBuffer();
+    }
+
+    private void newBuffer() {
       quoteCount = 0;
       lineCount = 0;
       inDbProcedure = false;
@@ -176,7 +180,7 @@ public class DdlParser {
       String remaining = sb.toString().trim();
       if (remaining.length() > 0) {
         statements.add(remaining);
-        sb = new StringBuilder();
+        newBuffer();
       }
     }
   }
