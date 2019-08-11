@@ -3,6 +3,8 @@ package io.ebean.migration;
 import io.ebean.docker.commands.DbConfig;
 import io.ebean.docker.commands.MySqlConfig;
 import io.ebean.docker.commands.MySqlContainer;
+import io.ebean.docker.commands.NuoDBConfig;
+import io.ebean.docker.commands.NuoDBContainer;
 import io.ebean.docker.commands.OracleConfig;
 import io.ebean.docker.commands.OracleContainer;
 import io.ebean.docker.commands.PostgresConfig;
@@ -18,6 +20,7 @@ import java.sql.SQLException;
 
 public class MigrationRunner_platform_Test {
 
+  private final NuoDBContainer nuoDBContainer = createNuoDB();
   private final PostgresContainer postgresContainer = createPostgres();
   private final SqlServerContainer sqlServerContainer = createSqlServer();
   private final MySqlContainer mysqlContainer = createMySqlContainer();
@@ -27,6 +30,12 @@ public class MigrationRunner_platform_Test {
     config.setContainerName("test_ebean_migration_" + suffix);
     config.setUser("mig_test");
     config.setDbName("mig_test");
+  }
+
+  private static NuoDBContainer createNuoDB() {
+    NuoDBConfig config = new NuoDBConfig();
+    config.setDbName("unit");
+    return new NuoDBContainer(config);
   }
 
   private static PostgresContainer createPostgres() {
@@ -76,6 +85,16 @@ public class MigrationRunner_platform_Test {
     config.setDbPassword("SqlS3rv#r");
     config.setDbDriver("com.microsoft.sqlserver.jdbc.SQLServerDriver");
     config.setDbUrl(sqlServerContainer.jdbcUrl());
+    return config;
+  }
+
+  private MigrationConfig nuodDbMigrationConfig() {
+    MigrationConfig config = newMigrationConfig();
+    config.setDbDriver("com.nuodb.jdbc.Driver");
+    config.setDbUrl(nuoDBContainer.jdbcUrl());
+    config.setDbUsername("test_user");
+    config.setDbPassword("test");
+    config.setDbSchema("test_user");
     return config;
   }
 
@@ -161,6 +180,26 @@ public class MigrationRunner_platform_Test {
     }
 
     mysqlContainer.stopRemove();
+  }
+
+  @Test
+  public void nuodb_migration() throws SQLException {
+
+    //nuoDBContainer.stopRemove();
+    nuoDBContainer.startWithDropCreate();
+
+    MigrationConfig config = nuodDbMigrationConfig();
+    config.setMigrationPath("dbmig_nuodb");
+
+    MigrationRunner runner = new MigrationRunner(config);
+    runner.run();
+
+    try (Connection connection = nuoDBContainer.createConnection()) {
+      readQuery(connection, "select * from m1");
+      readQuery(connection, "select * from orp_master");
+      readQuery(connection, "select * from orp_master_with_history");
+    }
+    nuoDBContainer.stopRemove();
   }
 
   @Test(enabled = false)

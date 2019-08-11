@@ -62,6 +62,13 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>com.nuodb.jdbc</groupId>
+      <artifactId>nuodb-jdbc</artifactId>
+      <version>20.2.0</version>
+      <scope>test</scope>
+    </dependency>
+
     <!--
 mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
           -DartifactId=oracle-jdbc -Dversion=7.0 -Dpackaging=jar
@@ -83,7 +90,7 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
     <dependency>
       <groupId>io.ebean.test</groupId>
       <artifactId>ebean-test-docker</artifactId>
-      <version>2.7.2</version>
+      <version>2.10.1</version>
       <scope>test</scope>
     </dependency>
 
