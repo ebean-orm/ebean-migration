@@ -12,7 +12,8 @@ import java.util.List;
  */
 public class MigrationPlatform {
 
-  private static final String BASE_SELECT = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from ";
+  private static final String BASE_SELECT_ID = "select id from ";
+  private static final String BASE_SELECT_ALL = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from ";
 
   /**
    * Standard row locking for db migration table.
@@ -24,7 +25,7 @@ public class MigrationPlatform {
    */
   void lockMigrationTable(String sqlTable, Connection connection) throws SQLException {
 
-    final String selectSql = selectSql(sqlTable);
+    final String selectSql = sqlSelectForUpdate(sqlTable);
 
     try (PreparedStatement query = connection.prepareStatement(selectSql)) {
       try (ResultSet resultSet = query.executeQuery()) {
@@ -40,7 +41,7 @@ public class MigrationPlatform {
    */
   List<MigrationMetaRow> readExistingMigrations(String sqlTable, Connection connection) throws SQLException {
 
-    final String selectSql = selectSql(sqlTable);
+    final String selectSql = sqlSelectForReading(sqlTable);
 
     List<MigrationMetaRow> rows = new ArrayList<>();
     try (PreparedStatement query = connection.prepareStatement(selectSql)) {
@@ -54,10 +55,17 @@ public class MigrationPlatform {
   }
 
   /**
-   * Return the SQL to select the existing rows in db migration table with row locking.
+   * Return the SQL to lock the rows in db migration table with row locking.
    */
-  String selectSql(String table) {
-    return BASE_SELECT + table + forUpdateSuffix;
+  String sqlSelectForUpdate(String table) {
+    return BASE_SELECT_ID + table + forUpdateSuffix;
+  }
+
+  /**
+   * Return the SQL to read the db migration table.
+   */
+  String sqlSelectForReading(String table) {
+    return BASE_SELECT_ALL + table + forUpdateSuffix;
   }
 
   public static class Postgres extends MigrationPlatform {
