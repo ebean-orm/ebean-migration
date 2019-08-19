@@ -56,6 +56,16 @@ public class MigrationTableTest {
       MigrationTable table = new MigrationTable(config, conn, false);
       table.createIfNeededAndLock(platform);
       assertThat(table.getVersions()).containsExactly("hello", "1.1", "1.2", "1.2.1", "m2_view");
+
+      List<String> rawVersions = new ArrayList<>();
+      try (PreparedStatement stmt = conn.prepareStatement("select mversion from db_migration order by id")) {
+        try (ResultSet rset = stmt.executeQuery()) {
+          while (rset.next()) {
+            rawVersions.add(rset.getString(1));
+          }
+        }
+      }
+      assertThat(rawVersions).containsExactly("0", "hello", "1.1", "1.2", "1.2.1", "m2_view");
       conn.rollback();
     }
   }

@@ -34,7 +34,9 @@ public class MigrationRunner_platform_Test {
 
   private static NuoDBContainer createNuoDB() {
     NuoDBConfig config = new NuoDBConfig();
-    config.setDbName("unit");
+    config.setSchema("mig_test");
+    config.setUser("mig_test");
+    config.setPassword("test");
     return new NuoDBContainer(config);
   }
 
@@ -92,9 +94,9 @@ public class MigrationRunner_platform_Test {
     MigrationConfig config = newMigrationConfig();
     config.setDbDriver("com.nuodb.jdbc.Driver");
     config.setDbUrl(nuoDBContainer.jdbcUrl());
-    config.setDbUsername("test_user");
+    config.setDbSchema("mig_test");
+    config.setDbUsername("mig_test");
     config.setDbPassword("test");
-    config.setDbSchema("test_user");
     return config;
   }
 
@@ -199,7 +201,7 @@ public class MigrationRunner_platform_Test {
       readQuery(connection, "select * from orp_master");
       readQuery(connection, "select * from orp_master_with_history");
     }
-    nuoDBContainer.stopRemove();
+    nuoDBContainer.stop();
   }
 
   @Test(enabled = false)

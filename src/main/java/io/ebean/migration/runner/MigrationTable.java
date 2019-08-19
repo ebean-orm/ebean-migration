@@ -30,6 +30,8 @@ public class MigrationTable {
 
   private static final Logger logger = LoggerFactory.getLogger("io.ebean.DDL");
 
+  private static final String INIT_VER_0 = "0";
+
   private final Connection connection;
   private final boolean checkState;
 
@@ -164,6 +166,7 @@ public class MigrationTable {
 
     MigrationScriptRunner run = new MigrationScriptRunner(connection);
     run.runScript(false, createTableDdl(), "create migration table");
+    createInitMetaRow().executeInsert(connection, insertSql);
   }
 
   /**
@@ -377,6 +380,10 @@ public class MigrationTable {
     addMigration(local.key(), metaRow);
   }
 
+  private MigrationMetaRow createInitMetaRow() {
+    return new MigrationMetaRow(0, "I", INIT_VER_0, "<init>", 0, envUserName, runOn, 0);
+  }
+
   /**
    * Create the MigrationMetaRow for this migration.
    */
@@ -412,6 +419,10 @@ public class MigrationTable {
    * Register the successfully executed migration (to allow dependant scripts to run).
    */
   private void addMigration(String key, MigrationMetaRow metaRow) {
+    if (INIT_VER_0.equals(key)) {
+      // ignore the version 0 <init> row
+      return;
+    }
     lastMigration = metaRow;
     if (metaRow.getVersion() == null) {
       throw new IllegalStateException("No runVersion in db migration table row? " + metaRow);
