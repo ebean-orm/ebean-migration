@@ -16,6 +16,10 @@ public class V1_2_1__test implements JdbcMigration, ConfigurationAware{
 
   private MigrationConfig config;
 
+  public static class MyDto {
+    String id;
+  }
+  
   @Override
   public void setMigrationConfig(MigrationConfig config) {
     this.config = config;
