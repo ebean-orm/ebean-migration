@@ -112,7 +112,7 @@ public class LocalMigrationResources {
     @Override
     public boolean isMatch(String name) {
       return name.endsWith(migrationConfig.getApplySuffix())
-          || migrationConfig.getJdbcMigrationFactory() != null && name.endsWith(".class");
+          || migrationConfig.getJdbcMigrationFactory() != null && name.endsWith(".class") && !name.contains("$");
     }
   }
 }
