@@ -142,7 +142,7 @@ public class MigrationRunner_platform_Test {
     postgresContainer.stopRemove();
   }
 
-  @Test
+  @Test(enabled = false)
   public void sqlServer_migration() throws SQLException {
 
     sqlServerContainer.startWithDropCreate();
@@ -184,7 +184,7 @@ public class MigrationRunner_platform_Test {
     mysqlContainer.stopRemove();
   }
 
-  @Test
+  @Test(enabled = false)
   public void nuodb_migration() throws SQLException {
 
     //nuoDBContainer.stopRemove();
