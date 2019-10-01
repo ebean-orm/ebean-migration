@@ -18,7 +18,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
 
   private static final String REPEAT_TYPE = "R";
 
-  private static final String VERSION_TYPE = "V";
+  public static final String VERSION_TYPE = "V";
 
   private static final int[] REPEAT_ORDERING_MIN = {Integer.MIN_VALUE};
 

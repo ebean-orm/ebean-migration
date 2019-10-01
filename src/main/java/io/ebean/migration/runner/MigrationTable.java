@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 import static io.ebean.migration.MigrationVersion.BOOTINIT_TYPE;
+import static io.ebean.migration.MigrationVersion.VERSION_TYPE;
 
 /**
  * Manages the migration table.
@@ -57,6 +58,10 @@ public class MigrationTable {
   private final Set<String> patchResetChecksumVersions;
   private final boolean allowErrorInRepeatable;
 
+  private final MigrationVersion minVersion;
+  private final String minVersionFailMessage;
+
+  private MigrationVersion currentVersion;
   private MigrationMetaRow lastMigration;
   private LocalMigrationResource priorVersion;
 
@@ -80,6 +85,9 @@ public class MigrationTable {
     this.allowErrorInRepeatable = config.isAllowErrorInRepeatable();
     this.patchResetChecksumVersions = config.getPatchResetChecksumOn();
     this.patchInsertVersions = config.getPatchInsertOn();
+    this.minVersion = config.getMinVersion() == null || config.getMinVersion().isEmpty() ? null
+        : MigrationVersion.parse(config.getMinVersion());
+    this.minVersionFailMessage = config.getMinVersionFailMessage();
     this.skipChecksum = config.isSkipChecksum();
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
@@ -427,9 +435,17 @@ public class MigrationTable {
     if (metaRow.getVersion() == null) {
       throw new IllegalStateException("No runVersion in db migration table row? " + metaRow);
     }
+
     migrations.put(key, metaRow);
-    if (BOOTINIT_TYPE.equals(metaRow.getType())) {
-      dbInitVersion = MigrationVersion.parse(metaRow.getVersion());
+    if (VERSION_TYPE.equals(metaRow.getType())
+        || BOOTINIT_TYPE.equals(metaRow.getType())) {
+      MigrationVersion rowVersion = MigrationVersion.parse(metaRow.getVersion());
+      if (currentVersion == null || rowVersion.compareTo(currentVersion) > 0) {
+        currentVersion = rowVersion;
+      }
+      if (BOOTINIT_TYPE.equals(metaRow.getType())) {
+        dbInitVersion = rowVersion;
+      }
     }
   }
 
@@ -446,6 +462,16 @@ public class MigrationTable {
    * @return the migrations that have been run (collected if checkstate is true).
    */
   public List<LocalMigrationResource> runAll(List<LocalMigrationResource> localVersions) throws SQLException {
+
+    if (currentVersion != null && minVersion!= null && currentVersion.compareTo(minVersion) < 0) {
+      StringBuilder sb = new StringBuilder();
+      if (minVersionFailMessage != null && !minVersionFailMessage.isEmpty()) {
+        sb.append(minVersionFailMessage).append(' ');
+      }
+      sb.append("MigrationVersion mismatch: v").append(currentVersion).append(" < v").append(minVersion);
+
+      throw new MigrationException(sb.toString());
+    }
     for (LocalMigrationResource localVersion : localVersions) {
       if (!localVersion.isRepeatable() && dbInitVersion != null && dbInitVersion.compareTo(localVersion.getVersion()) >= 0) {
         logger.debug("migration skipped by dbInitVersion {}", dbInitVersion);

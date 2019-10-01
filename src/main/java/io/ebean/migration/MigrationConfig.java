@@ -57,6 +57,20 @@ public class MigrationConfig {
   private Set<String> patchResetChecksumOn;
 
   /**
+   * The minimum version, that must be in the dbmigration table. If the current maxVersion
+   * in the migration table is greater than this version, the MigrationRunner will fail
+   * with a {@link MigrationException} and an optional {@link #minVersionFailMessage}
+   * to enforce certain migration paths.
+   */
+  private String minVersion;
+
+  /**
+   * The (customizable) fail message, if minVersion is not in database.
+   * (e.g. "To perform an upgrade, you must install APP XY first")
+   */
+  private String minVersionFailMessage;
+
+  /**
    * Return the name of the migration table.
    */
   public String getMetaTable() {
@@ -417,6 +431,34 @@ public class MigrationConfig {
   }
 
   /**
+   * Returns the minVersion.
+   */
+  public String getMinVersion() {
+    return minVersion;
+  }
+
+  /**
+   * Set the minVersion.
+   */
+  public void setMinVersion(String minVersion) {
+    this.minVersion = minVersion;
+  }
+
+  /**
+   * Sets the optional minVersionFailMessage.
+   */
+  public String getMinVersionFailMessage() {
+    return minVersionFailMessage;
+  }
+
+  /**
+   * @param minVersionFailMessage the minVersionFailMessage to set
+   */
+  public void setMinVersionFailMessage(String minVersionFailMessage) {
+    this.minVersionFailMessage = minVersionFailMessage;
+  }
+
+  /**
    * Load configuration from standard properties.
    */
   public void load(Properties props) {
@@ -446,6 +488,8 @@ public class MigrationConfig {
     migrationPath = props.getProperty("dbmigration.migrationPath", migrationPath);
     migrationInitPath = props.getProperty("dbmigration.migrationInitPath", migrationInitPath);
     runPlaceholders = props.getProperty("dbmigration.placeholders", runPlaceholders);
+    minVersion = props.getProperty("dbmigration.minVersion", minVersion);
+    minVersionFailMessage = props.getProperty("dbmigration.minVersionFailMessage", minVersionFailMessage);
 
     String patchInsertOn = props.getProperty("dbmigration.patchInsertOn");
     if (patchInsertOn != null) {
