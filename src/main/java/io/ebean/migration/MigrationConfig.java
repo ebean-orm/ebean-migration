@@ -58,7 +58,7 @@ public class MigrationConfig {
 
   /**
    * The minimum version, that must be in the dbmigration table. If the current maxVersion
-   * in the migration table is greater than this version, the MigrationRunner will fail
+   * in the migration table is less than this version, the MigrationRunner will fail
    * with a {@link MigrationException} and an optional {@link #minVersionFailMessage}
    * to enforce certain migration paths.
    */

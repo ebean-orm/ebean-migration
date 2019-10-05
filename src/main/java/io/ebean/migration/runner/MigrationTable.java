@@ -80,13 +80,11 @@ public class MigrationTable {
     this.connection = connection;
     this.checkState = checkState;
     this.migrations = new LinkedHashMap<>();
-
     this.catalog = null;
     this.allowErrorInRepeatable = config.isAllowErrorInRepeatable();
     this.patchResetChecksumVersions = config.getPatchResetChecksumOn();
     this.patchInsertVersions = config.getPatchInsertOn();
-    this.minVersion = config.getMinVersion() == null || config.getMinVersion().isEmpty() ? null
-        : MigrationVersion.parse(config.getMinVersion());
+    this.minVersion = initMinVersion(config.getMinVersion());
     this.minVersionFailMessage = config.getMinVersionFailMessage();
     this.skipChecksum = config.isSkipChecksum();
     this.schema = config.getDbSchema();
@@ -98,6 +96,10 @@ public class MigrationTable {
     this.updateChecksumSql = MigrationMetaRow.updateChecksumSql(sqlTable);
     this.scriptTransform = createScriptTransform(config);
     this.envUserName = System.getProperty("user.name");
+  }
+
+  private MigrationVersion initMinVersion(String minVersion) {
+    return (minVersion == null || minVersion.isEmpty()) ? null : MigrationVersion.parse(minVersion);
   }
 
   private String initSqlTable() {
@@ -437,8 +439,7 @@ public class MigrationTable {
     }
 
     migrations.put(key, metaRow);
-    if (VERSION_TYPE.equals(metaRow.getType())
-        || BOOTINIT_TYPE.equals(metaRow.getType())) {
+    if (VERSION_TYPE.equals(metaRow.getType()) || BOOTINIT_TYPE.equals(metaRow.getType())) {
       MigrationVersion rowVersion = MigrationVersion.parse(metaRow.getVersion());
       if (currentVersion == null || rowVersion.compareTo(currentVersion) > 0) {
         currentVersion = rowVersion;
@@ -463,15 +464,7 @@ public class MigrationTable {
    */
   public List<LocalMigrationResource> runAll(List<LocalMigrationResource> localVersions) throws SQLException {
 
-    if (currentVersion != null && minVersion!= null && currentVersion.compareTo(minVersion) < 0) {
-      StringBuilder sb = new StringBuilder();
-      if (minVersionFailMessage != null && !minVersionFailMessage.isEmpty()) {
-        sb.append(minVersionFailMessage).append(' ');
-      }
-      sb.append("MigrationVersion mismatch: v").append(currentVersion).append(" < v").append(minVersion);
-
-      throw new MigrationException(sb.toString());
-    }
+    checkMinVersion();
     for (LocalMigrationResource localVersion : localVersions) {
       if (!localVersion.isRepeatable() && dbInitVersion != null && dbInitVersion.compareTo(localVersion.getVersion()) >= 0) {
         logger.debug("migration skipped by dbInitVersion {}", dbInitVersion);
@@ -480,6 +473,17 @@ public class MigrationTable {
       }
     }
     return checkMigrations;
+  }
+
+  private void checkMinVersion() {
+    if (minVersion != null && currentVersion != null && currentVersion.compareTo(minVersion) < 0) {
+      StringBuilder sb = new StringBuilder();
+      if (minVersionFailMessage != null && !minVersionFailMessage.isEmpty()) {
+        sb.append(minVersionFailMessage).append(' ');
+      }
+      sb.append("MigrationVersion mismatch: v").append(currentVersion).append(" < v").append(minVersion);
+      throw new MigrationException(sb.toString());
+    }
   }
 
   /**
