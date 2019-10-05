@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class MigrationRunnerTest {
 
@@ -131,6 +132,74 @@ public class MigrationRunnerTest {
     MigrationRunner runner2 = new MigrationRunner(config);
     runner2.run(dataSource);
   }
+
+  @Test
+  public void run_with_min_version() {
+
+    DataSourceConfig dataSourceConfig = new DataSourceConfig();
+    dataSourceConfig.setDriver("org.h2.Driver");
+    dataSourceConfig.setUrl("jdbc:h2:mem:testsMinV");
+    dataSourceConfig.setUsername("sa");
+    dataSourceConfig.setPassword("");
+
+    Factory factory = new Factory();
+    DataSourcePool dataSource = factory.createPool("test", dataSourceConfig);
+
+    MigrationConfig config = createMigrationConfig();
+    config.setMigrationPath("dbmig");
+    config.setMinVersion("1.3"); // dbmig must run, if DB is empty!
+    new MigrationRunner(config).run(dataSource);
+
+
+    config = createMigrationConfig();
+    config.setMigrationPath("dbmig3");
+    config.setMinVersion("1.3");
+    config.setMinVersionFailMessage("Must run dbmig2 first.");
+
+    MigrationRunner runner3 = new MigrationRunner(config);
+    assertThatThrownBy(()->runner3.run(dataSource))
+      .isInstanceOf(MigrationException.class)
+      .hasMessageContaining("Must run dbmig2 first. MigrationVersion mismatch: v1.2.1 < v1.3");
+
+    // now run dbmig2, as intended by error message
+    config = createMigrationConfig();
+    config.setMigrationPath("dbmig2");
+    new MigrationRunner(config).run(dataSource);
+
+    // dbmig3 should pass now
+    runner3.run(dataSource);
+  }
+
+  @Test
+  public void run_init_with_min_version() {
+
+    DataSourceConfig dataSourceConfig = new DataSourceConfig();
+    dataSourceConfig.setDriver("org.h2.Driver");
+    dataSourceConfig.setUrl("jdbc:h2:mem:testsMinVinit");
+    dataSourceConfig.setUsername("sa");
+    dataSourceConfig.setPassword("");
+
+    Factory factory = new Factory();
+    DataSourcePool dataSource = factory.createPool("test", dataSourceConfig);
+
+    // init
+    MigrationConfig config = createMigrationConfig();
+    config.setMigrationPath("dbmig5_base");
+    config.setMigrationInitPath("dbmig5_init");
+    config.setMinVersion("2.0"); // init must run, although DB is empty!
+    new MigrationRunner(config).run(dataSource);
+
+    // test if migration detects correct init-version (1.3)
+    config = createMigrationConfig();
+    config.setMigrationPath("dbmig3");
+    config.setMinVersion("2.0");
+
+    MigrationRunner runner = new MigrationRunner(config);
+    assertThatThrownBy(()->runner.run(dataSource))
+      .isInstanceOf(MigrationException.class)
+      .hasMessageContaining("MigrationVersion mismatch: v1.3 < v2.0");
+  }
+
 
   /**
    * Run this integration test manually against CockroachDB.
