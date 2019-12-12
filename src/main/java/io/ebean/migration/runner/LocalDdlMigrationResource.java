@@ -1,7 +1,7 @@
 package io.ebean.migration.runner;
 
 import io.ebean.migration.MigrationVersion;
-import org.avaje.classpath.scanner.Resource;
+import io.avaje.classpath.scanner.Resource;
 
 /**
  * A DB migration resource (DDL script with version).

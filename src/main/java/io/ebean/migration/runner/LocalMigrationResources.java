@@ -3,9 +3,9 @@ package io.ebean.migration.runner;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
-import org.avaje.classpath.scanner.Resource;
-import org.avaje.classpath.scanner.ResourceFilter;
-import org.avaje.classpath.scanner.core.Scanner;
+import io.avaje.classpath.scanner.Resource;
+import io.avaje.classpath.scanner.ResourceFilter;
+import io.avaje.classpath.scanner.core.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

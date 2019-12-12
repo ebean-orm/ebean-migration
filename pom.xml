@@ -27,9 +27,9 @@
     </dependency>
 
     <dependency>
-      <groupId>org.avaje</groupId>
-      <artifactId>avaje-classpath-scanner</artifactId>
-      <version>3.3.1</version>
+      <groupId>io.avaje</groupId>
+      <artifactId>classpath-scanner</artifactId>
+      <version>4.2</version>
     </dependency>
 
     <!-- test dependencies -->
