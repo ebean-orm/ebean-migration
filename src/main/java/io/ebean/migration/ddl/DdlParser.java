@@ -11,27 +11,48 @@ import java.util.List;
  */
 public class DdlParser {
 
+  private final DdlAutoCommit ddlAutoCommit;
+
+  private final StatementsSeparator parse = new StatementsSeparator();
+
+  private final List<String> statements = new ArrayList<>();
+  private final List<String> statementsNonTrans = new ArrayList<>();
+
+  public DdlParser(DdlAutoCommit ddlAutoCommit) {
+    this.ddlAutoCommit = ddlAutoCommit;
+  }
+
+  void push(String sql) {
+    if (ddlAutoCommit.transactional(sql)) {
+      statements.add(sql);
+    } else {
+      statementsNonTrans.add(sql);
+    }
+  }
+
   /**
    * Break up the sql in reader into a list of statements using the semi-colon and $$ delimiters;
    */
   public List<String> parse(Reader reader) {
-
     try {
       BufferedReader br = new BufferedReader(reader);
-      StatementsSeparator statements = new StatementsSeparator();
-
       String s;
       while ((s = br.readLine()) != null) {
-        statements.nextLine(s);
+        parse.nextLine(s);
       }
-      statements.endOfContent();
-      return statements.statements;
-
+      parse.endOfContent();
+      return statements;
     } catch (IOException e) {
       throw new DdlRunnerException(e);
     }
   }
 
+  /**
+   * Return the non-transactional statements which run later with auto commit true.
+   */
+  public List<String> getNonTransactional() {
+    return statementsNonTrans;
+  }
 
   /**
    * Local utility used to detect the end of statements / separate statements.
@@ -39,28 +60,25 @@ public class DdlParser {
    * detects the $$ demarcation used in the history DDL generation for MySql and
    * Postgres.
    */
-  static class StatementsSeparator {
+  class StatementsSeparator {
 
     private static final String EOL = "\n";
 
     private static final String GO = "GO";
     private static final String PROCEDURE = " PROCEDURE ";
 
-    ArrayList<String> statements = new ArrayList<>();
+    private boolean trimDelimiter;
+    private boolean inDbProcedure;
 
-    boolean trimDelimiter;
+    private StringBuilder sb = new StringBuilder();
 
-    boolean inDbProcedure;
-
-    StringBuilder sb = new StringBuilder();
-
-    int lineCount;
-    int quoteCount;
+    private int lineCount;
+    private int quoteCount;
 
     void lineContainsDollars(String line) {
       if (inDbProcedure) {
         if (trimDelimiter) {
-          line = line.replace("$$","");
+          line = line.replace("$$", "");
         }
         endOfStatement(line);
       } else {
@@ -76,7 +94,7 @@ public class DdlParser {
     void endOfStatement(String line) {
       // end of Db procedure
       sb.append(line);
-      statements.add(sb.toString().trim());
+      push(sb.toString().trim());
       newBuffer();
     }
 
@@ -179,7 +197,7 @@ public class DdlParser {
     void endOfContent() {
       String remaining = sb.toString().trim();
       if (remaining.length() > 0) {
-        statements.add(remaining);
+        push(remaining);
         newBuffer();
       }
     }

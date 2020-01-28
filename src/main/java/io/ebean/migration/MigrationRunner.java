@@ -30,13 +30,6 @@ public class MigrationRunner {
   }
 
   /**
-   * Run by creating a DB connection from driver, url, username defined in MigrationConfig.
-   */
-  public void run() {
-    run(migrationConfig.createConnection());
-  }
-
-  /**
    * Return the migrations that would be applied if the migration is run.
    */
   public List<LocalMigrationResource> checkState() {
@@ -61,14 +54,27 @@ public class MigrationRunner {
   }
 
   /**
+   * Run by creating a DB connection from driver, url, username defined in MigrationConfig.
+   */
+  public void run() {
+    run(migrationConfig.createConnection());
+  }
+
+  /**
    * Run using the connection from the DataSource.
    */
   public void run(DataSource dataSource) {
     run(getConnection(dataSource));
   }
 
-  private Connection getConnection(DataSource dataSource) {
+  /**
+   * Run the migrations if there are any that need running.
+   */
+  public void run(Connection connection) {
+    run(connection, false);
+  }
 
+  private Connection getConnection(DataSource dataSource) {
     String username = migrationConfig.getDbUsername();
     try {
       if (username == null) {
@@ -80,13 +86,6 @@ public class MigrationRunner {
       String msgSuffix = (username == null) ? "" : " using user [" + username + "]";
       throw new IllegalArgumentException("Error trying to connect to database for DB Migration" + msgSuffix, e);
     }
-  }
-
-  /**
-   * Run the migrations if there are any that need running.
-   */
-  public void run(Connection connection) {
-    run(connection, false);
   }
 
   /**
@@ -106,11 +105,13 @@ public class MigrationRunner {
 
       new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
 
-      MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode);
-      table.createIfNeededAndLock(platform);
+      MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode, platform);
+      table.createIfNeededAndLock();
 
       runMigrations(resources, table, checkStateMode);
       connection.commit();
+
+      table.runNonTransactional();
 
     } catch (MigrationException e) {
       JdbcClose.rollback(connection);

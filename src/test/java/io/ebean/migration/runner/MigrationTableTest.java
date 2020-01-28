@@ -17,7 +17,7 @@ public class MigrationTableTest {
     MigrationConfig config = new MigrationConfig();
     config.setDbSchema("foo");
 
-    MigrationTable mt = new MigrationTable(config, null, false);
+    MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
     String tableSql = mt.createTableDdl();
 
     assertThat(tableSql).contains("create table foo.db_migration ");
@@ -31,7 +31,7 @@ public class MigrationTableTest {
     config.setDbSchema("bar");
     config.setPlatformName(DbPlatformNames.SQLSERVER);
 
-    MigrationTable mt = new MigrationTable(config, null, false);
+    MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
     String tableSql = mt.createTableDdl();
 
     assertThat(tableSql).contains("datetime2 ");
@@ -47,7 +47,7 @@ public class MigrationTableTest {
     LocalMigrationResource local = local("R__hello");
     MigrationMetaRow existing = new MigrationMetaRow(12, "R", "", "comment", 42, null, null, 0);
 
-    MigrationTable mt = new MigrationTable(config, null, false);
+    MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
     // checksum different - no skip
     assertFalse(mt.skipMigration(100, local, existing));
     // checksum same - skip
@@ -60,7 +60,7 @@ public class MigrationTableTest {
     MigrationConfig config = new MigrationConfig();
     config.setSkipChecksum(true);
 
-    MigrationTable mt = new MigrationTable(config, null, false);
+    MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
 
     // skip regardless of checksum difference
     LocalMigrationResource local = local("R__hello");
