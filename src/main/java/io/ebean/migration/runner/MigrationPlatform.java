@@ -1,5 +1,7 @@
 package io.ebean.migration.runner;
 
+import io.ebean.migration.ddl.DdlAutoCommit;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,6 +21,13 @@ public class MigrationPlatform {
    * Standard row locking for db migration table.
    */
   String forUpdateSuffix = " order by id for update";
+
+  /**
+   * Return the DdlAutoCommit to use for this platform.
+   */
+  DdlAutoCommit ddlAutoCommit() {
+    return DdlAutoCommit.NONE;
+  }
 
   /**
    * Lock the migration table. The base implementation uses row locking but lock table would be preferred when available.
@@ -69,6 +78,11 @@ public class MigrationPlatform {
   }
 
   public static class Postgres extends MigrationPlatform {
+
+    @Override
+    DdlAutoCommit ddlAutoCommit() {
+      return DdlAutoCommit.POSTGRES;
+    }
 
     @Override
     void lockMigrationTable(String sqlTable, Connection connection) throws SQLException {

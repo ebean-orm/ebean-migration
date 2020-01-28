@@ -1,9 +1,9 @@
 package io.ebean.migration;
 
 import io.ebean.migration.runner.LocalMigrationResource;
-import org.avaje.datasource.DataSourceConfig;
-import org.avaje.datasource.DataSourcePool;
-import org.avaje.datasource.Factory;
+import io.ebean.datasource.DataSourceConfig;
+import io.ebean.datasource.DataSourcePool;
+import io.ebean.datasource.DataSourceFactory;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
@@ -72,8 +72,7 @@ public class MigrationRunnerTest {
     dataSourceConfig.setUsername("sa");
     dataSourceConfig.setPassword("");
 
-    Factory factory = new Factory();
-    DataSourcePool dataSource = factory.createPool("test", dataSourceConfig);
+    DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
 
     MigrationConfig config = createMigrationConfig();
     config.setMigrationPath("dbmig");
@@ -118,8 +117,7 @@ public class MigrationRunnerTest {
     dataSourceConfig.setUsername("sa");
     dataSourceConfig.setPassword("");
 
-    Factory factory = new Factory();
-    DataSourcePool dataSource = factory.createPool("test", dataSourceConfig);
+    DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
 
     MigrationConfig config = createMigrationConfig();
     config.setDbUrl("jdbc:h2:mem:testsDbInit");
@@ -142,8 +140,7 @@ public class MigrationRunnerTest {
     dataSourceConfig.setUsername("sa");
     dataSourceConfig.setPassword("");
 
-    Factory factory = new Factory();
-    DataSourcePool dataSource = factory.createPool("test", dataSourceConfig);
+    DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
 
     MigrationConfig config = createMigrationConfig();
     config.setMigrationPath("dbmig");
@@ -179,8 +176,7 @@ public class MigrationRunnerTest {
     dataSourceConfig.setUsername("sa");
     dataSourceConfig.setPassword("");
 
-    Factory factory = new Factory();
-    DataSourcePool dataSource = factory.createPool("test", dataSourceConfig);
+    DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
 
     // init
     MigrationConfig config = createMigrationConfig();

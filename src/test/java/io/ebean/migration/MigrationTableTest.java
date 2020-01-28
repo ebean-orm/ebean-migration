@@ -2,9 +2,9 @@ package io.ebean.migration;
 
 import io.ebean.migration.runner.MigrationPlatform;
 import io.ebean.migration.runner.MigrationTable;
-import org.avaje.datasource.DataSourceConfig;
-import org.avaje.datasource.DataSourcePool;
-import org.avaje.datasource.Factory;
+import io.ebean.datasource.DataSourceConfig;
+import io.ebean.datasource.DataSourcePool;
+import io.ebean.datasource.DataSourceFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -36,8 +36,7 @@ public class MigrationTableTest {
     dataSourceConfig.setUrl("jdbc:h2:mem:db2");
     dataSourceConfig.setUsername("sa");
     dataSourceConfig.setPassword("");
-    Factory factory = new Factory();
-    dataSource = factory.createPool("test", dataSourceConfig);
+    dataSource = DataSourceFactory.create("test", dataSourceConfig);
   }
 
   @AfterMethod
@@ -53,8 +52,8 @@ public class MigrationTableTest {
     MigrationRunner runner = new MigrationRunner(config);
     runner.run(dataSource);
     try (Connection conn = dataSource.getConnection()) {
-      MigrationTable table = new MigrationTable(config, conn, false);
-      table.createIfNeededAndLock(platform);
+      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      table.createIfNeededAndLock();
       assertThat(table.getVersions()).containsExactly("hello", "1.1", "1.2", "1.2.1", "m2_view");
 
       List<String> rawVersions = new ArrayList<>();
@@ -79,8 +78,8 @@ public class MigrationTableTest {
     runner.run(dataSource);
 
     try (Connection conn = dataSource.getConnection()) {
-      MigrationTable table = new MigrationTable(config, conn, false);
-      table.createIfNeededAndLock(platform);
+      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      table.createIfNeededAndLock();
       assertThat(table.getVersions()).containsExactly("1.1");
       conn.rollback();
     }
@@ -91,8 +90,8 @@ public class MigrationTableTest {
     runner.run(dataSource);
 
     try (Connection conn = dataSource.getConnection()) {
-      MigrationTable table = new MigrationTable(config, conn, false);
-      table.createIfNeededAndLock(platform);
+      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      table.createIfNeededAndLock();
       assertThat(table.getVersions()).containsExactly("1.1", "1.2", "m2_view");
       conn.rollback();
     }
@@ -108,8 +107,8 @@ public class MigrationTableTest {
     runner.run(dataSource);
 
     try (Connection conn = dataSource.getConnection()) {
-      MigrationTable table = new MigrationTable(config, conn, false);
-      table.createIfNeededAndLock(platform);
+      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      table.createIfNeededAndLock();
       assertThat(table.getVersions()).containsExactly("1.1");
       conn.rollback();
     }
@@ -140,8 +139,8 @@ public class MigrationTableTest {
       assertThat(m3Content).contains("text with ; sign");
 
       // we expect, that 1.1 and 1.2 is executed (but not the R__ script)
-      MigrationTable table = new MigrationTable(config, conn, false);
-      table.createIfNeededAndLock(platform);
+      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      table.createIfNeededAndLock();
       assertThat(table.getVersions()).containsExactly("1.1", "1.2");
       conn.rollback();
     }

@@ -4,15 +4,13 @@ import org.testng.annotations.Test;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DdlParserTest {
-
-
-  private DdlParser parser = new DdlParser();
 
   @Test
   public void parse_functionWithInlineComments() {
@@ -29,7 +27,7 @@ public class DdlParserTest {
       "end;\n" +
       "$$;";
 
-    List<String> stmts = parser.parse(new StringReader(plpgsql));
+    List<String> stmts = parse(plpgsql);
     assertThat(stmts).containsExactly(plpgsql);
   }
 
@@ -37,7 +35,7 @@ public class DdlParserTest {
   public void parse_sqlserver_create_procs() throws FileNotFoundException {
 
     FileReader fr = new FileReader("src/test/resources/dbmig_sqlserver/I__create_procs.sql");
-    final List<String> statements = parser.parse(fr);
+    final List<String> statements = parse(fr);
 
     assertThat(statements).hasSize(11);
     assertThat(statements.get(0)).isEqualTo("if not exists (select name  from sys.types where name = 'ebean_bigint_tvp')\n" +
@@ -63,7 +61,7 @@ public class DdlParserTest {
   public void parse_postgres_procs() throws FileNotFoundException {
 
     FileReader fr = new FileReader("src/test/resources/dbmig_postgres/ex1.sql");
-    final List<String> statements = parser.parse(fr);
+    final List<String> statements = parse(fr);
 
     assertThat(statements).hasSize(3);
     assertThat(statements.get(0)).isEqualTo("create or replace function hx_link_history_version() returns trigger as $$\n" +
@@ -87,7 +85,7 @@ public class DdlParserTest {
   public void parse_postgres_createAll() throws FileNotFoundException {
 
     FileReader fr = new FileReader("src/test/resources/dbmig_postgres/pg-create-all.sql");
-    final List<String> statements = parser.parse(fr);
+    final List<String> statements = parse(fr);
 
     assertThat(statements).hasSize(1013);
   }
@@ -96,7 +94,7 @@ public class DdlParserTest {
   public void parse_mysql_createAll() throws FileNotFoundException {
 
     FileReader fr = new FileReader("src/test/resources/dbmig_mysql/mysql-create-all.sql");
-    final List<String> statements = parser.parse(fr);
+    final List<String> statements = parse(fr);
     assertThat(statements).hasSize(1010);
   }
 
@@ -104,35 +102,35 @@ public class DdlParserTest {
   public void parse_mysql_dropAll() throws FileNotFoundException {
 
     FileReader fr = new FileReader("src/test/resources/dbmig_mysql/mysql-drop-all.sql");
-    final List<String> statements = parser.parse(fr);
+    final List<String> statements = parse(fr);
     assertThat(statements).hasSize(997);
   }
 
   @Test
   public void parse_ignoresEmptyLines() {
 
-    List<String> stmts = parser.parse(new StringReader("\n\none;\n\ntwo;\n\n"));
-    assertThat(stmts).containsExactly("one;","two;");
+    List<String> stmts = parse("\n\none;\n\ntwo;\n\n");
+    assertThat(stmts).containsExactly("one;", "two;");
   }
 
   @Test
   public void parse_ignoresComments_whenFirst() {
 
-    List<String> stmts = parser.parse(new StringReader("-- comment\ntwo;"));
+    List<String> stmts = parse("-- comment\ntwo;");
     assertThat(stmts).containsExactly("two;");
   }
 
   @Test
   public void parse_ignoresEmptyLines_whenFirst() {
 
-    List<String> stmts = parser.parse(new StringReader("\n\n-- comment\ntwo;\n\n"));
+    List<String> stmts = parse("\n\n-- comment\ntwo;\n\n");
     assertThat(stmts).containsExactly("two;");
   }
 
   @Test
   public void parse_inlineEmptyLines_replacedWithSpace() {
 
-    List<String> stmts = parser.parse(new StringReader("\n\n-- comment\none\ntwo;\n\n"));
+    List<String> stmts = parse("\n\n-- comment\none\ntwo;\n\n");
     assertThat(stmts).containsExactly("one\ntwo;");
   }
 
@@ -140,70 +138,79 @@ public class DdlParserTest {
   @Test
   public void parse_ignoresComments() {
 
-    List<String> stmts = parser.parse(new StringReader("one;\n-- comment\ntwo;"));
-    assertThat(stmts).containsExactly("one;","two;");
+    List<String> stmts = parse("one;\n-- comment\ntwo;");
+    assertThat(stmts).containsExactly("one;", "two;");
   }
 
   @Test
   public void parse_ignoresEndOfLineComments() {
 
-    List<String> stmts = parser.parse(new StringReader("one; -- comment\ntwo;"));
+    List<String> stmts = parse("one; -- comment\ntwo;");
     assertThat(stmts).containsExactly("one;", "two;");
   }
 
   @Test
   public void parse_semiInContent_noLinefeedInContent() {
 
-    List<String> stmts = parser.parse(new StringReader("insert ('one;x');"));
+    List<String> stmts = parse("insert ('one;x');");
     assertThat(stmts).containsExactly("insert ('one;x');");
   }
 
   @Test
   public void parse_semiNewLineInContent_withLinefeedInContent2() {
 
-    List<String> stmts = parser.parse(new StringReader("insert ('on;e\n');"));
+    List<String> stmts = parse("insert ('on;e\n');");
     assertThat(stmts).containsExactly("insert ('on;e\n');");
   }
 
   @Test
   public void parse_semiNewLineInContent_withLinefeedInContent3() {
 
-    List<String> stmts = parser.parse(new StringReader("insert ('one;\n');"));
+    List<String> stmts = parse("insert ('one;\n');");
     assertThat(stmts).containsExactly("insert ('one;\n');");
   }
 
   @Test
   public void parse_semiInContent() {
 
-    List<String> stmts = parser.parse(new StringReader("';jim';\ntwo;"));
+    List<String> stmts = parse("';jim';\ntwo;");
     assertThat(stmts).containsExactly("';jim';", "two;");
   }
 
   @Test
   public void parse_semiInContent_withTailingComments() {
 
-    List<String> stmts = parser.parse(new StringReader("insert (';one'); -- aaa\ninsert (';two'); -- bbb"));
+    List<String> stmts = parse("insert (';one'); -- aaa\ninsert (';two'); -- bbb");
     assertThat(stmts).containsExactly("insert (';one');", "insert (';two');");
   }
 
   @Test
   public void parse_semiInContent_withLinefeedInContent() {
 
-    List<String> stmts = parser.parse(new StringReader("insert ('one;\n');"));
+    List<String> stmts = parse("insert ('one;\n');");
     assertThat(stmts).containsExactly("insert ('one;\n');");
   }
 
   @Test
   public void parse_noTailingSemi() {
 
-    List<String> stmts = parser.parse(new StringReader("one"));
+    List<String> stmts = parse("one");
     assertThat(stmts).containsExactly("one");
   }
 
   @Test
   public void parse_noTailingSemi_multiLine() {
 
-    List<String> stmts = parser.parse(new StringReader("one\ntwo"));
+    List<String> stmts = parse("one\ntwo");
     assertThat(stmts).containsExactly("one\ntwo");
   }
+
+  private List<String> parse(String value) {
+    return parse(new StringReader(value));
+  }
+
+  private List<String> parse(Reader reader) {
+    return new DdlParser(DdlAutoCommit.NONE).parse(reader);
+  }
+
 }

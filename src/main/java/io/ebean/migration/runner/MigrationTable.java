@@ -35,7 +35,8 @@ public class MigrationTable {
 
   private final Connection connection;
   private final boolean checkState;
-
+  private final MigrationPlatform platform;
+  private final MigrationScriptRunner scriptRunner;
   private final String catalog;
   private final String schema;
   private final String table;
@@ -75,9 +76,10 @@ public class MigrationTable {
   /**
    * Construct with server, configuration and jdbc connection (DB admin user).
    */
-  public MigrationTable(MigrationConfig config, Connection connection, boolean checkState) {
-
+  public MigrationTable(MigrationConfig config, Connection connection, boolean checkState, MigrationPlatform platform) {
+    this.platform = platform;
     this.connection = connection;
+    this.scriptRunner = new MigrationScriptRunner(connection, platform);
     this.checkState = checkState;
     this.migrations = new LinkedHashMap<>();
     this.catalog = null;
@@ -132,7 +134,6 @@ public class MigrationTable {
    * Create the ScriptTransform for placeholder key/value replacement.
    */
   private ScriptTransform createScriptTransform(MigrationConfig config) {
-
     return ScriptTransform.build(config.getRunPlaceholders(), config.getRunPlaceholderMap());
   }
 
@@ -142,13 +143,12 @@ public class MigrationTable {
    * Also holds DB lock on migration table and loads existing migrations.
    * </p>
    */
-  public void createIfNeededAndLock(MigrationPlatform platform) throws SQLException, IOException {
-
-    if (!tableExists(connection)) {
-      createTable(connection);
+  public void createIfNeededAndLock() throws SQLException, IOException {
+    if (!tableExists()) {
+      createTable();
     }
-    obtainLockWithWait(platform);
-    readExistingMigrations(platform);
+    obtainLockWithWait();
+    readExistingMigrations();
   }
 
   /**
@@ -156,7 +156,7 @@ public class MigrationTable {
    * into the migration table during the wait so this query result won't
    * contain all the executed migrations in that case.
    */
-  private void obtainLockWithWait(MigrationPlatform platform) throws SQLException {
+  private void obtainLockWithWait() throws SQLException {
     platform.lockMigrationTable(sqlTable, connection);
   }
 
@@ -166,16 +166,14 @@ public class MigrationTable {
    * the migration table such that it reads any migrations that have
    * executed during the wait for the lock.
    */
-  private void readExistingMigrations(MigrationPlatform platform) throws SQLException {
+  private void readExistingMigrations() throws SQLException {
     for (MigrationMetaRow metaRow : platform.readExistingMigrations(sqlTable, connection)) {
       addMigration(metaRow.getVersion(), metaRow);
     }
   }
 
-  private void createTable(Connection connection) throws IOException, SQLException {
-
-    MigrationScriptRunner run = new MigrationScriptRunner(connection);
-    run.runScript(false, createTableDdl(), "create migration table");
+  private void createTable() throws IOException, SQLException {
+    scriptRunner.runScript(createTableDdl(), "create migration table");
     createInitMetaRow().executeInsert(connection, insertSql);
   }
 
@@ -205,7 +203,6 @@ public class MigrationTable {
   }
 
   private String readResource(String location) throws IOException {
-
     Enumeration<URL> resources = getClassLoader().getResources(location);
     if (resources.hasMoreElements()) {
       URL url = resources.nextElement();
@@ -221,10 +218,8 @@ public class MigrationTable {
   /**
    * Return true if the table exists.
    */
-  private boolean tableExists(Connection connection) throws SQLException {
-
+  private boolean tableExists() throws SQLException {
     String migTable = table;
-
     DatabaseMetaData metaData = connection.getMetaData();
     if (metaData.storesUpperCaseIdentifiers()) {
       migTable = migTable.toUpperCase();
@@ -240,7 +235,6 @@ public class MigrationTable {
    * Return true if the migration ran successfully and false if the migration failed.
    */
   private boolean shouldRun(LocalMigrationResource localVersion, LocalMigrationResource prior) throws SQLException {
-
     if (prior != null && !localVersion.isRepeatable()) {
       if (!migrationExists(prior)) {
         logger.error("Migration {} requires prior migration {} which has not been run", localVersion.getVersion(), prior.getVersion());
@@ -266,7 +260,6 @@ public class MigrationTable {
    * @return True if the migrations should continue
    */
   private boolean runMigration(LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
-
     String script = null;
     int checksum;
     if (local instanceof LocalDdlMigrationResource) {
@@ -304,7 +297,6 @@ public class MigrationTable {
    * Return true if the migration should be skipped.
    */
   boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
-
     boolean matchChecksum = (existing.getChecksum() == checksum);
     if (matchChecksum) {
       logger.trace("... skip unchanged migration {}", local.getLocation());
@@ -326,7 +318,6 @@ public class MigrationTable {
    * Return true if the checksum is reset on the existing migration.
    */
   private boolean patchResetChecksum(MigrationMetaRow existing, int newChecksum) throws SQLException {
-
     if (isResetOnVersion(existing.getVersion())) {
       if (!checkState) {
         existing.resetChecksum(newChecksum, connection, updateChecksumSql);
@@ -345,7 +336,6 @@ public class MigrationTable {
    * Run a migration script as new migration or update on existing repeatable migration.
    */
   private void executeMigration(LocalMigrationResource local, String script, int checksum, MigrationMetaRow existing) throws SQLException {
-
     if (checkState) {
       checkMigrations.add(local);
       // simulate the migration being run such that following migrations also match
@@ -358,8 +348,7 @@ public class MigrationTable {
     long start = System.currentTimeMillis();
     try {
       if (local instanceof LocalDdlMigrationResource) {
-        MigrationScriptRunner run = new MigrationScriptRunner(connection);
-        run.runScript(false, script, "run migration version: " + local.getVersion());
+        scriptRunner.runScript(script, "run migration version: " + local.getVersion());
       } else {
         JdbcMigration migration = ((LocalJdbcMigrationResource) local).getMigration();
         logger.info("Executing jdbc migration version: {} - {}", local.getVersion(), migration);
@@ -517,4 +506,14 @@ public class MigrationTable {
     }
   }
 
+  /**
+   * Run non transactional statements (if any) after migration commit.
+   * <p>
+   * These run with auto commit true and run AFTER the migration commit and
+   * as such the migration isn't truely atomic - the migration can run and
+   * complete and the non-transactional statements fail.
+   */
+  public void runNonTransactional() {
+    scriptRunner.runNonTransactional();
+  }
 }

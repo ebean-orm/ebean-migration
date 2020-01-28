@@ -11,12 +11,16 @@ import io.ebean.docker.commands.PostgresConfig;
 import io.ebean.docker.commands.PostgresContainer;
 import io.ebean.docker.commands.SqlServerConfig;
 import io.ebean.docker.commands.SqlServerContainer;
+import io.ebean.migration.ddl.DdlAutoCommit;
+import io.ebean.migration.ddl.DdlRunner;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MigrationRunner_platform_Test {
 
@@ -117,7 +121,7 @@ public class MigrationRunner_platform_Test {
   @Test
   public void postgres_migration() throws SQLException {
 
-    postgresContainer.start();
+    postgresContainer.startWithDropCreate();
 
     MigrationConfig config = postgresMigrationConfig();
 
@@ -134,12 +138,59 @@ public class MigrationRunner_platform_Test {
     runner.run();
 
     try (Connection connection = postgresContainer.createConnection()) {
-      readQuery(connection, "select * from m1");
+      assertThat(readQuery(connection, "select * from m1")).isEqualTo(0);
       readQuery(connection, "select * from m2");
       readQuery(connection, "select * from m3");
     }
 
+    config.setMigrationPath("dbmig_postgres_concurrently0");
+    runner.run();
+
+    config.setMigrationPath("dbmig_postgres_concurrently1");
+    runner.run();
+
+    ddlRunnerBasic();
+    ddlRunnerWithConcurrently();
+    try (Connection connection = postgresContainer.createConnection()) {
+      assertThat(readQuery(connection, "select * from m1")).isEqualTo(6);
+    }
+
     postgresContainer.stopRemove();
+  }
+
+  private void ddlRunnerWithConcurrently() throws SQLException {
+    String content =
+      "insert into m1 (id, acol) values (2001, '2one');\n" +
+        "insert into m1 (id, acol) values (2002, '2two');\n" +
+        "insert into m1 (id, acol) values (2003, '2three');\n" +
+        "create index concurrently ix2_m1_acol0 on m1 (acol);\n" +
+        "create index concurrently ix2_m1_acol1 on m1 (lower(acol), id);\n";
+
+    try (Connection connection = postgresContainer.createConnection()) {
+      connection.setAutoCommit(false);
+      DdlRunner runner = new DdlRunner(false, "test", DdlAutoCommit.forPlatform("postgres"));
+      runner.runAll(content, connection);
+      connection.commit();
+
+      assertThat(runner.runNonTransactional(connection)).isEqualTo(2).as("executed create index concurrently");
+    }
+  }
+
+  private void ddlRunnerBasic() throws SQLException {
+
+    String content =
+      "insert into m1 (id, acol) values (1001, 'one');\n" +
+      "insert into m1 (id, acol) values (1002, 'two');\n" +
+      "insert into m1 (id, acol) values (1003, 'three');\n";
+
+    try (Connection connection = postgresContainer.createConnection()) {
+      connection.setAutoCommit(false);
+      DdlRunner runner = new DdlRunner(false, "test");
+      runner.runAll(content, connection);
+      connection.commit();
+
+      assertThat(runner.runNonTransactional(connection)).isEqualTo(0).as("all transactional");
+    }
   }
 
   @Test(enabled = false)
@@ -225,14 +276,17 @@ public class MigrationRunner_platform_Test {
     //oracleContainer.stopRemove();
   }
 
-  private void readQuery(Connection connection, String sql) throws SQLException {
+  private int readQuery(Connection connection, String sql) throws SQLException {
+    int rowCount = 0;
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       try (ResultSet rset = stmt.executeQuery()) {
         while (rset.next()) {
           rset.getObject(1);
+          rowCount++;
         }
       }
     }
+    return rowCount;
   }
 
 }

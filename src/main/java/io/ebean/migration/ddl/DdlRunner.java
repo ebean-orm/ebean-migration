@@ -17,7 +17,7 @@ public class DdlRunner {
 
   protected static final Logger logger = LoggerFactory.getLogger("io.ebean.DDL");
 
-  private DdlParser ddlParser = new DdlParser();
+  private final DdlParser parser;
 
   private final String scriptName;
 
@@ -29,8 +29,16 @@ public class DdlRunner {
    * Construct with a script name (for logging) and flag indicating if errors are expected.
    */
   public DdlRunner(boolean expectErrors, String scriptName) {
+    this(expectErrors, scriptName, new NoAutoCommit());
+  }
+
+  /**
+   * Create additionally with ddlAutoCommit.
+   */
+  public DdlRunner(boolean expectErrors, String scriptName, DdlAutoCommit ddlAutoCommit) {
     this.expectErrors = expectErrors;
     this.scriptName = scriptName;
+    this.parser = new DdlParser(ddlAutoCommit);
   }
 
   /**
@@ -42,17 +50,19 @@ public class DdlRunner {
 
   /**
    * Parse the content into sql statements and execute them in a transaction.
+   *
+   * @return The non-transactional statements that should execute later.
    */
-  public int runAll(String content, Connection connection) throws SQLException {
-
-    List<String> statements = ddlParser.parse(new StringReader(content));
-    return runStatements(statements, connection);
+  public List<String> runAll(String content, Connection connection) throws SQLException {
+    List<String> statements = parser.parse(new StringReader(content));
+    runStatements(statements, connection);
+    return parser.getNonTransactional();
   }
 
   /**
    * Execute all the statements in a single transaction.
    */
-  private int runStatements(List<String> statements, Connection connection) throws SQLException {
+  private void runStatements(List<String> statements, Connection connection) throws SQLException {
 
     List<String> noDuplicates = new ArrayList<>();
 
@@ -73,53 +83,35 @@ public class DdlRunner {
         connection.commit();
       }
     }
-
-    return noDuplicates.size();
   }
 
   /**
    * Execute the statement.
    */
   private void runStatement(boolean expectErrors, String oneOf, String stmt, Connection c) throws SQLException {
+    // trim and remove trailing ; or /
+    stmt = stmt.trim();
+    if (stmt.endsWith(";")) {
+      stmt = stmt.substring(0, stmt.length() - 1);
+    } else if (stmt.endsWith("/")) {
+      stmt = stmt.substring(0, stmt.length() - 1);
+    }
+    if (stmt.isEmpty()) {
+      logger.debug("skip empty statement at " + oneOf);
+      return;
+    }
+    if (logger.isDebugEnabled()) {
+      logger.debug("executing " + oneOf + " " + getSummary(stmt));
+    }
 
-    PreparedStatement pstmt = null;
-    try {
-
-      // trim and remove trailing ; or /
-      stmt = stmt.trim();
-      if (stmt.endsWith(";")) {
-        stmt = stmt.substring(0, stmt.length() - 1);
-      } else if (stmt.endsWith("/")) {
-        stmt = stmt.substring(0, stmt.length() - 1);
-      }
-
-      if (stmt.isEmpty()) {
-        logger.debug("skip empty statement at " + oneOf);
-        return;
-      }
-
-      if (logger.isDebugEnabled()) {
-        logger.debug("executing " + oneOf + " " + getSummary(stmt));
-      }
-
-      pstmt = c.prepareStatement(stmt);
-      pstmt.execute();
-
+    try (PreparedStatement statement = c.prepareStatement(stmt)) {
+      statement.execute();
     } catch (SQLException e) {
       if (expectErrors) {
         logger.debug(" ... ignoring error executing " + getSummary(stmt) + "  error: " + e.getMessage());
       } else {
         String msg = "Error executing stmt[" + stmt + "] error[" + e.getMessage() + "]";
         throw new SQLException(msg, e);
-      }
-
-    } finally {
-      if (pstmt != null) {
-        try {
-          pstmt.close();
-        } catch (SQLException e) {
-          logger.error("Error closing pstmt", e);
-        }
       }
     }
   }
@@ -131,4 +123,42 @@ public class DdlRunner {
     return s.replace('\n', ' ');
   }
 
+  /**
+   * Run any non-transactional statements from the just parsed script.
+   */
+  public int runNonTransactional(Connection connection) {
+    final List<String> nonTransactional = parser.getNonTransactional();
+    return !nonTransactional.isEmpty() ? runNonTransactional(connection, nonTransactional) : 0;
+  }
+
+  /**
+   * Run the non-transactional statements with auto commit true.
+   */
+  public int runNonTransactional(Connection connection, List<String> nonTransactional) {
+    int count = 0;
+    String sql = null;
+    try {
+      logger.debug("running {} non-transactional migration statements", nonTransactional.size());
+      connection.setAutoCommit(true);
+      for (int i = 0; i < nonTransactional.size(); i++) {
+        sql = nonTransactional.get(i);
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+          logger.debug("executing - {}", sql);
+          statement.execute();
+          count++;
+        }
+      }
+      return count;
+
+    } catch (SQLException e) {
+      logger.error("Error running non-transaction migration: " + sql, e);
+      return count;
+    } finally {
+      try {
+        connection.setAutoCommit(false);
+      } catch (SQLException e) {
+        logger.error("Error resetting connection autoCommit to false", e);
+      }
+    }
+  }
 }
