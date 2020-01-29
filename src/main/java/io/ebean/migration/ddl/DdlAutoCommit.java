@@ -10,11 +10,20 @@ public interface DdlAutoCommit {
 
   DdlAutoCommit POSTGRES = new PostgresAutoCommit();
 
+  DdlAutoCommit COCKROACH = new CockroachAutoCommit();
+
   /**
    * Return the implementation for the given platform.
    */
   static DdlAutoCommit forPlatform(String name) {
-    return name.equalsIgnoreCase("postgres") ? POSTGRES : NONE;
+    switch (name.toLowerCase()) {
+      case "postgres":
+        return POSTGRES;
+      case "cockroach":
+        return COCKROACH;
+      default:
+        return NONE;
+    }
   }
 
   /**
@@ -22,4 +31,8 @@ public interface DdlAutoCommit {
    */
   boolean transactional(String sql);
 
+  /**
+   * Return true if auto commit true should be used for all DDL for the database platform.
+   */
+  boolean isAutoCommit();
 }

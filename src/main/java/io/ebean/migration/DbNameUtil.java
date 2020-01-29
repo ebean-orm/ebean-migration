@@ -55,7 +55,6 @@ class DbNameUtil implements DbPlatformNames {
     // PostgreSQL driver use a non-trustable hardcoded product name.
     // The following block try to retrieve DBMS version to determine
     // if used DBMS is PostgreSQL or Cockroach.
-
     try (PreparedStatement statement = connection.prepareStatement("SELECT version() AS \"version\"")) {
       try (ResultSet resultSet = statement.executeQuery()) {
         if (resultSet.next()) {
@@ -68,13 +67,10 @@ class DbNameUtil implements DbPlatformNames {
     } catch (SQLException e) {
       log.warn("Error running detection query on Postgres", e);
     }
-
-    // Real PostgreSQL DB
     return POSTGRES;
   }
 
   static MigrationPlatform platform(String platformName) {
-
     switch (platformName) {
       case POSTGRES:
         return new MigrationPlatform.Postgres();

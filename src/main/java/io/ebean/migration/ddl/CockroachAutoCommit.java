@@ -1,17 +1,17 @@
 package io.ebean.migration.ddl;
 
 /**
- * By default no statements require auto commit.
+ * All DDL using Auto commit true for Cockroach.
  */
-class NoAutoCommit implements DdlAutoCommit {
+class CockroachAutoCommit implements DdlAutoCommit {
 
   @Override
   public boolean transactional(String sql) {
-    return true;
+    return false;
   }
 
   @Override
   public boolean isAutoCommit() {
-    return false;
+    return true;
   }
 }

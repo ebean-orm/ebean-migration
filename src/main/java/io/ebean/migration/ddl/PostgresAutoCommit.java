@@ -13,4 +13,9 @@ class PostgresAutoCommit implements DdlAutoCommit {
   public boolean transactional(String sql) {
     return !IX_CONCURRENTLY.matcher(sql).find();
   }
+
+  @Override
+  public boolean isAutoCommit() {
+    return false;
+  }
 }

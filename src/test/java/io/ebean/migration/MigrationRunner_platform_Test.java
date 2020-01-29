@@ -168,7 +168,7 @@ public class MigrationRunner_platform_Test {
 
     try (Connection connection = postgresContainer.createConnection()) {
       connection.setAutoCommit(false);
-      DdlRunner runner = new DdlRunner(false, "test", DdlAutoCommit.forPlatform("postgres"));
+      DdlRunner runner = new DdlRunner(false, "test", "postgres");
       runner.runAll(content, connection);
       connection.commit();
 

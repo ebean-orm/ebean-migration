@@ -3,13 +3,12 @@ package io.ebean.migration.runner;
 import io.ebean.migration.ddl.DdlAutoCommit;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 public class MigrationPlatformTest {
 
-  private final MigrationPlatform.Postgres platform = new MigrationPlatform.Postgres();
-
-  final DdlAutoCommit pg = platform.ddlAutoCommit();
+  final DdlAutoCommit pg = DdlAutoCommit.POSTGRES;
 
   @Test
   public void transaction_false() {

@@ -14,6 +14,12 @@ public class DdlAutoCommitTest {
   }
 
   @Test
+  public void testForPlatform_cockroach() {
+    assertThat(DdlAutoCommit.forPlatform("cockroach")).isInstanceOf(CockroachAutoCommit.class);
+    assertThat(DdlAutoCommit.forPlatform("COCKROACH")).isInstanceOf(CockroachAutoCommit.class);
+  }
+
+  @Test
   public void testForPlatform_others() {
     assertThat(DdlAutoCommit.forPlatform("other")).isInstanceOf(NoAutoCommit.class);
     assertThat(DdlAutoCommit.forPlatform("mysql")).isInstanceOf(NoAutoCommit.class);

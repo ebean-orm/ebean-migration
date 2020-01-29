@@ -21,31 +21,30 @@ public class DdlRunner {
 
   private final String scriptName;
 
-  private final boolean expectErrors;
-
-  private boolean commitOnCreateIndex;
+  private final boolean useAutoCommit;
 
   /**
-   * Construct with a script name (for logging) and flag indicating if errors are expected.
+   * Construct with a script name (for logging) and flag indicating if
+   * auto commit is used (in which case errors are allowed).
    */
-  public DdlRunner(boolean expectErrors, String scriptName) {
-    this(expectErrors, scriptName, new NoAutoCommit());
+  public DdlRunner(boolean useAutoCommit, String scriptName) {
+    this(useAutoCommit, scriptName, DdlAutoCommit.NONE);
   }
 
   /**
-   * Create additionally with ddlAutoCommit.
+   * Create specifying the database platform by name.
    */
-  public DdlRunner(boolean expectErrors, String scriptName, DdlAutoCommit ddlAutoCommit) {
-    this.expectErrors = expectErrors;
+  public DdlRunner(boolean useAutoCommit, String scriptName, String platformName) {
+    this(useAutoCommit, scriptName, DdlAutoCommit.forPlatform(platformName));
+  }
+
+  /**
+   * Create specifying the auto commit behaviour (for the database platform).
+   */
+  public DdlRunner(boolean useAutoCommit, String scriptName, DdlAutoCommit ddlAutoCommit) {
+    this.useAutoCommit = useAutoCommit || ddlAutoCommit.isAutoCommit();
     this.scriptName = scriptName;
-    this.parser = new DdlParser(ddlAutoCommit);
-  }
-
-  /**
-   * Needed for Cockroach DB. Needs commit after create index and before alter table add FK.
-   */
-  public void setCommitOnCreateIndex() {
-    commitOnCreateIndex = true;
+    this.parser = new DdlParser(this.useAutoCommit ? DdlAutoCommit.NONE : ddlAutoCommit);
   }
 
   /**
@@ -65,22 +64,28 @@ public class DdlRunner {
   private void runStatements(List<String> statements, Connection connection) throws SQLException {
 
     List<String> noDuplicates = new ArrayList<>();
-
     for (String statement : statements) {
       if (!noDuplicates.contains(statement)) {
         noDuplicates.add(statement);
       }
     }
-
-    logger.info("Executing {} - {} statements", scriptName, noDuplicates.size());
-
-    for (int i = 0; i < noDuplicates.size(); i++) {
-      String xOfy = (i + 1) + " of " + noDuplicates.size();
-      String ddl = noDuplicates.get(i);
-      runStatement(expectErrors, xOfy, ddl, connection);
-      if (commitOnCreateIndex && ddl.startsWith("create index ")) {
-        logger.debug("commit on create index ...");
-        connection.commit();
+    if (noDuplicates.isEmpty()) {
+      return;
+    }
+    boolean setAutoCommit = useAutoCommit && !connection.getAutoCommit();
+    if (setAutoCommit) {
+      connection.setAutoCommit(true);
+    }
+    try {
+      logger.info("Executing {} - {} statements, autoCommit:{}", scriptName, noDuplicates.size(), useAutoCommit);
+      for (int i = 0; i < noDuplicates.size(); i++) {
+        String xOfy = (i + 1) + " of " + noDuplicates.size();
+        String ddl = noDuplicates.get(i);
+        runStatement(xOfy, ddl, connection);
+      }
+    } finally {
+      if (setAutoCommit) {
+        connection.setAutoCommit(false);
       }
     }
   }
@@ -88,7 +93,7 @@ public class DdlRunner {
   /**
    * Execute the statement.
    */
-  private void runStatement(boolean expectErrors, String oneOf, String stmt, Connection c) throws SQLException {
+  private void runStatement(String oneOf, String stmt, Connection c) throws SQLException {
     // trim and remove trailing ; or /
     stmt = stmt.trim();
     if (stmt.endsWith(";")) {
@@ -107,11 +112,10 @@ public class DdlRunner {
     try (PreparedStatement statement = c.prepareStatement(stmt)) {
       statement.execute();
     } catch (SQLException e) {
-      if (expectErrors) {
+      if (useAutoCommit) {
         logger.debug(" ... ignoring error executing " + getSummary(stmt) + "  error: " + e.getMessage());
       } else {
-        String msg = "Error executing stmt[" + stmt + "] error[" + e.getMessage() + "]";
-        throw new SQLException(msg, e);
+        throw new SQLException("Error executing stmt[" + stmt + "] error[" + e.getMessage() + "]", e);
       }
     }
   }
