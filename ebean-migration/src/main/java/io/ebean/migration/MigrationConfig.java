@@ -31,7 +31,6 @@ public class MigrationConfig {
 
   private String dbUsername;
   private String dbPassword;
-  private String dbDriver;
   private String dbUrl;
 
   private String dbSchema;
@@ -291,23 +290,14 @@ public class MigrationConfig {
   }
 
   /**
-   * Return the DB Driver.
+   * Deprecated - not required.
    * <p>
    * Used when creating a Connection to run the migration.
    * </p>
    */
-  public String getDbDriver() {
-    return dbDriver;
-  }
-
-  /**
-   * Set the DB Driver.
-   * <p>
-   * Used when creating a Connection to run the migration.
-   * </p>
-   */
+  @Deprecated
   public void setDbDriver(String dbDriver) {
-    this.dbDriver = dbDriver;
+    // do nothing
   }
 
   /**
@@ -465,7 +455,6 @@ public class MigrationConfig {
 
     dbUsername = props.getProperty("dbmigration.username", dbUsername);
     dbPassword = props.getProperty("dbmigration.password", dbPassword);
-    dbDriver = props.getProperty("dbmigration.driver", dbDriver);
     dbUrl = props.getProperty("dbmigration.url", dbUrl);
     dbSchema = props.getProperty("dbmigration.schema", dbSchema);
 
@@ -515,11 +504,7 @@ public class MigrationConfig {
 
     if (dbUsername == null) throw new MigrationException("Database username is null?");
     if (dbPassword == null) throw new MigrationException("Database password is null?");
-    if (dbDriver == null) throw new MigrationException("Database Driver is null?");
     if (dbUrl == null) throw new MigrationException("Database connection URL is null?");
-
-    loadDriver();
-
     try {
       Properties props = new Properties();
       props.setProperty("user", dbUsername);
@@ -528,14 +513,6 @@ public class MigrationConfig {
 
     } catch (SQLException e) {
       throw new MigrationException("Error trying to create Connection", e);
-    }
-  }
-
-  private void loadDriver() {
-    try {
-      Class.forName(dbDriver, true, getClassLoader());
-    } catch (Throwable e) {
-      throw new MigrationException("Problem loading Database Driver [" + dbDriver + "]: " + e.getMessage(), e);
     }
   }
 

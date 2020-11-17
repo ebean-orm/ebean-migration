@@ -18,7 +18,6 @@ public class MigrationConfigTest {
 
     MigrationConfig config = new MigrationConfig();
 
-    assertNull(config.getDbDriver());
     assertNull(config.getDbUrl());
     assertNull(config.getDbUsername());
     assertNull(config.getDbPassword());
@@ -52,7 +51,6 @@ public class MigrationConfigTest {
     MigrationConfig config = new MigrationConfig();
     config.load(props);
 
-    assertEquals(config.getDbDriver(), "driver");
     assertEquals(config.getDbUrl(), "url");
     assertEquals(config.getDbUsername(), "username");
     assertEquals(config.getDbPassword(), "password");

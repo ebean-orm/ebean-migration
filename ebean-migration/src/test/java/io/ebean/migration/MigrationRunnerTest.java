@@ -19,7 +19,6 @@ public class MigrationRunnerTest {
     MigrationConfig config = new MigrationConfig();
     config.setDbUsername("sa");
     config.setDbPassword("");
-    config.setDbDriver("org.h2.Driver");
     config.setDbUrl("jdbc:h2:mem:db1");
 
     return config;
@@ -208,10 +207,8 @@ public class MigrationRunnerTest {
     MigrationConfig config = createMigrationConfig();
     config.setDbUsername("unit");
     config.setDbPassword("unit");
-    config.setDbDriver("org.postgresql.Driver");
     config.setDbUrl("jdbc:postgresql://127.0.0.1:26257/unit");
     config.setMigrationPath("dbmig-roach");
-
 
     MigrationRunner runner = new MigrationRunner(config);
     runner.run();

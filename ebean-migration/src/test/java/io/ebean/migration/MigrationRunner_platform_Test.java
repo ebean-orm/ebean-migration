@@ -82,7 +82,6 @@ public class MigrationRunner_platform_Test {
 
   private MigrationConfig postgresMigrationConfig() {
     MigrationConfig config = newMigrationConfig();
-    config.setDbDriver("org.postgresql.Driver");
     config.setDbUrl(postgresContainer.jdbcUrl());
     return config;
   }
@@ -90,14 +89,12 @@ public class MigrationRunner_platform_Test {
   private MigrationConfig sqlServerMigrationConfig() {
     MigrationConfig config = newMigrationConfig();
     config.setDbPassword("SqlS3rv#r");
-    config.setDbDriver("com.microsoft.sqlserver.jdbc.SQLServerDriver");
     config.setDbUrl(sqlServerContainer.jdbcUrl());
     return config;
   }
 
   private MigrationConfig nuodDbMigrationConfig() {
     MigrationConfig config = newMigrationConfig();
-    config.setDbDriver("com.nuodb.jdbc.Driver");
     config.setDbUrl(nuoDBContainer.jdbcUrl());
     config.setDbSchema("mig_test");
     config.setDbUsername("mig_test");
@@ -107,14 +104,12 @@ public class MigrationRunner_platform_Test {
 
   private MigrationConfig mysqlMigrationConfig() {
     MigrationConfig config = newMigrationConfig();
-    config.setDbDriver("com.mysql.cj.jdbc.Driver");
     config.setDbUrl(mysqlContainer.jdbcUrl());
     return config;
   }
 
   private MigrationConfig oracleMigrationConfig() {
     MigrationConfig config = newMigrationConfig();
-    config.setDbDriver("oracle.jdbc.OracleDriver");
     config.setDbUrl(oracleContainer.jdbcUrl());
     return config;
   }

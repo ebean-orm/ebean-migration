@@ -56,7 +56,6 @@ public class DbNameUtilTest {
     MigrationConfig config = new MigrationConfig();
     config.setDbUsername("unit");
     config.setDbPassword("unit");
-    config.setDbDriver("org.postgresql.Driver");
     return config;
   }
 }
