@@ -41,7 +41,7 @@ public class MigrationTableTest {
 
   @AfterMethod
   public void shutdown() {
-    dataSource.shutdown(false);
+    dataSource.shutdown();
   }
 
   @Test

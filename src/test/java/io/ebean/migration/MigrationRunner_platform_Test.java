@@ -45,21 +45,21 @@ public class MigrationRunner_platform_Test {
 
   private static PostgresContainer createPostgres() {
     PostgresConfig config = new PostgresConfig("10.1");
-    config.setPort("9823");
+    config.setPort(9823);
     setContainerName(config, "pg10");
     return new PostgresContainer(config);
   }
 
   private static SqlServerContainer createSqlServer() {
     SqlServerConfig config = new SqlServerConfig("2017-GA-ubuntu");
-    config.setPort("2433");
+    config.setPort(2433);
     setContainerName(config, "sql17");
     return new SqlServerContainer(config);
   }
 
   private static MySqlContainer createMySqlContainer() {
     MySqlConfig config = new MySqlConfig("8.0");
-    config.setPort("14306");
+    config.setPort(14306);
     setContainerName(config, "mysql");
     return new MySqlContainer(config);
   }
