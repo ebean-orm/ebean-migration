@@ -1,5 +1,6 @@
 package io.ebean.migration.runner;
 
+import io.ebean.ddlrunner.ScriptTransform;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationException;

@@ -1,5 +1,6 @@
 package io.ebean.migration;
 
+import io.ebean.ddlrunner.DdlRunner;
 import io.ebean.docker.commands.DbConfig;
 import io.ebean.docker.commands.MySqlConfig;
 import io.ebean.docker.commands.MySqlContainer;
@@ -11,8 +12,6 @@ import io.ebean.docker.commands.PostgresConfig;
 import io.ebean.docker.commands.PostgresContainer;
 import io.ebean.docker.commands.SqlServerConfig;
 import io.ebean.docker.commands.SqlServerContainer;
-import io.ebean.migration.ddl.DdlAutoCommit;
-import io.ebean.migration.ddl.DdlRunner;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
@@ -60,6 +59,7 @@ public class MigrationRunner_platform_Test {
 
   private static MySqlContainer createMySqlContainer() {
     MySqlConfig config = new MySqlConfig("8.0");
+    config.setPort("14306");
     setContainerName(config, "mysql");
     return new MySqlContainer(config);
   }
@@ -217,6 +217,7 @@ public class MigrationRunner_platform_Test {
   @Test
   public void mysql_migration() throws SQLException {
 
+    mysqlContainer.stopRemove();
     mysqlContainer.startWithDropCreate();
 
     MigrationConfig config = mysqlMigrationConfig();

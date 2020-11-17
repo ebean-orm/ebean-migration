@@ -1,6 +1,6 @@
 package io.ebean.migration.runner;
 
-import io.ebean.migration.ddl.DdlRunner;
+import io.ebean.ddlrunner.DdlRunner;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -1,6 +1,6 @@
 package io.ebean.migration.runner;
 
-import io.ebean.migration.ddl.DdlAutoCommit;
+import io.ebean.ddlrunner.DdlAutoCommit;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertFalse;

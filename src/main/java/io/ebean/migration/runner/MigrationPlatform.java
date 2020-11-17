@@ -1,6 +1,7 @@
 package io.ebean.migration.runner;
 
-import io.ebean.migration.ddl.DdlAutoCommit;
+
+import io.ebean.ddlrunner.DdlAutoCommit;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
