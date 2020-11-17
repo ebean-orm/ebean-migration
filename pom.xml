@@ -27,7 +27,7 @@
 
 
   <modules>
-    <module>ebean-migration-api</module>
+    <module>ebean-migration-auto</module>
     <module>ebean-migration</module>
   </modules>
 
