@@ -69,6 +69,8 @@ public class MigrationConfig {
    */
   private String minVersionFailMessage;
 
+  private Properties properties;
+
   /**
    * Return the name of the migration table.
    */
@@ -452,56 +454,62 @@ public class MigrationConfig {
    * Load configuration from standard properties.
    */
   public void load(Properties props) {
+    this.properties = props;
+    dbUsername = getProperty("username", dbUsername);
+    dbPassword = getProperty("password", dbPassword);
+    dbUrl = getProperty("url", dbUrl);
+    dbSchema = getProperty("schema", dbSchema);
 
-    dbUsername = props.getProperty("dbmigration.username", dbUsername);
-    dbPassword = props.getProperty("dbmigration.password", dbPassword);
-    dbUrl = props.getProperty("dbmigration.url", dbUrl);
-    dbSchema = props.getProperty("dbmigration.schema", dbSchema);
-
-    String skip = props.getProperty("dbmigration.skipchecksum");
+    String skip = getProperty("skipchecksum");
     if (skip != null) {
       skipChecksum = Boolean.parseBoolean(skip);
     }
-
-    String createSchema = props.getProperty("dbmigration.createSchemaIfNotExists");
+    String createSchema = getProperty("createSchemaIfNotExists");
     if (createSchema != null) {
       createSchemaIfNotExists = Boolean.parseBoolean(createSchema);
     }
-    String setSchema = props.getProperty("dbmigration.setCurrentSchema");
+    String setSchema = getProperty("setCurrentSchema");
     if (setSchema != null) {
       setCurrentSchema = Boolean.parseBoolean(setSchema);
     }
-    platformName = props.getProperty("dbmigration.platformName", platformName);
-    applySuffix = props.getProperty("dbmigration.applySuffix", applySuffix);
-    metaTable = props.getProperty("dbmigration.metaTable", metaTable);
-    migrationPath = props.getProperty("dbmigration.migrationPath", migrationPath);
-    migrationInitPath = props.getProperty("dbmigration.migrationInitPath", migrationInitPath);
-    runPlaceholders = props.getProperty("dbmigration.placeholders", runPlaceholders);
-    minVersion = props.getProperty("dbmigration.minVersion", minVersion);
-    minVersionFailMessage = props.getProperty("dbmigration.minVersionFailMessage", minVersionFailMessage);
+    platformName = getProperty("platformName", platformName);
+    applySuffix = getProperty("applySuffix", applySuffix);
+    metaTable = getProperty("metaTable", metaTable);
+    migrationPath = getProperty("migrationPath", migrationPath);
+    migrationInitPath = getProperty("migrationInitPath", migrationInitPath);
+    runPlaceholders = getProperty("placeholders", runPlaceholders);
+    minVersion = getProperty("minVersion", minVersion);
+    minVersionFailMessage = getProperty("minVersionFailMessage", minVersionFailMessage);
 
-    String patchInsertOn = props.getProperty("dbmigration.patchInsertOn");
+    String patchInsertOn = getProperty("patchInsertOn");
     if (patchInsertOn != null) {
       setPatchInsertOn(patchInsertOn);
     }
-    String patchResetChecksumOn = props.getProperty("dbmigration.patchResetChecksumOn");
+    String patchResetChecksumOn = getProperty("patchResetChecksumOn");
     if (patchResetChecksumOn != null) {
       setPatchResetChecksumOn(patchResetChecksumOn);
     }
-    String runPlaceholders = props.getProperty("dbmigration.runPlaceholders");
+    String runPlaceholders = getProperty("runPlaceholders");
     if (runPlaceholders != null) {
       setRunPlaceholders(runPlaceholders);
     }
+  }
+
+  private String getProperty(String key) {
+    return getProperty(key, null);
+  }
+
+  private String getProperty(String key, String defaultVal) {
+    String val = properties.getProperty("dbmigration." + key);
+    return val != null ? val : properties.getProperty("ebean.migration." + key, defaultVal);
   }
 
   /**
    * Create a Connection to the database using the configured driver, url, username etc.
    * <p>
    * Used when an existing DataSource or Connection is not supplied.
-   * </p>
    */
   public Connection createConnection() {
-
     if (dbUsername == null) throw new MigrationException("Database username is null?");
     if (dbPassword == null) throw new MigrationException("Database password is null?");
     if (dbUrl == null) throw new MigrationException("Database connection URL is null?");

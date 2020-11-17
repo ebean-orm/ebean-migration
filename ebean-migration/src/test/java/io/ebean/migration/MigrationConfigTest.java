@@ -32,6 +32,25 @@ public class MigrationConfigTest {
   }
 
   @Test
+  public void loadProperties_ebean_migration() {
+
+    Properties props = new Properties();
+    props.setProperty("ebean.migration.username","username");
+    props.setProperty("ebean.migration.password","password");
+    props.setProperty("ebean.migration.schema","fooSchema");
+    props.setProperty("ebean.migration.createSchemaIfNotExists","false");
+    props.setProperty("ebean.migration.driver","driver");
+    props.setProperty("ebean.migration.url","url");
+    props.setProperty("ebean.migration.metaTable","metaTable");
+    props.setProperty("ebean.migration.applySuffix","applySuffix");
+    props.setProperty("ebean.migration.placeholders","placeholders");
+    props.setProperty("ebean.migration.migrationPath","migrationPath");
+    props.setProperty("ebean.migration.patchResetChecksumOn", "1.1,1.2");
+
+    assertLoadedProperties(props);
+  }
+
+  @Test
   public void loadProperties() {
 
     Properties props = new Properties();
@@ -39,7 +58,6 @@ public class MigrationConfigTest {
     props.setProperty("dbmigration.password","password");
     props.setProperty("dbmigration.schema","fooSchema");
     props.setProperty("dbmigration.createSchemaIfNotExists","false");
-
     props.setProperty("dbmigration.driver","driver");
     props.setProperty("dbmigration.url","url");
     props.setProperty("dbmigration.metaTable","metaTable");
@@ -48,6 +66,10 @@ public class MigrationConfigTest {
     props.setProperty("dbmigration.migrationPath","migrationPath");
     props.setProperty("dbmigration.patchResetChecksumOn", "1.1,1.2");
 
+    assertLoadedProperties(props);
+  }
+
+  private void assertLoadedProperties(Properties props) {
     MigrationConfig config = new MigrationConfig();
     config.load(props);
 
