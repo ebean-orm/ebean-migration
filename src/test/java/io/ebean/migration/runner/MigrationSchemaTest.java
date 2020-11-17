@@ -1,14 +1,14 @@
 package io.ebean.migration.runner;
 
 import io.ebean.migration.MigrationConfig;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 
 public class MigrationSchemaTest {
 
   @Test
-  public void testCreateAndSetIfNeeded() throws Exception {
+  void testCreateAndSetIfNeeded() throws Exception {
 
     MigrationConfig config = createMigrationConfig();
     config.setDbSchema("SOME_NEW_SCHEMA");

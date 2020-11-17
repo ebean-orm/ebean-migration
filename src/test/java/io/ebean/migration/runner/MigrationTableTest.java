@@ -3,16 +3,16 @@ package io.ebean.migration.runner;
 import io.ebean.migration.DbPlatformNames;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MigrationTableTest {
 
   @Test
-  public void testCreateTableDdl() throws Exception {
+  void testCreateTableDdl() throws Exception {
 
     MigrationConfig config = new MigrationConfig();
     config.setDbSchema("foo");
@@ -25,7 +25,7 @@ public class MigrationTableTest {
   }
 
   @Test
-  public void testCreateTableDdl_sqlserver() throws Exception {
+  void testCreateTableDdl_sqlserver() throws Exception {
 
     MigrationConfig config = new MigrationConfig();
     config.setDbSchema("bar");
@@ -40,7 +40,7 @@ public class MigrationTableTest {
   }
 
   @Test
-  public void test_skipMigration_Repeatable() throws Exception {
+  void test_skipMigration_Repeatable() throws Exception {
 
     MigrationConfig config = new MigrationConfig();
 
@@ -55,7 +55,7 @@ public class MigrationTableTest {
   }
 
   @Test
-  public void test_skipMigration_skipChecksum() throws Exception {
+  void test_skipMigration_skipChecksum() throws Exception {
 
     MigrationConfig config = new MigrationConfig();
     config.setSkipChecksum(true);

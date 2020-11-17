@@ -4,7 +4,8 @@ import io.ebean.migration.runner.LocalMigrationResource;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourcePool;
 import io.ebean.datasource.DataSourceFactory;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.util.List;
@@ -200,7 +201,8 @@ public class MigrationRunnerTest {
   /**
    * Run this integration test manually against CockroachDB.
    */
-  @Test(enabled = false)
+  @Disabled
+  @Test
   public void cockroach_integrationTest() {
 
     MigrationConfig config = createMigrationConfig();

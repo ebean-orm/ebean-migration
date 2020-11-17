@@ -5,9 +5,11 @@ import io.ebean.migration.runner.MigrationTable;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourcePool;
 import io.ebean.datasource.DataSourceFactory;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,27 +21,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class MigrationTableTest {
 
-  private MigrationConfig config;
-  private DataSourcePool dataSource;
+  private static MigrationConfig config;
+  private static DataSourcePool dataSource;
   private MigrationPlatform platform = new MigrationPlatform();
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp() {
     config = new MigrationConfig();
     config.setDbUsername("sa");
     config.setDbPassword("");
-    config.setDbDriver("org.h2.Driver");
     config.setDbUrl("jdbc:h2:mem:db2");
 
     DataSourceConfig dataSourceConfig = new DataSourceConfig();
-    dataSourceConfig.setDriver("org.h2.Driver");
     dataSourceConfig.setUrl("jdbc:h2:mem:db2");
     dataSourceConfig.setUsername("sa");
     dataSourceConfig.setPassword("");
     dataSource = DataSourceFactory.create("test", dataSourceConfig);
   }
 
-  @AfterMethod
+  @AfterEach
   public void shutdown() {
     dataSource.shutdown();
   }

@@ -12,7 +12,8 @@ import io.ebean.docker.commands.PostgresConfig;
 import io.ebean.docker.commands.PostgresContainer;
 import io.ebean.docker.commands.SqlServerConfig;
 import io.ebean.docker.commands.SqlServerContainer;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -193,7 +194,8 @@ public class MigrationRunner_platform_Test {
     }
   }
 
-  @Test(enabled = false)
+  @Disabled
+  @Test
   public void sqlServer_migration() throws SQLException {
 
     sqlServerContainer.startWithDropCreate();
@@ -236,7 +238,8 @@ public class MigrationRunner_platform_Test {
     mysqlContainer.stopRemove();
   }
 
-  @Test(enabled = false)
+  @Disabled
+  @Test
   public void nuodb_migration() throws SQLException {
 
     //nuoDBContainer.stopRemove();
@@ -256,7 +259,8 @@ public class MigrationRunner_platform_Test {
     nuoDBContainer.stop();
   }
 
-  @Test(enabled = false)
+  @Disabled
+  @Test
   public void oracle_migration() throws SQLException {
 
     oracleContainer.startWithDropCreate();

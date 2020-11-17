@@ -1,6 +1,6 @@
 package io.ebean.migration.runner;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MigrationMetaRowTest {
 
   @Test
-  public void testSelectSql() {
+  void testSelectSql() {
 
     final MigrationPlatform sqlServer = new MigrationPlatform.SqlServer();
     String sql = sqlServer.sqlSelectForReading("someTable");

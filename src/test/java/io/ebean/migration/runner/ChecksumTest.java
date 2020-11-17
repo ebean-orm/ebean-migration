@@ -1,13 +1,13 @@
 package io.ebean.migration.runner;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class ChecksumTest {
 
   @Test
-  public void test_calculate() throws Exception {
+  void test_calculate() {
 
     int checkFoo = Checksum.calculate("foo");
 

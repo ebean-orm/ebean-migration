@@ -1,6 +1,7 @@
 package io.ebean.migration;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,7 +13,8 @@ public class DbNameUtilTest {
   /**
    * Run manually against Postgres database.
    */
-  @Test(enabled = false)
+  @Disabled
+  @Test
   public void normalise_when_realPostgres() throws SQLException {
 
     MigrationConfig config = createConfig();
@@ -31,7 +33,8 @@ public class DbNameUtilTest {
   /**
    * Run manually against cockroach database.
    */
-  @Test(enabled = false)
+  @Disabled
+  @Test
   public void normalise_when_cockroach() throws SQLException {
 
     MigrationConfig config = createConfig();
