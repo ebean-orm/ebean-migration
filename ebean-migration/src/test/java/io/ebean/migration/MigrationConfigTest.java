@@ -22,7 +22,6 @@ public class MigrationConfigTest {
     assertNull(config.getDbUsername());
     assertNull(config.getDbPassword());
 
-    assertEquals(config.getApplySuffix(), ".sql");
     assertEquals(config.getMetaTable(), "db_migration");
     assertNull(config.getRunPlaceholders());
     assertEquals(config.getMigrationPath(), "dbmigration");
@@ -42,7 +41,6 @@ public class MigrationConfigTest {
     props.setProperty("ebean.migration.driver","driver");
     props.setProperty("ebean.migration.url","url");
     props.setProperty("ebean.migration.metaTable","metaTable");
-    props.setProperty("ebean.migration.applySuffix","applySuffix");
     props.setProperty("ebean.migration.placeholders","placeholders");
     props.setProperty("ebean.migration.migrationPath","migrationPath");
     props.setProperty("ebean.migration.patchResetChecksumOn", "1.1,1.2");
@@ -61,7 +59,6 @@ public class MigrationConfigTest {
     props.setProperty("dbmigration.driver","driver");
     props.setProperty("dbmigration.url","url");
     props.setProperty("dbmigration.metaTable","metaTable");
-    props.setProperty("dbmigration.applySuffix","applySuffix");
     props.setProperty("dbmigration.placeholders","placeholders");
     props.setProperty("dbmigration.migrationPath","migrationPath");
     props.setProperty("dbmigration.patchResetChecksumOn", "1.1,1.2");
@@ -79,11 +76,34 @@ public class MigrationConfigTest {
     assertEquals(config.getDbSchema(), "fooSchema");
     assertEquals(config.isCreateSchemaIfNotExists(), false);
 
-    assertEquals(config.getApplySuffix(), "applySuffix");
     assertEquals(config.getMetaTable(), "metaTable");
     assertEquals(config.getRunPlaceholders(), "placeholders");
     assertEquals(config.getMigrationPath(), "migrationPath");
     assertThat(config.getPatchResetChecksumOn()).contains("1.1", "1.2");
+  }
+
+  @Test
+  public void loadProperties_withName() {
+
+    Properties props = new Properties();
+    props.setProperty("ebean.mydb.migration.username","username");
+    props.setProperty("ebean.mydb.migration.migrationPath","migrationPath");
+    props.setProperty("ebean.migration.password","password");
+    props.setProperty("ebean.migration.schema","fooSchema");
+    props.setProperty("dbmigration.url","url");
+    props.setProperty("dbmigration.metaTable","metaTable");
+
+    MigrationConfig config = new MigrationConfig();
+    config.setName("mydb");
+    config.load(props);
+
+    assertEquals(config.getDbUrl(), "url");
+    assertEquals(config.getDbUsername(), "username");
+    assertEquals(config.getDbPassword(), "password");
+    assertEquals(config.getDbSchema(), "fooSchema");
+
+    assertEquals(config.getDbUrl(), "url");
+    assertEquals(config.getMetaTable(), "metaTable");
   }
 
   @Test

@@ -13,6 +13,11 @@ public class AutoRunner implements AutoMigrationRunner {
   private final MigrationConfig config = new MigrationConfig();
 
   @Override
+  public void setName(String name) {
+    config.setName(name);
+  }
+
+  @Override
   public void setDefaultDbSchema(String defaultDbSchema) {
     if (defaultDbSchema != null) {
       config.setSetCurrentSchema(false);

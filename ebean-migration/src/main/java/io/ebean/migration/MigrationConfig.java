@@ -19,8 +19,6 @@ public class MigrationConfig {
 
   private String metaTable = "db_migration";
 
-  private String applySuffix = ".sql";
-
   private String runPlaceholders;
 
   private boolean skipChecksum;
@@ -68,6 +66,11 @@ public class MigrationConfig {
    * (e.g. "To perform an upgrade, you must install APP XY first")
    */
   private String minVersionFailMessage;
+
+  /**
+   * The database name we load the configuration properties for.
+   */
+  private String name;
 
   private Properties properties;
 
@@ -238,20 +241,6 @@ public class MigrationConfig {
   }
 
   /**
-   * Return the suffix for migration resources (defaults to .sql).
-   */
-  public String getApplySuffix() {
-    return applySuffix;
-  }
-
-  /**
-   * Set the suffix for migration resources.
-   */
-  public void setApplySuffix(String applySuffix) {
-    this.applySuffix = applySuffix;
-  }
-
-  /**
    * Return the DB username.
    * <p>
    * Used when a Connection to run the migration is not supplied.
@@ -409,21 +398,21 @@ public class MigrationConfig {
   }
 
   /**
-   * Returns the jdbcMigrationFactory.
+   * Return the jdbcMigrationFactory.
    */
   public JdbcMigrationFactory getJdbcMigrationFactory() {
     return jdbcMigrationFactory;
   }
 
   /**
-   * Sets the jdbcMigrationFactory.
+   * Set the jdbcMigrationFactory.
    */
   public void setJdbcMigrationFactory(JdbcMigrationFactory jdbcMigrationFactory) {
     this.jdbcMigrationFactory = jdbcMigrationFactory;
   }
 
   /**
-   * Returns the minVersion.
+   * Return the minVersion.
    */
   public String getMinVersion() {
     return minVersion;
@@ -437,14 +426,14 @@ public class MigrationConfig {
   }
 
   /**
-   * Sets the optional minVersionFailMessage.
+   * Return the optional minVersionFailMessage.
    */
   public String getMinVersionFailMessage() {
     return minVersionFailMessage;
   }
 
   /**
-   * @param minVersionFailMessage the minVersionFailMessage to set
+   * Set the minVersionFailMessage
    */
   public void setMinVersionFailMessage(String minVersionFailMessage) {
     this.minVersionFailMessage = minVersionFailMessage;
@@ -473,7 +462,6 @@ public class MigrationConfig {
       setCurrentSchema = Boolean.parseBoolean(setSchema);
     }
     platformName = getProperty("platformName", platformName);
-    applySuffix = getProperty("applySuffix", applySuffix);
     metaTable = getProperty("metaTable", metaTable);
     migrationPath = getProperty("migrationPath", migrationPath);
     migrationInitPath = getProperty("migrationInitPath", migrationInitPath);
@@ -500,8 +488,15 @@ public class MigrationConfig {
   }
 
   private String getProperty(String key, String defaultVal) {
-    String val = properties.getProperty("dbmigration." + key);
-    return val != null ? val : properties.getProperty("ebean.migration." + key, defaultVal);
+    String val = properties.getProperty("ebean." + name + ".migration." + key);
+    if (val != null) {
+      return val;
+    }
+    val = properties.getProperty("ebean.migration." + key);
+    if (val != null) {
+      return val;
+    }
+    return properties.getProperty("dbmigration." + key, defaultVal);
   }
 
   /**
@@ -522,6 +517,16 @@ public class MigrationConfig {
     } catch (SQLException e) {
       throw new MigrationException("Error trying to create Connection", e);
     }
+  }
+
+  /**
+   * Set the name of the database to run the migration for.
+   * <p>
+   * This name is used when loading properties like:
+   * <code>ebean.${name}.migration.migrationPath</code>
+   */
+  public void setName(String name) {
+    this.name = name;
   }
 
   /**

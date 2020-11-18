@@ -56,7 +56,7 @@ public class LocalMigrationResources {
 
     for (Resource resource : resourceList) {
       String filename = resource.getFilename();
-      if (filename.endsWith(migrationConfig.getApplySuffix())) {
+      if (filename.endsWith(".sql")) {
         versions.add(createScriptMigration(resource, filename));
       } else if (migrationConfig.getJdbcMigrationFactory() != null && filename.endsWith(".class")) {
         versions.add(createJdbcMigration(resource, filename));
@@ -84,7 +84,7 @@ public class LocalMigrationResources {
    * Create a script based migration.
    */
   private LocalMigrationResource createScriptMigration(Resource resource, String filename) {
-    int pos = filename.lastIndexOf(migrationConfig.getApplySuffix());
+    int pos = filename.lastIndexOf(".sql");
     String mainName = filename.substring(0, pos);
     MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
     return new LocalDdlMigrationResource(migrationVersion, resource.getLocation(), resource);
@@ -111,7 +111,7 @@ public class LocalMigrationResources {
 
     @Override
     public boolean isMatch(String name) {
-      return name.endsWith(migrationConfig.getApplySuffix())
+      return name.endsWith(".sql")
           || migrationConfig.getJdbcMigrationFactory() != null && name.endsWith(".class") && !name.contains("$");
     }
   }
