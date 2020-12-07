@@ -1,5 +1,8 @@
 package io.ebean.migration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -12,6 +15,8 @@ import java.util.Set;
  * Configuration used to run the migration.
  */
 public class MigrationConfig {
+
+  private static final Logger log = LoggerFactory.getLogger(MigrationConfig.class);
 
   private String migrationPath = "dbmigration";
 
@@ -449,7 +454,13 @@ public class MigrationConfig {
     dbUrl = getProperty("url", dbUrl);
     dbSchema = getProperty("schema", dbSchema);
 
-    String skip = getProperty("skipchecksum");
+    String skip = getProperty("skipChecksum");
+    if (skip == null) {
+      skip = getProperty("skipchecksum");
+      if (skip != null) {
+        log.warn("Please migrate from using skipchecksum property to skipChecksum property");
+      }
+    }
     if (skip != null) {
       skipChecksum = Boolean.parseBoolean(skip);
     }
