@@ -26,6 +26,7 @@ public class MigrationConfig {
 
   private String runPlaceholders;
 
+  private boolean skipMigrationRun;
   private boolean skipChecksum;
 
   private Map<String, String> runPlaceholderMap;
@@ -170,6 +171,28 @@ public class MigrationConfig {
    */
   public Set<String> getPatchInsertOn() {
     return patchInsertOn;
+  }
+
+  /**
+   * Return true if the migration should NOT execute the migrations
+   * but update the migration table.
+   * <p>
+   * This can be used to migrate from Flyway where all existing migrations
+   * are treated as being executed.
+   */
+  public boolean isSkipMigrationRun() {
+    return skipMigrationRun;
+  }
+
+  /**
+   * Set to true if the migration should NOT execute the migrations
+   * but update the migration table only.
+   * <p>
+   * This can be used to migrate from Flyway where all existing migrations
+   * are treated as being executed.
+   */
+  public void setSkipMigrationRun(boolean skipMigrationRun) {
+    this.skipMigrationRun = skipMigrationRun;
   }
 
   /**
@@ -453,6 +476,11 @@ public class MigrationConfig {
     dbPassword = getProperty("password", dbPassword);
     dbUrl = getProperty("url", dbUrl);
     dbSchema = getProperty("schema", dbSchema);
+
+    String skipMigration = getProperty("skipMigrationRun");
+    if (skipMigration != null) {
+      skipMigrationRun = Boolean.parseBoolean(skipMigration);
+    }
 
     String skip = getProperty("skipChecksum");
     if (skip == null) {

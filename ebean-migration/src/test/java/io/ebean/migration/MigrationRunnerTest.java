@@ -1,17 +1,22 @@
 package io.ebean.migration;
 
-import io.ebean.migration.runner.LocalMigrationResource;
 import io.ebean.datasource.DataSourceConfig;
-import io.ebean.datasource.DataSourcePool;
 import io.ebean.datasource.DataSourceFactory;
+import io.ebean.datasource.DataSourcePool;
+import io.ebean.migration.runner.LocalMigrationResource;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class MigrationRunnerTest {
 
@@ -154,7 +159,7 @@ public class MigrationRunnerTest {
     config.setMinVersionFailMessage("Must run dbmig2 first.");
 
     MigrationRunner runner3 = new MigrationRunner(config);
-    assertThatThrownBy(()->runner3.run(dataSource))
+    assertThatThrownBy(() -> runner3.run(dataSource))
       .isInstanceOf(MigrationException.class)
       .hasMessageContaining("Must run dbmig2 first. MigrationVersion mismatch: v1.2.1 < v1.3");
 
@@ -191,9 +196,41 @@ public class MigrationRunnerTest {
     config.setMinVersion("2.0");
 
     MigrationRunner runner = new MigrationRunner(config);
-    assertThatThrownBy(()->runner.run(dataSource))
+    assertThatThrownBy(() -> runner.run(dataSource))
       .isInstanceOf(MigrationException.class)
       .hasMessageContaining("MigrationVersion mismatch: v1.3 < v2.0");
+  }
+
+  @Test
+  public void run_with_skipMigration() throws SQLException {
+
+    DataSourceConfig dataSourceConfig = new DataSourceConfig();
+    dataSourceConfig.setDriver("org.h2.Driver");
+    dataSourceConfig.setUrl("jdbc:h2:mem:testsSkipMigration");
+    dataSourceConfig.setUsername("sa");
+    dataSourceConfig.setPassword("");
+
+    MigrationConfig config = createMigrationConfig();
+    // not actually run the migrations but populate the migration table
+    config.setSkipMigrationRun(true);
+    config.setMigrationPath("dbmig");
+
+    DataSourcePool dataSource = DataSourceFactory.create("skipMigration", dataSourceConfig);
+    new MigrationRunner(config).run(dataSource);
+
+    // assert migrations are in the migration table
+    try (final Connection connection = dataSource.getConnection()) {
+      final List<String> names = migrationNames(connection);
+      assertThat(names).contains("<init>", "hello", "initial", "add_m3", "test", "m2_view");
+    }
+
+    // assert the migrations didn't actually run (create the tables etc)
+    try (final Connection connection = dataSource.getConnection()) {
+      singleQueryResult(connection, "select acol from m3");
+      fail();
+    } catch (SQLException e) {
+      assertThat(e.getMessage()).contains("Table \"M3\" not found;");
+    }
   }
 
 
@@ -212,5 +249,21 @@ public class MigrationRunnerTest {
 
     MigrationRunner runner = new MigrationRunner(config);
     runner.run();
+  }
+
+  private List<String> migrationNames(Connection connection) throws SQLException {
+    return singleQueryResult(connection, "select mcomment from db_migration");
+  }
+
+  private List<String> singleQueryResult(Connection connection, String sql) throws SQLException {
+    List<String> names = new ArrayList<>();
+    try (final PreparedStatement statement = connection.prepareStatement(sql)) {
+      try (final ResultSet resultSet = statement.executeQuery()) {
+        while (resultSet.next()) {
+          names.add(resultSet.getString(1));
+        }
+      }
+    }
+    return names;
   }
 }

@@ -55,6 +55,7 @@ public class MigrationTable {
 
   private final LinkedHashMap<String, MigrationMetaRow> migrations;
   private final boolean skipChecksum;
+  private final boolean skipMigrationRun;
 
   private final Set<String> patchInsertVersions;
   private final Set<String> patchResetChecksumVersions;
@@ -89,6 +90,7 @@ public class MigrationTable {
     this.patchInsertVersions = config.getPatchInsertOn();
     this.minVersion = initMinVersion(config.getMinVersion());
     this.minVersionFailMessage = config.getMinVersionFailMessage();
+    this.skipMigrationRun = config.isSkipMigrationRun();
     this.skipChecksum = config.isSkipChecksum();
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
@@ -344,23 +346,16 @@ public class MigrationTable {
       return;
     }
 
-    logger.debug("run migration {}", local.getLocation());
-
-    long start = System.currentTimeMillis();
+    long exeMillis = 0;
     try {
-      if (local instanceof LocalDdlMigrationResource) {
-        scriptRunner.runScript(script, "run migration version: " + local.getVersion());
+      if (skipMigrationRun) {
+        logger.debug("skip migration {}", local.getLocation());
       } else {
-        JdbcMigration migration = ((LocalJdbcMigrationResource) local).getMigration();
-        logger.info("Executing jdbc migration version: {} - {}", local.getVersion(), migration);
-        migration.migrate(connection);
+        exeMillis = executeMigration(local, script);
       }
-      long exeMillis = System.currentTimeMillis() - start;
-
       if (existing != null) {
         existing.rerun(checksum, exeMillis, envUserName, runOn);
         existing.executeUpdate(connection, updateSql);
-
       } else {
         insertIntoHistory(local, checksum, exeMillis);
       }
@@ -372,6 +367,19 @@ public class MigrationTable {
         throw e;
       }
     }
+  }
+
+  private long executeMigration(LocalMigrationResource local, String script) throws SQLException {
+    long start = System.currentTimeMillis();
+    if (local instanceof LocalDdlMigrationResource) {
+      logger.debug("run migration {}", local.getLocation());
+      scriptRunner.runScript(script, "run migration version: " + local.getVersion());
+    } else {
+      JdbcMigration migration = ((LocalJdbcMigrationResource) local).getMigration();
+      logger.info("Executing jdbc migration version: {} - {}", local.getVersion(), migration);
+      migration.migrate(connection);
+    }
+    return System.currentTimeMillis() - start;
   }
 
   private void insertIntoHistory(LocalMigrationResource local, int checksum, long exeMillis) throws SQLException {
