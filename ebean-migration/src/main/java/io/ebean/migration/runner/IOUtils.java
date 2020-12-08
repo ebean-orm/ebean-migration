@@ -1,4 +1,4 @@
-package io.ebean.migration.util;
+package io.ebean.migration.runner;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,12 +11,12 @@ import java.net.URLConnection;
 /**
  * Utilities for IO.
  */
-public class IOUtils {
+class IOUtils {
 
   /**
    * Reads the entire contents of the specified URL and return them as UTF-8 string.
    */
-  public static String readUtf8(URL url) throws IOException {
+  static String readUtf8(URL url) throws IOException {
     URLConnection urlConnection = url.openConnection();
     urlConnection.setUseCaches(false);
     return readUtf8(urlConnection.getInputStream());
@@ -25,7 +25,7 @@ public class IOUtils {
   /**
    * Reads the entire contents of the specified input stream and return them as UTF-8 string.
    */
-  public static String readUtf8(InputStream in) throws IOException {
+  static String readUtf8(InputStream in) throws IOException {
     return bytesToUtf8(read(in));
   }
 
@@ -55,7 +55,6 @@ public class IOUtils {
    * closed.
    */
   private static void pump(InputStream in, OutputStream out) throws IOException {
-
     if (in == null) throw new IOException("Input stream is null");
     if (out == null) throw new IOException("Output stream is null");
     try {

@@ -5,7 +5,6 @@ import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationException;
 import io.ebean.migration.MigrationVersion;
-import io.ebean.migration.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
