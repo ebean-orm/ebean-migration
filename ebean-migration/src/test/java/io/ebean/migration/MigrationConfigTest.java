@@ -8,8 +8,10 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MigrationConfigTest {
 
@@ -21,10 +23,10 @@ public class MigrationConfigTest {
     assertNull(config.getDbUrl());
     assertNull(config.getDbUsername());
     assertNull(config.getDbPassword());
-    assertEquals(config.isCreateSchemaIfNotExists(), true);
-    assertEquals(config.isSetCurrentSchema(), true);
-    assertEquals(config.isSkipChecksum(), false);
-    assertEquals(config.isSkipMigrationRun(), false);
+    assertTrue(config.isCreateSchemaIfNotExists());
+    assertTrue(config.isSetCurrentSchema());
+    assertFalse(config.isSkipChecksum());
+    assertFalse(config.isSkipMigrationRun());
     assertEquals(config.getMetaTable(), "db_migration");
     assertNull(config.getRunPlaceholders());
     assertEquals(config.getMigrationPath(), "dbmigration");
@@ -82,10 +84,10 @@ public class MigrationConfigTest {
     assertEquals(config.getDbUsername(), "username");
     assertEquals(config.getDbPassword(), "password");
     assertEquals(config.getDbSchema(), "fooSchema");
-    assertEquals(config.isCreateSchemaIfNotExists(), false);
-    assertEquals(config.isSetCurrentSchema(), false);
-    assertEquals(config.isSkipChecksum(), true);
-    assertEquals(config.isSkipMigrationRun(), true);
+    assertFalse(config.isCreateSchemaIfNotExists());
+    assertFalse(config.isSetCurrentSchema());
+    assertTrue(config.isSkipChecksum());
+    assertTrue(config.isSkipMigrationRun());
     assertEquals(config.getMetaTable(), "metaTable");
     assertEquals(config.getRunPlaceholders(), "placeholders");
     assertEquals(config.getMigrationPath(), "migrationPath");
