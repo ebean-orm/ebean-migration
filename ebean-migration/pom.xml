@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
-  <groupId>io.ebean</groupId>
-  <artifactId>ebean-migration</artifactId>
-  <version>12.2.0</version>
-
   <parent>
     <groupId>org.avaje</groupId>
     <artifactId>java8-oss</artifactId>
     <version>2.3</version>
   </parent>
+
+  <groupId>io.ebean</groupId>
+  <artifactId>ebean-migration</artifactId>
+  <version>12.3.0</version>
 
   <scm>
     <developerConnection>scm:git:git@github.com:ebean-orm/ebean-migration.git</developerConnection>
