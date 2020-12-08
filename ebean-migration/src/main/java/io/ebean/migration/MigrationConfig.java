@@ -1,8 +1,5 @@
 package io.ebean.migration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -16,35 +13,24 @@ import java.util.Set;
  */
 public class MigrationConfig {
 
-  private static final Logger log = LoggerFactory.getLogger(MigrationConfig.class);
-
   private String migrationPath = "dbmigration";
-
   private String migrationInitPath = "dbinit";
-
   private String metaTable = "db_migration";
-
   private String runPlaceholders;
+  private Map<String, String> runPlaceholderMap;
 
   private boolean skipMigrationRun;
   private boolean skipChecksum;
-
-  private Map<String, String> runPlaceholderMap;
-
   private ClassLoader classLoader;
 
   private String dbUsername;
   private String dbPassword;
   private String dbUrl;
-
   private String dbSchema;
 
   private boolean createSchemaIfNotExists = true;
-
   private boolean setCurrentSchema = true;
-
   private boolean allowErrorInRepeatable;
-
   private String platformName;
 
   private JdbcMigrationFactory jdbcMigrationFactory = new DefaultMigrationFactory();
@@ -564,7 +550,7 @@ public class MigrationConfig {
     public JdbcMigration createInstance(String className) {
       try {
         Class<?> clazz = Class.forName(className, true, MigrationConfig.this.getClassLoader());
-        JdbcMigration migration = (JdbcMigration) clazz.newInstance();
+        JdbcMigration migration = (JdbcMigration) clazz.getDeclaredConstructor().newInstance();
         if (migration instanceof ConfigurationAware) {
           ((ConfigurationAware) migration).setMigrationConfig(MigrationConfig.this);
         }
