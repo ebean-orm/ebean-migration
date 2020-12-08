@@ -21,11 +21,13 @@ public class MigrationConfigTest {
     assertNull(config.getDbUrl());
     assertNull(config.getDbUsername());
     assertNull(config.getDbPassword());
-
+    assertEquals(config.isCreateSchemaIfNotExists(), true);
+    assertEquals(config.isSetCurrentSchema(), true);
+    assertEquals(config.isSkipChecksum(), false);
+    assertEquals(config.isSkipMigrationRun(), false);
     assertEquals(config.getMetaTable(), "db_migration");
     assertNull(config.getRunPlaceholders());
     assertEquals(config.getMigrationPath(), "dbmigration");
-
     assertNotNull(config.getClassLoader());
     assertNull(config.getRunPlaceholderMap());
   }
@@ -38,6 +40,9 @@ public class MigrationConfigTest {
     props.setProperty("ebean.migration.password","password");
     props.setProperty("ebean.migration.schema","fooSchema");
     props.setProperty("ebean.migration.createSchemaIfNotExists","false");
+    props.setProperty("ebean.migration.setCurrentSchema","false");
+    props.setProperty("ebean.migration.skipMigrationRun","true");
+    props.setProperty("ebean.migration.skipChecksum","true");
     props.setProperty("ebean.migration.driver","driver");
     props.setProperty("ebean.migration.url","url");
     props.setProperty("ebean.migration.metaTable","metaTable");
@@ -56,6 +61,9 @@ public class MigrationConfigTest {
     props.setProperty("dbmigration.password","password");
     props.setProperty("dbmigration.schema","fooSchema");
     props.setProperty("dbmigration.createSchemaIfNotExists","false");
+    props.setProperty("dbmigration.setCurrentSchema","false");
+    props.setProperty("dbmigration.skipMigrationRun","true");
+    props.setProperty("dbmigration.skipChecksum","true");
     props.setProperty("dbmigration.driver","driver");
     props.setProperty("dbmigration.url","url");
     props.setProperty("dbmigration.metaTable","metaTable");
@@ -75,7 +83,9 @@ public class MigrationConfigTest {
     assertEquals(config.getDbPassword(), "password");
     assertEquals(config.getDbSchema(), "fooSchema");
     assertEquals(config.isCreateSchemaIfNotExists(), false);
-
+    assertEquals(config.isSetCurrentSchema(), false);
+    assertEquals(config.isSkipChecksum(), true);
+    assertEquals(config.isSkipMigrationRun(), true);
     assertEquals(config.getMetaTable(), "metaTable");
     assertEquals(config.getRunPlaceholders(), "placeholders");
     assertEquals(config.getMigrationPath(), "migrationPath");

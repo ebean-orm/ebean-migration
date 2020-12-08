@@ -476,30 +476,10 @@ public class MigrationConfig {
     dbPassword = getProperty("password", dbPassword);
     dbUrl = getProperty("url", dbUrl);
     dbSchema = getProperty("schema", dbSchema);
-
-    String skipMigration = getProperty("skipMigrationRun");
-    if (skipMigration != null) {
-      skipMigrationRun = Boolean.parseBoolean(skipMigration);
-    }
-
-    String skip = getProperty("skipChecksum");
-    if (skip == null) {
-      skip = getProperty("skipchecksum");
-      if (skip != null) {
-        log.warn("Please migrate from using skipchecksum property to skipChecksum property");
-      }
-    }
-    if (skip != null) {
-      skipChecksum = Boolean.parseBoolean(skip);
-    }
-    String createSchema = getProperty("createSchemaIfNotExists");
-    if (createSchema != null) {
-      createSchemaIfNotExists = Boolean.parseBoolean(createSchema);
-    }
-    String setSchema = getProperty("setCurrentSchema");
-    if (setSchema != null) {
-      setCurrentSchema = Boolean.parseBoolean(setSchema);
-    }
+    skipMigrationRun = getBool("skipMigrationRun", skipMigrationRun);
+    skipChecksum = getBool("skipChecksum", skipChecksum);
+    createSchemaIfNotExists = getBool("createSchemaIfNotExists", createSchemaIfNotExists);
+    setCurrentSchema = getBool("setCurrentSchema", setCurrentSchema);
     platformName = getProperty("platformName", platformName);
     metaTable = getProperty("metaTable", metaTable);
     migrationPath = getProperty("migrationPath", migrationPath);
@@ -520,6 +500,11 @@ public class MigrationConfig {
     if (runPlaceholders != null) {
       setRunPlaceholders(runPlaceholders);
     }
+  }
+
+  private boolean getBool(String key, boolean value) {
+    String val = getProperty(key);
+    return val != null ? Boolean.parseBoolean(val) : value;
   }
 
   private String getProperty(String key) {
