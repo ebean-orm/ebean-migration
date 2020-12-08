@@ -5,7 +5,6 @@ import io.ebean.migration.runner.LocalMigrationResources;
 import io.ebean.migration.runner.MigrationPlatform;
 import io.ebean.migration.runner.MigrationSchema;
 import io.ebean.migration.runner.MigrationTable;
-import io.ebean.migration.util.JdbcClose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,15 +113,15 @@ public class MigrationRunner {
       table.runNonTransactional();
 
     } catch (MigrationException e) {
-      JdbcClose.rollback(connection);
+      rollback(connection);
       throw e;
 
     } catch (Exception e) {
-      JdbcClose.rollback(connection);
+      rollback(connection);
       throw new RuntimeException(e);
 
     } finally {
-      JdbcClose.close(connection);
+      close(connection);
     }
   }
 
@@ -176,4 +175,29 @@ public class MigrationRunner {
     return DbNameUtil.platform(platformName);
   }
 
+  /**
+   * Close the connection logging if an error occurs.
+   */
+  private void close(Connection connection) {
+    try {
+      if (connection != null) {
+        connection.close();
+      }
+    } catch (SQLException e) {
+      logger.warn("Error closing connection", e);
+    }
+  }
+
+  /**
+   * Rollback the connection logging if an error occurs.
+   */
+  private void rollback(Connection connection) {
+    try {
+      if (connection != null) {
+        connection.rollback();
+      }
+    } catch (SQLException e) {
+      logger.warn("Error on connection rollback", e);
+    }
+  }
 }
