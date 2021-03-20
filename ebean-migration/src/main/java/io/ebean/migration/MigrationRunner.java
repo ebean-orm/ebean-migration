@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Runs the DB migration typically on application start.
  */
@@ -22,41 +22,40 @@ public class MigrationRunner {
 
   private final MigrationConfig migrationConfig;
 
-  private List<LocalMigrationResource> checkMigrations;
+  private final List<LocalMigrationResource> checkMigrations;
 
   public MigrationRunner(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
+    this.checkMigrations = new ArrayList<>();
   }
 
   /**
-   * Return the migrations that would be applied if the migration is run.
+   * Return the migrations that would be applied if the migration is invoke.
    */
   public List<LocalMigrationResource> checkState() {
-    run(migrationConfig.createConnection(), true);
-    return checkMigrations;
+    return checkState(getMigrationConfig().createConnection());
   }
 
   /**
-   * Return the migrations that would be applied if the migration is run.
+   * Return the migrations that would be applied if the migration is invoke.
    */
   public List<LocalMigrationResource> checkState(DataSource dataSource) {
-    run(getConnection(dataSource), true);
-    return checkMigrations;
+    return checkState(getConnection(dataSource));
   }
 
   /**
-   * Return the migrations that would be applied if the migration is run.
+   * Return the migrations that would be applied if the migration is invoke.
    */
   public List<LocalMigrationResource> checkState(Connection connection) {
-    run(connection, true);
-    return checkMigrations;
+    invoke(connection, true);
+    return getCheckMigrations();
   }
 
   /**
-   * Run by creating a DB connection from driver, url, username defined in MigrationConfig.
+   * Run by creating a DB connection from driver, url, username defined in getMigrationConfig().
    */
   public void run() {
-    run(migrationConfig.createConnection());
+    run(getMigrationConfig().createConnection());
   }
 
   /**
@@ -70,17 +69,27 @@ public class MigrationRunner {
    * Run the migrations if there are any that need running.
    */
   public void run(Connection connection) {
-    run(connection, false);
+    invoke(connection, false);
+  }
+
+  public MigrationConfig getMigrationConfig() {
+
+    return this.migrationConfig;
+  }
+
+  public List<LocalMigrationResource> getCheckMigrations() {
+
+    return this.checkMigrations;
   }
 
   private Connection getConnection(DataSource dataSource) {
-    String username = migrationConfig.getDbUsername();
+    String username = getMigrationConfig().getDbUsername();
     try {
       if (username == null) {
         return dataSource.getConnection();
       }
-      logger.debug("using db user [{}] to run migrations ...", username);
-      return dataSource.getConnection(username, migrationConfig.getDbPassword());
+      logger.debug("using db user [{}] to invoke migrations ...", username);
+      return dataSource.getConnection(username, getMigrationConfig().getDbPassword());
     } catch (SQLException e) {
       String msgSuffix = (username == null) ? "" : " using user [" + username + "]";
       throw new IllegalArgumentException("Error trying to connect to database for DB Migration" + msgSuffix, e);
@@ -90,9 +99,9 @@ public class MigrationRunner {
   /**
    * Run the migrations if there are any that need running.
    */
-  private void run(Connection connection, boolean checkStateMode) {
+  protected void invoke(Connection connection, boolean checkStateMode) {
 
-    LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
+    LocalMigrationResources resources = new LocalMigrationResources(getMigrationConfig());
     if (!resources.readResources()) {
       logger.debug("no migrations to check");
       return;
@@ -100,11 +109,11 @@ public class MigrationRunner {
 
     try {
       connection.setAutoCommit(false);
-      MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
+      MigrationPlatform platform = derivePlatformName(connection);
 
-      new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
+      new MigrationSchema(getMigrationConfig(), connection).createAndSetIfNeeded();
 
-      MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode, platform);
+      MigrationTable table = new MigrationTable(getMigrationConfig(), connection, checkStateMode, platform);
       table.createIfNeededAndLock();
 
       runMigrations(resources, table, checkStateMode);
@@ -136,22 +145,24 @@ public class MigrationRunner {
     if (table.isEmpty()) {
       LocalMigrationResource initVersion = getInitVersion();
       if (initVersion != null) {
-        // run using a dbinit script
+        // invoke using a dbinit script
         logger.info("dbinit migration version:{}  local migrations:{}  checkState:{}", initVersion, localVersions.size(), checkStateMode);
-        checkMigrations = table.runInit(initVersion, localVersions);
+        getCheckMigrations().clear();
+        getCheckMigrations().addAll(table.runInit(initVersion, localVersions));
         return;
       }
     }
 
     logger.info("local migrations:{}  existing migrations:{}  checkState:{}", localVersions.size(), table.size(), checkStateMode);
-    checkMigrations = table.runAll(localVersions);
+    getCheckMigrations().clear();
+    getCheckMigrations().addAll(table.runAll(localVersions));
   }
 
   /**
    * Return the last init migration.
    */
   private LocalMigrationResource getInitVersion() {
-    LocalMigrationResources initResources = new LocalMigrationResources(migrationConfig);
+    LocalMigrationResources initResources = new LocalMigrationResources(getMigrationConfig());
     if (initResources.readInitResources()) {
       List<LocalMigrationResource> initVersions = initResources.getVersions();
       if (!initVersions.isEmpty()) {
@@ -164,12 +175,12 @@ public class MigrationRunner {
   /**
    * Return the platform deriving from connection if required.
    */
-  private MigrationPlatform derivePlatformName(MigrationConfig migrationConfig, Connection connection) {
+  private MigrationPlatform derivePlatformName(Connection connection) {
 
-    String platformName = migrationConfig.getPlatformName();
+    String platformName = getMigrationConfig().getPlatformName();
     if (platformName == null) {
       platformName = DbNameUtil.normalise(connection);
-      migrationConfig.setPlatformName(platformName);
+      getMigrationConfig().setPlatformName(platformName);
     }
 
     return DbNameUtil.platform(platformName);
