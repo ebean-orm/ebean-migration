@@ -20,9 +20,9 @@ public class MigrationRunner {
 
   private static final Logger logger = LoggerFactory.getLogger(MigrationRunner.class);
 
-  private final MigrationConfig migrationConfig;
+  protected MigrationConfig migrationConfig;
 
-  private final List<LocalMigrationResource> checkMigrations;
+  protected List<LocalMigrationResource> checkMigrations;
 
   public MigrationRunner(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
@@ -33,7 +33,7 @@ public class MigrationRunner {
    * Return the migrations that would be applied if the migration is invoke.
    */
   public List<LocalMigrationResource> checkState() {
-    return checkState(getMigrationConfig().createConnection());
+    return checkState(migrationConfig.createConnection());
   }
 
   /**
@@ -48,14 +48,14 @@ public class MigrationRunner {
    */
   public List<LocalMigrationResource> checkState(Connection connection) {
     invoke(connection, true);
-    return getCheckMigrations();
+    return new ArrayList<>(checkMigrations);
   }
 
   /**
    * Run by creating a DB connection from driver, url, username defined in getMigrationConfig().
    */
   public void run() {
-    run(getMigrationConfig().createConnection());
+    run(migrationConfig.createConnection());
   }
 
   /**
@@ -72,24 +72,15 @@ public class MigrationRunner {
     invoke(connection, false);
   }
 
-  public MigrationConfig getMigrationConfig() {
-
-    return this.migrationConfig;
-  }
-
-  public List<LocalMigrationResource> getCheckMigrations() {
-
-    return this.checkMigrations;
-  }
 
   private Connection getConnection(DataSource dataSource) {
-    String username = getMigrationConfig().getDbUsername();
+    String username = migrationConfig.getDbUsername();
     try {
       if (username == null) {
         return dataSource.getConnection();
       }
       logger.debug("using db user [{}] to invoke migrations ...", username);
-      return dataSource.getConnection(username, getMigrationConfig().getDbPassword());
+      return dataSource.getConnection(username, migrationConfig.getDbPassword());
     } catch (SQLException e) {
       String msgSuffix = (username == null) ? "" : " using user [" + username + "]";
       throw new IllegalArgumentException("Error trying to connect to database for DB Migration" + msgSuffix, e);
@@ -101,7 +92,7 @@ public class MigrationRunner {
    */
   protected void invoke(Connection connection, boolean checkStateMode) {
 
-    LocalMigrationResources resources = new LocalMigrationResources(getMigrationConfig());
+    LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
     if (!resources.readResources()) {
       logger.debug("no migrations to check");
       return;
@@ -111,9 +102,9 @@ public class MigrationRunner {
       connection.setAutoCommit(false);
       MigrationPlatform platform = derivePlatformName(connection);
 
-      new MigrationSchema(getMigrationConfig(), connection).createAndSetIfNeeded();
+      new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
 
-      MigrationTable table = new MigrationTable(getMigrationConfig(), connection, checkStateMode, platform);
+      MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode, platform);
       table.createIfNeededAndLock();
 
       runMigrations(resources, table, checkStateMode);
@@ -147,22 +138,22 @@ public class MigrationRunner {
       if (initVersion != null) {
         // invoke using a dbinit script
         logger.info("dbinit migration version:{}  local migrations:{}  checkState:{}", initVersion, localVersions.size(), checkStateMode);
-        getCheckMigrations().clear();
-        getCheckMigrations().addAll(table.runInit(initVersion, localVersions));
+        checkMigrations.clear();
+        checkMigrations.addAll(table.runInit(initVersion, localVersions));
         return;
       }
     }
 
     logger.info("local migrations:{}  existing migrations:{}  checkState:{}", localVersions.size(), table.size(), checkStateMode);
-    getCheckMigrations().clear();
-    getCheckMigrations().addAll(table.runAll(localVersions));
+    checkMigrations.clear();
+    checkMigrations.addAll(table.runAll(localVersions));
   }
 
   /**
    * Return the last init migration.
    */
   private LocalMigrationResource getInitVersion() {
-    LocalMigrationResources initResources = new LocalMigrationResources(getMigrationConfig());
+    LocalMigrationResources initResources = new LocalMigrationResources(migrationConfig);
     if (initResources.readInitResources()) {
       List<LocalMigrationResource> initVersions = initResources.getVersions();
       if (!initVersions.isEmpty()) {
@@ -177,10 +168,10 @@ public class MigrationRunner {
    */
   private MigrationPlatform derivePlatformName(Connection connection) {
 
-    String platformName = getMigrationConfig().getPlatformName();
+    String platformName = migrationConfig.getPlatformName();
     if (platformName == null) {
       platformName = DbNameUtil.normalise(connection);
-      getMigrationConfig().setPlatformName(platformName);
+      migrationConfig.setPlatformName(platformName);
     }
 
     return DbNameUtil.platform(platformName);
