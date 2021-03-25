@@ -20,9 +20,9 @@ public class MigrationRunner {
 
   private static final Logger logger = LoggerFactory.getLogger(MigrationRunner.class);
 
-  private final MigrationConfig migrationConfig;
+  protected final MigrationConfig migrationConfig;
 
-  private List<LocalMigrationResource> checkMigrations;
+  protected List<LocalMigrationResource> checkMigrations;
 
   public MigrationRunner(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
@@ -32,16 +32,14 @@ public class MigrationRunner {
    * Return the migrations that would be applied if the migration is run.
    */
   public List<LocalMigrationResource> checkState() {
-    run(migrationConfig.createConnection(), true);
-    return checkMigrations;
+    return checkState(migrationConfig.createConnection());
   }
 
   /**
    * Return the migrations that would be applied if the migration is run.
    */
   public List<LocalMigrationResource> checkState(DataSource dataSource) {
-    run(getConnection(dataSource), true);
-    return checkMigrations;
+    return checkState(getConnection(dataSource));
   }
 
   /**
@@ -90,7 +88,7 @@ public class MigrationRunner {
   /**
    * Run the migrations if there are any that need running.
    */
-  private void run(Connection connection, boolean checkStateMode) {
+  protected void run(Connection connection, boolean checkStateMode) {
 
     LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
     if (!resources.readResources()) {
