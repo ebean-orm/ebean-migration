@@ -4,6 +4,7 @@ import io.ebean.migration.runner.MigrationPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,6 +22,7 @@ class DbNameUtil implements DbPlatformNames {
    * <p>
    * At this point only sql server has platform specific handling required (create table and for update).
    */
+  @Nonnull
   static String normalise(Connection connection) {
 
     try {
@@ -70,6 +72,7 @@ class DbNameUtil implements DbPlatformNames {
     return POSTGRES;
   }
 
+  @Nonnull
   static MigrationPlatform platform(String platformName) {
     switch (platformName) {
       case POSTGRES:

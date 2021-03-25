@@ -8,6 +8,7 @@ import io.ebean.migration.MigrationVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -128,6 +129,7 @@ public class MigrationTable {
   /**
    * Returns the versions that are already applied.
    */
+  @Nonnull
   public Set<String> getVersions() {
     return migrations.keySet();
   }
@@ -182,6 +184,7 @@ public class MigrationTable {
   /**
    * Return the create table script.
    */
+  @Nonnull
   String createTableDdl() throws IOException {
     String script = ScriptTransform.replace("${table}", sqlTable, getCreateTableScript());
     return ScriptTransform.replace("${pk_table}", sqlPrimaryKey(), script);
@@ -459,6 +462,7 @@ public class MigrationTable {
    *
    * @return the migrations that have been run (collected if checkstate is true).
    */
+  @Nonnull
   public List<LocalMigrationResource> runAll(List<LocalMigrationResource> localVersions) throws SQLException {
 
     checkMinVersion();
@@ -488,6 +492,7 @@ public class MigrationTable {
    *
    * @return the migrations that have been run (collected if checkstate is true).
    */
+  @Nonnull
   public List<LocalMigrationResource> runInit(LocalMigrationResource initVersion, List<LocalMigrationResource> localVersions) throws SQLException {
 
     runRepeatableInit(localVersions);

@@ -3,6 +3,7 @@ package io.ebean.migration.runner;
 
 import io.ebean.ddlrunner.DdlAutoCommit;
 
+import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -49,6 +50,7 @@ public class MigrationPlatform {
   /**
    * Read the existing migrations from the db migration table.
    */
+  @Nonnull
   List<MigrationMetaRow> readExistingMigrations(String sqlTable, Connection connection) throws SQLException {
 
     final String selectSql = sqlSelectForReading(sqlTable);
@@ -67,6 +69,7 @@ public class MigrationPlatform {
   /**
    * Return the SQL to lock the rows in db migration table with row locking.
    */
+  @Nonnull
   String sqlSelectForUpdate(String table) {
     return BASE_SELECT_ID + table + forUpdateSuffix;
   }
@@ -74,6 +77,7 @@ public class MigrationPlatform {
   /**
    * Return the SQL to read the db migration table.
    */
+  @Nonnull
   String sqlSelectForReading(String table) {
     return BASE_SELECT_ALL + table + forUpdateSuffix;
   }

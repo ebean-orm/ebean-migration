@@ -9,6 +9,7 @@ import io.avaje.classpath.scanner.core.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -93,6 +94,7 @@ public class LocalMigrationResources {
   /**
    * Return the list of migration resources in version order.
    */
+  @Nonnull
   public List<LocalMigrationResource> getVersions() {
     return versions;
   }

@@ -8,6 +8,7 @@ import io.ebean.migration.runner.MigrationTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -31,6 +32,7 @@ public class MigrationRunner {
   /**
    * Return the migrations that would be applied if the migration is run.
    */
+  @Nonnull
   public List<LocalMigrationResource> checkState() {
     return checkState(migrationConfig.createConnection());
   }
@@ -38,6 +40,7 @@ public class MigrationRunner {
   /**
    * Return the migrations that would be applied if the migration is run.
    */
+  @Nonnull
   public List<LocalMigrationResource> checkState(DataSource dataSource) {
     return checkState(getConnection(dataSource));
   }
@@ -45,6 +48,7 @@ public class MigrationRunner {
   /**
    * Return the migrations that would be applied if the migration is run.
    */
+  @Nonnull
   public List<LocalMigrationResource> checkState(Connection connection) {
     run(connection, true);
     return checkMigrations;

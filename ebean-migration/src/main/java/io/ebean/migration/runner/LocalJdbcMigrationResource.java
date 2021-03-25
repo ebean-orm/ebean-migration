@@ -4,6 +4,8 @@ import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationChecksumProvider;
 import io.ebean.migration.MigrationVersion;
 
+import javax.annotation.Nonnull;
+
 /**
  * A DB migration resource (JdbcMigration with version).
  *
@@ -24,6 +26,7 @@ public class LocalJdbcMigrationResource extends LocalMigrationResource {
   /**
    * Return the migration
    */
+  @Nonnull
   public JdbcMigration getMigration() {
     return migration;
   }
@@ -39,6 +42,7 @@ public class LocalJdbcMigrationResource extends LocalMigrationResource {
     }
   }
 
+  @Nonnull
   @Override
   public String getContent() {
     return "location:" + location;
