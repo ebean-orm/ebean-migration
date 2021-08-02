@@ -31,6 +31,16 @@ public interface AutoMigrationRunner {
   void loadProperties(Properties properties);
 
   /**
+   * Set the platform for running the migration.
+   * <p>
+   * In the case where we have migrations for many platforms this defines the associated platform
+   * that is being used to run the migration.
+   */
+  default void setPlatform(String platform) {
+    // do nothing by default
+  }
+
+  /**
    * Run DB migrations using the given DataSource.
    */
   void run(DataSource dataSource);

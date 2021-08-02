@@ -47,14 +47,12 @@ public class LocalMigrationResources {
   }
 
   private boolean readResourcesForPath(String path) {
-
     ClassLoader classLoader = migrationConfig.getClassLoader();
 
     Scanner scanner = new Scanner(classLoader);
     List<Resource> resourceList = scanner.scanForResources(path, new Match(migrationConfig));
 
     logger.debug("resources: {}", resourceList);
-
     for (Resource resource : resourceList) {
       String filename = resource.getFilename();
       if (filename.endsWith(".sql")) {
