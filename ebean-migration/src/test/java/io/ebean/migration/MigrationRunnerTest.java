@@ -24,7 +24,7 @@ public class MigrationRunnerTest {
     MigrationConfig config = new MigrationConfig();
     config.setDbUsername("sa");
     config.setDbPassword("");
-    config.setDbUrl("jdbc:h2:mem:db1");
+    config.setDbUrl("jdbc:h2:mem:dbMx1");
 
     return config;
   }
