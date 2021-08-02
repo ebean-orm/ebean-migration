@@ -64,7 +64,7 @@ public class MigrationConfig {
    * The database name we load the configuration properties for.
    */
   private String name;
-
+  private String platform;
   private Properties properties;
 
   /**
@@ -468,6 +468,7 @@ public class MigrationConfig {
     createSchemaIfNotExists = getBool("createSchemaIfNotExists", createSchemaIfNotExists);
     setCurrentSchema = getBool("setCurrentSchema", setCurrentSchema);
     platformName = getProperty("platformName", platformName);
+    platform = getProperty("platform", platform);
     metaTable = getProperty("metaTable", metaTable);
     migrationPath = getProperty("migrationPath", migrationPath);
     migrationInitPath = getProperty("migrationInitPath", migrationInitPath);
@@ -538,6 +539,20 @@ public class MigrationConfig {
    */
   public void setName(String name) {
     this.name = name;
+  }
+
+  /**
+   * Return the platform that was set.
+   */
+  public String getPlatform() {
+    return platform;
+  }
+
+  /**
+   * Set the platform that is running the migration.
+   */
+  public void setPlatform(String platform) {
+    this.platform = platform;
   }
 
   /**

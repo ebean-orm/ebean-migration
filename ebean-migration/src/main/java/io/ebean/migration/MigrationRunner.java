@@ -93,7 +93,6 @@ public class MigrationRunner {
    * Run the migrations if there are any that need running.
    */
   protected void run(Connection connection, boolean checkStateMode) {
-
     LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
     if (!resources.readResources()) {
       logger.debug("no migrations to check");
@@ -131,7 +130,6 @@ public class MigrationRunner {
    * Run all the migrations as needed.
    */
   private void runMigrations(LocalMigrationResources resources, MigrationTable table, boolean checkStateMode) throws SQLException {
-
     // get the migrations in version order
     List<LocalMigrationResource> localVersions = resources.getVersions();
 
@@ -167,13 +165,15 @@ public class MigrationRunner {
    * Return the platform deriving from connection if required.
    */
   private MigrationPlatform derivePlatformName(MigrationConfig migrationConfig, Connection connection) {
-
+    final String platform = migrationConfig.getPlatform();
+    if (platform != null) {
+      return DbNameUtil.platform(platform);
+    }
     String platformName = migrationConfig.getPlatformName();
     if (platformName == null) {
       platformName = DbNameUtil.normalise(connection);
       migrationConfig.setPlatformName(platformName);
     }
-
     return DbNameUtil.platform(platformName);
   }
 
