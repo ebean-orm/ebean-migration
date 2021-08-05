@@ -4,6 +4,8 @@ import io.ebean.migration.MigrationVersion;
 import io.avaje.classpath.scanner.Resource;
 
 import javax.annotation.Nonnull;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * A DB migration resource (DDL script with version).
@@ -25,7 +27,11 @@ public class LocalDdlMigrationResource extends LocalMigrationResource {
    */
   @Nonnull
   public String getContent() {
-    return resource.loadAsString("UTF-8");
+    return resource.loadAsString(StandardCharsets.UTF_8);
+  }
+
+  public List<String> lines() {
+    return resource.loadAsLines(StandardCharsets.UTF_8);
   }
 
 }

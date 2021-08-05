@@ -44,7 +44,7 @@
     <dependency>
       <groupId>io.avaje</groupId>
       <artifactId>classpath-scanner</artifactId>
-      <version>4.2</version>
+      <version>5.0</version>
     </dependency>
 
     <dependency>

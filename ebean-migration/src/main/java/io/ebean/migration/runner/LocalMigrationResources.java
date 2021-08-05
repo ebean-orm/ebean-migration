@@ -1,11 +1,10 @@
 package io.ebean.migration.runner;
 
+import io.avaje.classpath.scanner.Resource;
+import io.avaje.classpath.scanner.Scanner;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
-import io.avaje.classpath.scanner.Resource;
-import io.avaje.classpath.scanner.ResourceFilter;
-import io.avaje.classpath.scanner.core.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +12,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Loads the DB migration resources and sorts them into execution order.
@@ -49,12 +49,10 @@ public class LocalMigrationResources {
   private boolean readResourcesForPath(String path) {
     ClassLoader classLoader = migrationConfig.getClassLoader();
 
-    Scanner scanner = new Scanner(classLoader);
-    List<Resource> resourceList = scanner.scanForResources(path, new Match(migrationConfig));
-
+    List<Resource> resourceList = Scanner.of(classLoader).scan(path, new Match(migrationConfig));
     logger.debug("resources: {}", resourceList);
     for (Resource resource : resourceList) {
-      String filename = resource.getFilename();
+      String filename = resource.fileName();
       if (filename.endsWith(".sql")) {
         versions.add(createScriptMigration(resource, filename));
       } else if (migrationConfig.getJdbcMigrationFactory() != null && filename.endsWith(".class")) {
@@ -73,10 +71,10 @@ public class LocalMigrationResources {
     int pos = filename.lastIndexOf(".class");
     String mainName = filename.substring(0, pos);
     MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
-    String className = resource.getLocation().replace('/', '.');
+    String className = resource.location().replace('/', '.');
     className = className.substring(0, className.length()-6);
     JdbcMigration instance = migrationConfig.getJdbcMigrationFactory().createInstance(className);
-    return new LocalJdbcMigrationResource(migrationVersion, resource.getLocation(), instance);
+    return new LocalJdbcMigrationResource(migrationVersion, resource.location(), instance);
   }
 
   /**
@@ -86,7 +84,7 @@ public class LocalMigrationResources {
     int pos = filename.lastIndexOf(".sql");
     String mainName = filename.substring(0, pos);
     MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
-    return new LocalDdlMigrationResource(migrationVersion, resource.getLocation(), resource);
+    return new LocalDdlMigrationResource(migrationVersion, resource.location(), resource);
   }
 
   /**
@@ -101,7 +99,7 @@ public class LocalMigrationResources {
   /**
    * Filter used to find the migration scripts.
    */
-  private static class Match implements ResourceFilter {
+  private static class Match implements Predicate<String> {
 
     private final MigrationConfig migrationConfig;
 
@@ -110,7 +108,7 @@ public class LocalMigrationResources {
     }
 
     @Override
-    public boolean isMatch(String name) {
+    public boolean test(String name) {
       return name.endsWith(".sql")
           || migrationConfig.getJdbcMigrationFactory() != null && name.endsWith(".class") && !name.contains("$");
     }
