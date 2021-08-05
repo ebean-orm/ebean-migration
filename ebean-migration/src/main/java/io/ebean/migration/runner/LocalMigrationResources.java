@@ -1,7 +1,7 @@
 package io.ebean.migration.runner;
 
 import io.avaje.classpath.scanner.Resource;
-import io.avaje.classpath.scanner.Scanner;
+import io.avaje.classpath.scanner.core.Scanner;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
@@ -21,15 +21,18 @@ public class LocalMigrationResources {
 
   private static final Logger logger = LoggerFactory.getLogger(LocalMigrationResources.class);
 
-  private final MigrationConfig migrationConfig;
-
   private final List<LocalMigrationResource> versions = new ArrayList<>();
+  private final MigrationConfig migrationConfig;
+  private final ClassLoader classLoader;
+  private final boolean searchForJdbcMigrations;
 
   /**
    * Construct with configuration options.
    */
   public LocalMigrationResources(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
+    this.classLoader = migrationConfig.getClassLoader();
+    this.searchForJdbcMigrations = migrationConfig.getJdbcMigrationFactory() != null;
   }
 
   /**
@@ -47,21 +50,49 @@ public class LocalMigrationResources {
   }
 
   private boolean readResourcesForPath(String path) {
-    ClassLoader classLoader = migrationConfig.getClassLoader();
-
-    List<Resource> resourceList = Scanner.of(classLoader).scan(path, new Match(migrationConfig));
-    logger.debug("resources: {}", resourceList);
-    for (Resource resource : resourceList) {
-      String filename = resource.fileName();
-      if (filename.endsWith(".sql")) {
-        versions.add(createScriptMigration(resource, filename));
-      } else if (migrationConfig.getJdbcMigrationFactory() != null && filename.endsWith(".class")) {
-        versions.add(createJdbcMigration(resource, filename));
+    final String platform = migrationConfig.getPlatform();
+    if (platform != null) {
+      List<Resource> platformResources = scanForBoth(path + "/" + platform);
+      addResources(platformResources);
+      if (!versions.isEmpty()) {
+        logger.debug("platform migrations for {}", platform);
+        if (searchForJdbcMigrations) {
+          addResources(scanForJdbcOnly(path));
+        }
+        Collections.sort(versions);
+        return true;
       }
     }
 
+    addResources(scanForBoth(path));
     Collections.sort(versions);
     return !versions.isEmpty();
+  }
+
+  /**
+   * Scan only for JDBC migrations.
+   */
+  private List<Resource> scanForJdbcOnly(String path) {
+    return new Scanner(classLoader).scanForResources(path, new JdbcOnly());
+  }
+
+  /**
+   * Scan for both SQL and JDBC migrations.
+   */
+  private List<Resource> scanForBoth(String path) {
+    return new Scanner(classLoader).scanForResources(path, new Match(searchForJdbcMigrations));
+  }
+
+  private void addResources(List<Resource> resourceList) {
+    logger.debug("resources: {}", resourceList);
+    for (Resource resource : resourceList) {
+      String filename = resource.name();
+      if (filename.endsWith(".sql")) {
+        versions.add(createScriptMigration(resource, filename));
+      } else if (searchForJdbcMigrations && filename.endsWith(".class")) {
+        versions.add(createJdbcMigration(resource, filename));
+      }
+    }
   }
 
   /**
@@ -72,7 +103,7 @@ public class LocalMigrationResources {
     String mainName = filename.substring(0, pos);
     MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
     String className = resource.location().replace('/', '.');
-    className = className.substring(0, className.length()-6);
+    className = className.substring(0, className.length() - 6);
     JdbcMigration instance = migrationConfig.getJdbcMigrationFactory().createInstance(className);
     return new LocalJdbcMigrationResource(migrationVersion, resource.location(), instance);
   }
@@ -101,16 +132,25 @@ public class LocalMigrationResources {
    */
   private static class Match implements Predicate<String> {
 
-    private final MigrationConfig migrationConfig;
+    private final boolean searchJdbc;
 
-    Match(MigrationConfig migrationConfig) {
-      this.migrationConfig = migrationConfig;
+    Match(boolean searchJdbc) {
+      this.searchJdbc = searchJdbc;
     }
 
     @Override
     public boolean test(String name) {
-      return name.endsWith(".sql")
-          || migrationConfig.getJdbcMigrationFactory() != null && name.endsWith(".class") && !name.contains("$");
+      return name.endsWith(".sql") || (searchJdbc && name.endsWith(".class") && !name.contains("$"));
+    }
+  }
+
+  /**
+   * Filter to find JDBC migrations only.
+   */
+  private static class JdbcOnly implements Predicate<String> {
+    @Override
+    public boolean test(String name) {
+      return name.endsWith(".class") && !name.contains("$");
     }
   }
 }
