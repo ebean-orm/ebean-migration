@@ -11,22 +11,14 @@ import java.sql.Timestamp;
  */
 class MigrationMetaRow {
 
-  private int id;
-
-  private String status;
-
-  private String type;
-
-  private String version;
-
-  private String comment;
-
+  private final int id;
+  //private String status;
+  private final String type;
+  private final String version;
+  private final String comment;
   private int checksum;
-
   private Timestamp runOn;
-
   private String runBy;
-
   private long runTime;
 
   /**
@@ -49,7 +41,7 @@ class MigrationMetaRow {
   MigrationMetaRow(ResultSet row) throws SQLException {
     id = row.getInt(1);
     type = row.getString(2);
-    status = row.getString(3);
+    //status = row.getString(3);
     version = row.getString(4);
     comment = row.getString(5);
     checksum = row.getInt(6);
