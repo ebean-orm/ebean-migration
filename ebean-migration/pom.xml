@@ -9,7 +9,7 @@
 
   <groupId>io.ebean</groupId>
   <artifactId>ebean-migration</artifactId>
-  <version>12.11.0</version>
+  <version>12.11.1</version>
 
   <scm>
     <developerConnection>scm:git:git@github.com:ebean-orm/ebean-migration.git</developerConnection>
@@ -17,7 +17,7 @@
   </scm>
 
   <properties>
-    <nexus.staging.autoReleaseAfterClose>false</nexus.staging.autoReleaseAfterClose>
+    <nexus.staging.autoReleaseAfterClose>true</nexus.staging.autoReleaseAfterClose>
   </properties>
 
   <dependencies>
@@ -32,7 +32,7 @@
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-ddl-runner</artifactId>
-      <version>1.0</version>
+      <version>1.2</version>
     </dependency>
 
     <dependency>
@@ -45,13 +45,13 @@
     <dependency>
       <groupId>io.avaje</groupId>
       <artifactId>classpath-scanner</artifactId>
-      <version>6.0</version>
+      <version>6.1</version>
     </dependency>
 
     <dependency>
       <groupId>io.avaje</groupId>
       <artifactId>avaje-jsr305</artifactId>
-      <version>1.0</version>
+      <version>1.1</version>
       <scope>provided</scope>
     </dependency>
 
@@ -118,16 +118,16 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
     </dependency>
 
     <dependency>
-      <groupId>org.avaje.composite</groupId>
+      <groupId>io.avaje</groupId>
       <artifactId>junit</artifactId>
-      <version>5.0</version>
+      <version>1.0</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-datasource</artifactId>
-      <version>7.0</version>
+      <version>7.2</version>
       <scope>test</scope>
     </dependency>
 
