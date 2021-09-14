@@ -45,9 +45,9 @@ public class MigrationRunner_platform_Test {
   }
 
   private static PostgresContainer createPostgres() {
-    PostgresConfig config = new PostgresConfig("10.1");
+    PostgresConfig config = new PostgresConfig("13");
     config.setPort(9823);
-    setContainerName(config, "pg10");
+    setContainerName(config, "pg13");
     return new PostgresContainer(config);
   }
 
