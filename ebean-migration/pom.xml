@@ -67,28 +67,28 @@
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
       <artifactId>mssql-jdbc</artifactId>
-      <version>6.2.2.jre8</version>
+      <version>9.4.0.jre8</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.16</version>
+      <version>8.0.26</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.2.18</version>
+      <version>42.2.23</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>com.nuodb.jdbc</groupId>
       <artifactId>nuodb-jdbc</artifactId>
-      <version>20.2.0</version>
+      <version>22.0.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -111,9 +111,9 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
     </dependency>
 
     <dependency>
-      <groupId>io.ebean.test</groupId>
+      <groupId>io.ebean</groupId>
       <artifactId>ebean-test-docker</artifactId>
-      <version>3.1.5</version>
+      <version>4.2</version>
       <scope>test</scope>
     </dependency>
 
