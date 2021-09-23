@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class MigrationRunner {
 
-  private static final Logger logger = LoggerFactory.getLogger(MigrationRunner.class);
+  static final Logger log = LoggerFactory.getLogger("io.ebean.migration");
 
   protected final MigrationConfig migrationConfig;
 
@@ -81,7 +81,7 @@ public class MigrationRunner {
       if (username == null) {
         return dataSource.getConnection();
       }
-      logger.debug("using db user [{}] to run migrations ...", username);
+      log.debug("using db user [{}] to run migrations ...", username);
       return dataSource.getConnection(username, migrationConfig.getDbPassword());
     } catch (SQLException e) {
       String msgSuffix = (username == null) ? "" : " using user [" + username + "]";
@@ -95,7 +95,7 @@ public class MigrationRunner {
   protected void run(Connection connection, boolean checkStateMode) {
     LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
     if (!resources.readResources()) {
-      logger.debug("no migrations to check");
+      log.debug("no migrations to check");
       return;
     }
 
@@ -137,13 +137,13 @@ public class MigrationRunner {
       LocalMigrationResource initVersion = getInitVersion();
       if (initVersion != null) {
         // run using a dbinit script
-        logger.info("dbinit migration version:{}  local migrations:{}  checkState:{}", initVersion, localVersions.size(), checkStateMode);
+        log.info("dbinit migration version:{}  local migrations:{}  checkState:{}", initVersion, localVersions.size(), checkStateMode);
         checkMigrations = table.runInit(initVersion, localVersions);
         return;
       }
     }
 
-    logger.info("local migrations:{}  existing migrations:{}  checkState:{}", localVersions.size(), table.size(), checkStateMode);
+    log.info("Local migrations:{}  existing migrations:{}  checkState:{}", localVersions.size(), table.size(), checkStateMode);
     checkMigrations = table.runAll(localVersions);
   }
 
@@ -186,7 +186,7 @@ public class MigrationRunner {
         connection.close();
       }
     } catch (SQLException e) {
-      logger.warn("Error closing connection", e);
+      log.warn("Error closing connection", e);
     }
   }
 
@@ -199,7 +199,7 @@ public class MigrationRunner {
         connection.rollback();
       }
     } catch (SQLException e) {
-      logger.warn("Error on connection rollback", e);
+      log.warn("Error on connection rollback", e);
     }
   }
 }

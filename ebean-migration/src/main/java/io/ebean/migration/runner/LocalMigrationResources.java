@@ -19,7 +19,7 @@ import java.util.function.Predicate;
  */
 public class LocalMigrationResources {
 
-  private static final Logger logger = LoggerFactory.getLogger(LocalMigrationResources.class);
+  private static final Logger log = LoggerFactory.getLogger("io.ebean.migration");
 
   private final List<LocalMigrationResource> versions = new ArrayList<>();
   private final MigrationConfig migrationConfig;
@@ -55,7 +55,7 @@ public class LocalMigrationResources {
       List<Resource> platformResources = scanForBoth(path + "/" + platform);
       addResources(platformResources);
       if (!versions.isEmpty()) {
-        logger.debug("platform migrations for {}", platform);
+        log.debug("platform migrations for {}", platform);
         if (searchForJdbcMigrations) {
           addResources(scanForJdbcOnly(path));
         }
@@ -84,7 +84,7 @@ public class LocalMigrationResources {
   }
 
   private void addResources(List<Resource> resourceList) {
-    logger.debug("resources: {}", resourceList);
+    log.debug("resources: {}", resourceList);
     for (Resource resource : resourceList) {
       String filename = resource.name();
       if (filename.endsWith(".sql")) {

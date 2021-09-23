@@ -30,7 +30,7 @@ import static io.ebean.migration.MigrationVersion.VERSION_TYPE;
  */
 public class MigrationTable {
 
-  private static final Logger logger = LoggerFactory.getLogger("io.ebean.DDL");
+  private static final Logger log = LoggerFactory.getLogger("io.ebean.DDL");
 
   private static final String INIT_VER_0 = "0";
 
@@ -242,7 +242,7 @@ public class MigrationTable {
   private boolean shouldRun(LocalMigrationResource localVersion, LocalMigrationResource prior) throws SQLException {
     if (prior != null && !localVersion.isRepeatable()) {
       if (!migrationExists(prior)) {
-        logger.error("Migration {} requires prior migration {} which has not been run", localVersion.getVersion(), prior.getVersion());
+        log.error("Migration {} requires prior migration {} which has not been run", localVersion.getVersion(), prior.getVersion());
         return false;
       }
     }
@@ -289,7 +289,7 @@ public class MigrationTable {
    */
   private boolean patchInsertMigration(LocalMigrationResource local, int checksum) throws SQLException {
     if (patchInsertVersions != null && patchInsertVersions.contains(local.key())) {
-      logger.info("patch migration - insert into history {}", local.getLocation());
+      log.info("Patch migration, insert into history {}", local.getLocation());
       if (!checkState) {
         insertIntoHistory(local, checksum, 0);
       }
@@ -304,11 +304,11 @@ public class MigrationTable {
   boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
     boolean matchChecksum = (existing.getChecksum() == checksum);
     if (matchChecksum) {
-      logger.trace("... skip unchanged migration {}", local.getLocation());
+      log.trace("skip unchanged migration {}", local.getLocation());
       return true;
 
     } else if (patchResetChecksum(existing, checksum)) {
-      logger.info("patch migration - reset checksum on {}", local.getLocation());
+      log.info("Patch migration, reset checksum on {}", local.getLocation());
       return true;
 
     } else if (local.isRepeatable() || skipChecksum) {
@@ -351,7 +351,7 @@ public class MigrationTable {
     long exeMillis = 0;
     try {
       if (skipMigrationRun) {
-        logger.debug("skip migration {}", local.getLocation());
+        log.debug("skip migration {}", local.getLocation());
       } else {
         exeMillis = executeMigration(local, script);
       }
@@ -364,7 +364,7 @@ public class MigrationTable {
     } catch (SQLException e) {
       if (allowErrorInRepeatable && local.isRepeatableLast()) {
         // log the exception and continue on repeatable migration
-        logger.error("Continue migration with error executing repeatable migration " + local.getVersion(), e);
+        log.error("Continue migration with error executing repeatable migration " + local.getVersion(), e);
       } else {
         throw e;
       }
@@ -374,11 +374,11 @@ public class MigrationTable {
   private long executeMigration(LocalMigrationResource local, String script) throws SQLException {
     long start = System.currentTimeMillis();
     if (local instanceof LocalDdlMigrationResource) {
-      logger.debug("run migration {}", local.getLocation());
+      log.debug("run migration {}", local.getLocation());
       scriptRunner.runScript(script, "run migration version: " + local.getVersion());
     } else {
       JdbcMigration migration = ((LocalJdbcMigrationResource) local).getMigration();
-      logger.info("Executing jdbc migration version: {} - {}", local.getVersion(), migration);
+      log.info("Executing jdbc migration version: {} - {}", local.getVersion(), migration);
       migration.migrate(connection);
     }
     return System.currentTimeMillis() - start;
@@ -468,7 +468,7 @@ public class MigrationTable {
     checkMinVersion();
     for (LocalMigrationResource localVersion : localVersions) {
       if (!localVersion.isRepeatable() && dbInitVersion != null && dbInitVersion.compareTo(localVersion.getVersion()) >= 0) {
-        logger.debug("migration skipped by dbInitVersion {}", dbInitVersion);
+        log.debug("migration skipped by dbInitVersion {}", dbInitVersion);
       } else if (!shouldRun(localVersion, priorVersion)) {
         break;
       }

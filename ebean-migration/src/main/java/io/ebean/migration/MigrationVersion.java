@@ -1,8 +1,5 @@
 package io.ebean.migration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 
 /**
@@ -10,20 +7,12 @@ import java.util.Arrays;
  */
 public class MigrationVersion implements Comparable<MigrationVersion> {
 
-  private static final Logger logger = LoggerFactory.getLogger(MigrationVersion.class);
-
   public static final String BOOTINIT_TYPE = "B";
-
   private static final String INIT_TYPE = "I";
-
   private static final String REPEAT_TYPE = "R";
-
   public static final String VERSION_TYPE = "V";
-
   private static final int[] REPEAT_ORDERING_MIN = {Integer.MIN_VALUE};
-
   private static final int[] REPEAT_ORDERING_MAX = {Integer.MAX_VALUE};
-
   private static final boolean[] REPEAT_UNDERSCORES = {false};
 
   /**
@@ -227,7 +216,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
         delimiterPos++;
       } catch (NumberFormatException e) {
         // stop parsing
-        logger.warn("The migrationscript '{}' contains non numeric version part. "
+        MigrationRunner.log.warn("The migrationscript '{}' contains non numeric version part. "
           + "This may lead to misordered version scripts. NumberFormatException {}", raw, e.getMessage());
         break;
       }

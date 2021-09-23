@@ -1,8 +1,6 @@
 package io.ebean.migration;
 
 import io.ebean.migration.runner.MigrationPlatform;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
@@ -14,8 +12,6 @@ import java.sql.SQLException;
  * Derive well known database platform names from JDBC MetaData.
  */
 class DbNameUtil implements DbPlatformNames {
-
-  private static final Logger log = LoggerFactory.getLogger(DbNameUtil.class);
 
   /**
    * Normalise the database product/platform name.
@@ -67,7 +63,7 @@ class DbNameUtil implements DbPlatformNames {
         }
       }
     } catch (SQLException e) {
-      log.warn("Error running detection query on Postgres", e);
+      MigrationRunner.log.warn("Error running detection query on Postgres", e);
     }
     return POSTGRES;
   }

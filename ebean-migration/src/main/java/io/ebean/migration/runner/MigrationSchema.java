@@ -14,14 +14,11 @@ import java.sql.Statement;
  */
 public class MigrationSchema {
 
-  private static final Logger logger = LoggerFactory.getLogger(MigrationSchema.class);
+  private static final Logger log = LoggerFactory.getLogger("io.ebean.migration");
 
   private final Connection connection;
-
   private final String dbSchema;
-
   private final boolean createSchemaIfNotExists;
-
   private final boolean setCurrentSchema;
 
   /**
@@ -43,7 +40,7 @@ public class MigrationSchema {
    */
   public void createAndSetIfNeeded() throws SQLException {
     if (dbSchema != null) {
-      logger.info("Migration Schema: {}", dbSchema);
+      log.info("Migration Schema: {}", dbSchema);
       if (createSchemaIfNotExists) {
         createSchemaIfNeeded();
       }
@@ -55,7 +52,7 @@ public class MigrationSchema {
 
   private void createSchemaIfNeeded() throws SQLException {
     if (!schemaExists()) {
-      logger.info("Creating Schema: {}", dbSchema);
+      log.info("Creating Schema: {}", dbSchema);
       try (Statement query = connection.createStatement()) {
         query.executeUpdate("CREATE SCHEMA " + dbSchema);
       }
@@ -63,7 +60,6 @@ public class MigrationSchema {
   }
 
   private boolean schemaExists() throws SQLException {
-
     try (ResultSet schemas = connection.getMetaData().getSchemas()) {
       while (schemas.next()) {
         String schema = schemas.getString(1);
@@ -76,8 +72,7 @@ public class MigrationSchema {
   }
 
   private void setSchema() throws SQLException {
-
-    logger.info("Setting Schema: {}", dbSchema);
+    log.info("Setting Schema: {}", dbSchema);
     connection.setSchema(dbSchema);
   }
 
