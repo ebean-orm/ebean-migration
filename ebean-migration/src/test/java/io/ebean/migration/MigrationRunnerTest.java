@@ -114,7 +114,7 @@ public class MigrationRunnerTest {
   }
 
   @Test
-  public void run_with_dbinit() {
+  public void run_with_dbinit() throws SQLException {
 
     DataSourceConfig dataSourceConfig = new DataSourceConfig();
     dataSourceConfig.setDriver("org.h2.Driver");
@@ -134,6 +134,38 @@ public class MigrationRunnerTest {
 
     MigrationRunner runner2 = new MigrationRunner(config);
     runner2.run(dataSource);
+
+    try (final Connection connection = dataSource.getConnection()) {
+      final List<String> names = migrationNames(connection);
+      assertThat(names).containsExactly("<init>", "some_i", "m4", "some_r");
+    }
+  }
+
+  @Test
+  public void run_only_dbinit_available() throws SQLException {
+    DataSourceConfig dataSourceConfig = new DataSourceConfig();
+    dataSourceConfig.setDriver("org.h2.Driver");
+    dataSourceConfig.setUrl("jdbc:h2:mem:testsDbInit2");
+    dataSourceConfig.setUsername("sa");
+    dataSourceConfig.setPassword("");
+
+    DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
+
+    MigrationConfig config = createMigrationConfig();
+    config.setDbUrl("jdbc:h2:mem:testsDbInit2");
+    config.setMigrationPath("dbmig6_base");
+    config.setMigrationInitPath("dbmig6_init");
+
+    MigrationRunner runner = new MigrationRunner(config);
+    runner.run(dataSource);
+
+    MigrationRunner runner2 = new MigrationRunner(config);
+    runner2.run(dataSource);
+
+    try (final Connection connection = dataSource.getConnection()) {
+      final List<String> names = migrationNames(connection);
+      assertThat(names).containsExactly("<init>", "m4");
+    }
   }
 
   @Test
