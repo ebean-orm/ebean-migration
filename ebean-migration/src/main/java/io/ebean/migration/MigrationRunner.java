@@ -94,7 +94,7 @@ public class MigrationRunner {
    */
   protected void run(Connection connection, boolean checkStateMode) {
     LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
-    if (!resources.readResources()) {
+    if (!resources.readResources() && !resources.readInitResources()) {
       log.debug("no migrations to check");
       return;
     }
