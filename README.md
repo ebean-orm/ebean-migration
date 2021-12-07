@@ -1,3 +1,5 @@
+[![Build](https://github.com/ebean-orm/ebean-migration/actions/workflows/build.yml/badge.svg)](https://github.com/ebean-orm/ebean-migration/actions/workflows/build.yml)
+
 # Ebean Migration
 DB Migration runner (similar to FlywayDB) which can be used standalone or with Ebean (to run DB Migrations on EbeanServer start)
 
