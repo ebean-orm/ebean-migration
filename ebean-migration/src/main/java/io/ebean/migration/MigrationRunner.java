@@ -93,16 +93,15 @@ public class MigrationRunner {
    * Run the migrations if there are any that need running.
    */
   protected void run(Connection connection, boolean checkStateMode) {
-    LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
-    if (!resources.readResources()) {
-      log.debug("no migrations to check");
-      return;
-    }
-
     try {
+      LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
+      if (!resources.readResources()) {
+        log.debug("no migrations to check");
+        return;
+      }
+
       connection.setAutoCommit(false);
       MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
-
       new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
 
       MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode, platform);
