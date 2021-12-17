@@ -4,12 +4,12 @@
   <parent>
     <groupId>org.avaje</groupId>
     <artifactId>java8-oss</artifactId>
-    <version>3.2</version>
+    <version>3.3</version>
   </parent>
 
   <groupId>io.ebean</groupId>
   <artifactId>ebean-migration</artifactId>
-  <version>12.12.4-SNAPSHOT</version>
+  <version>12.13.0</version>
 
   <scm>
     <developerConnection>scm:git:git@github.com:ebean-orm/ebean-migration.git</developerConnection>
@@ -25,7 +25,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.30</version>
+      <version>1.7.32</version>
       <scope>provided</scope>
     </dependency>
 
@@ -67,7 +67,7 @@
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
       <artifactId>mssql-jdbc</artifactId>
-      <version>9.4.0.jre8</version>
+      <version>9.4.1.jre8</version>
       <scope>test</scope>
     </dependency>
 
@@ -81,7 +81,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.2.23</version>
+      <version>42.3.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -113,7 +113,7 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-test-docker</artifactId>
-      <version>4.2</version>
+      <version>4.3</version>
       <scope>test</scope>
     </dependency>
 
@@ -127,7 +127,7 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-datasource</artifactId>
-      <version>7.2</version>
+      <version>7.3</version>
       <scope>test</scope>
     </dependency>
 
