@@ -229,11 +229,15 @@ public class MigrationTable {
     if (metaData.storesUpperCaseIdentifiers()) {
       migTable = migTable.toUpperCase();
     }
-    String checkCatalog = (catalog != null) ? catalog : connection.getCatalog();
-    String checkSchema = (schema != null) ? schema : connection.getSchema();
+    String checkCatalog = (catalog != null) ? catalog : trim(connection.getCatalog());
+    String checkSchema = (schema != null) ? schema : trim(connection.getSchema());
     try (ResultSet tables = metaData.getTables(checkCatalog, checkSchema, migTable, null)) {
       return tables.next();
     }
+  }
+
+  private String trim(String s) {
+    return s == null ? null : s.trim();
   }
 
   /**
