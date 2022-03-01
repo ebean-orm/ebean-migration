@@ -50,23 +50,35 @@ public class LocalMigrationResources {
   }
 
   private boolean readResourcesForPath(String path) {
-    final String platform = migrationConfig.getPlatform();
-    if (platform != null) {
-      List<Resource> platformResources = scanForBoth(path + "/" + platform);
-      addResources(platformResources);
-      if (!versions.isEmpty()) {
-        log.debug("platform migrations for {}", platform);
-        if (searchForJdbcMigrations) {
-          addResources(scanForJdbcOnly(path));
-        }
-        Collections.sort(versions);
-        return true;
-      }
+    // try to load from base platform first
+    final String basePlatform = migrationConfig.getBasePlatform();
+    if (basePlatform != null && loadedFrom(path, basePlatform)) {
+      return true;
     }
-
+    // try to load from specific platform
+    final String platform = migrationConfig.getPlatform();
+    if (platform != null && loadedFrom(path, platform)) {
+      return true;
+    }
     addResources(scanForBoth(path));
     Collections.sort(versions);
     return !versions.isEmpty();
+  }
+
+  /**
+   * Return true if migrations were loaded from platform specific location.
+   */
+  private boolean loadedFrom(String path, String platform) {
+    addResources(scanForBoth(path + "/" + platform));
+    if (versions.isEmpty()) {
+      return false;
+    }
+    log.debug("platform migrations for {}", platform);
+    if (searchForJdbcMigrations) {
+      addResources(scanForJdbcOnly(path));
+    }
+    Collections.sort(versions);
+    return true;
   }
 
   /**

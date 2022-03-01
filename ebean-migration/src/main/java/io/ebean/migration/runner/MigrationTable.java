@@ -43,6 +43,7 @@ public class MigrationTable {
   private final String table;
   private final String sqlTable;
   private final String envUserName;
+  private final String basePlatformName;
   private final String platformName;
 
   private final Timestamp runOn = new Timestamp(System.currentTimeMillis());
@@ -94,6 +95,7 @@ public class MigrationTable {
     this.skipChecksum = config.isSkipChecksum();
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
+    this.basePlatformName = config.getBasePlatform();
     this.platformName = config.getPlatform();
     this.sqlTable = initSqlTable();
     this.insertSql = MigrationMetaRow.insertSql(sqlTable);
@@ -199,6 +201,10 @@ public class MigrationTable {
     if (script == null && platformName != null && !platformName.isEmpty()) {
       // look for platform specific create table
       script = readResource("migration-support/" + platformName + "-create-table.sql");
+    }
+    if (script == null && basePlatformName != null && !basePlatformName.isEmpty()) {
+      // look for platform specific create table
+      script = readResource("migration-support/" + basePlatformName + "-create-table.sql");
     }
     if (script == null) {
       // no, just use the default script
