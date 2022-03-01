@@ -94,7 +94,7 @@ public class MigrationTable {
     this.skipChecksum = config.isSkipChecksum();
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
-    this.platformName = config.getPlatformName();
+    this.platformName = config.getPlatform();
     this.sqlTable = initSqlTable();
     this.insertSql = MigrationMetaRow.insertSql(sqlTable);
     this.updateSql = MigrationMetaRow.updateSql(sqlTable);

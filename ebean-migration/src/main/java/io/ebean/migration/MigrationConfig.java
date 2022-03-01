@@ -32,7 +32,6 @@ public class MigrationConfig {
   private boolean createSchemaIfNotExists = true;
   private boolean setCurrentSchema = true;
   private boolean allowErrorInRepeatable;
-  private String platformName;
 
   private JdbcMigrationFactory jdbcMigrationFactory = new DefaultMigrationFactory();
 
@@ -379,17 +378,19 @@ public class MigrationConfig {
   }
 
   /**
-   * Return the DB platform name (used for platform create table and select for update syntax).
+   * Deprecated migrate to {@link #getPlatform()}
    */
+  @Deprecated
   public String getPlatformName() {
-    return platformName;
+    return getPlatform();
   }
 
   /**
-   * Set a DB platform name (to load specific create table and select for update syntax).
+   * Deprecated migrate to {@link #setPlatform(String)}.
    */
+  @Deprecated
   public void setPlatformName(String platformName) {
-    this.platformName = platformName;
+    setPlatform(platformName);
   }
 
   /**
@@ -467,8 +468,7 @@ public class MigrationConfig {
     skipChecksum = getBool("skipChecksum", skipChecksum);
     createSchemaIfNotExists = getBool("createSchemaIfNotExists", createSchemaIfNotExists);
     setCurrentSchema = getBool("setCurrentSchema", setCurrentSchema);
-    platformName = getProperty("platformName", platformName);
-    platform = getProperty("platform", platform);
+    platform = getProperty("platform", getProperty("platformName", platform));
     metaTable = getProperty("metaTable", metaTable);
     migrationPath = getProperty("migrationPath", migrationPath);
     migrationInitPath = getProperty("migrationInitPath", migrationInitPath);
@@ -550,6 +550,8 @@ public class MigrationConfig {
 
   /**
    * Set the platform that is running the migration.
+   * <p>
+   * This helps for platform specific create table and select for update syntax.
    */
   public void setPlatform(String platform) {
     this.platform = platform;

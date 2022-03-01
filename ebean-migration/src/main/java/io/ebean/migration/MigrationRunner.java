@@ -168,12 +168,10 @@ public class MigrationRunner {
     if (platform != null) {
       return DbNameUtil.platform(platform);
     }
-    String platformName = migrationConfig.getPlatformName();
-    if (platformName == null) {
-      platformName = DbNameUtil.normalise(connection);
-      migrationConfig.setPlatformName(platformName);
-    }
-    return DbNameUtil.platform(platformName);
+    // determine the platform from the db connection
+    String derivedPlatformName = DbNameUtil.normalise(connection);
+    migrationConfig.setPlatform(derivedPlatformName);
+    return DbNameUtil.platform(derivedPlatformName);
   }
 
   /**
