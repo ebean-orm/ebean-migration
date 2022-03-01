@@ -20,7 +20,6 @@ class DbNameUtil implements DbPlatformNames {
    */
   @Nonnull
   static String normalise(Connection connection) {
-
     try {
       final String productName = connection.getMetaData().getDatabaseProductName().toLowerCase();
       if (productName.contains(POSTGRES)) {
@@ -76,7 +75,6 @@ class DbNameUtil implements DbPlatformNames {
       case SQLSERVER:
         return new MigrationPlatform.SqlServer();
       case SQLITE:
-      case COCKROACH:
         return new MigrationPlatform.NoLocking();
       default:
         return new MigrationPlatform();

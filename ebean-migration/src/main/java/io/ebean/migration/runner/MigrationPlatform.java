@@ -1,7 +1,7 @@
 package io.ebean.migration.runner;
 
 
-import io.ebean.ddlrunner.DdlAutoCommit;
+import io.ebean.ddlrunner.DdlDetect;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
@@ -27,17 +27,15 @@ public class MigrationPlatform {
   /**
    * Return the DdlAutoCommit to use for this platform.
    */
-  DdlAutoCommit ddlAutoCommit() {
-    return DdlAutoCommit.NONE;
+  DdlDetect ddlDetect() {
+    return DdlDetect.NONE;
   }
 
   /**
    * Lock the migration table. The base implementation uses row locking but lock table would be preferred when available.
    */
   void lockMigrationTable(String sqlTable, Connection connection) throws SQLException {
-
     final String selectSql = sqlSelectForUpdate(sqlTable);
-
     try (PreparedStatement query = connection.prepareStatement(selectSql)) {
       try (ResultSet resultSet = query.executeQuery()) {
         while (resultSet.next()) {
@@ -52,9 +50,7 @@ public class MigrationPlatform {
    */
   @Nonnull
   List<MigrationMetaRow> readExistingMigrations(String sqlTable, Connection connection) throws SQLException {
-
     final String selectSql = sqlSelectForReading(sqlTable);
-
     List<MigrationMetaRow> rows = new ArrayList<>();
     try (PreparedStatement query = connection.prepareStatement(selectSql)) {
       try (ResultSet resultSet = query.executeQuery()) {
@@ -85,8 +81,8 @@ public class MigrationPlatform {
   public static class Postgres extends MigrationPlatform {
 
     @Override
-    DdlAutoCommit ddlAutoCommit() {
-      return DdlAutoCommit.POSTGRES;
+    DdlDetect ddlDetect() {
+      return DdlDetect.POSTGRES;
     }
 
     @Override

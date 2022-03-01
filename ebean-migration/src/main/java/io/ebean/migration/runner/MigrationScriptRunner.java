@@ -30,13 +30,13 @@ class MigrationScriptRunner {
    * Execute all the DDL statements in the script.
    */
   void runScript(String content, String scriptName) throws SQLException {
-    DdlRunner runner = new DdlRunner(false, scriptName, platform.ddlAutoCommit());
+    DdlRunner runner = new DdlRunner(false, scriptName, platform.ddlDetect());
     nonTransactional.addAll(runner.runAll(content, connection));
   }
 
   public void runNonTransactional() {
     if (!nonTransactional.isEmpty()) {
-      DdlRunner runner = new DdlRunner(false, "Non-transactional DDL", platform.ddlAutoCommit());
+      DdlRunner runner = new DdlRunner(false, "Non-transactional DDL", platform.ddlDetect());
       runner.runNonTransactional(connection, nonTransactional);
     }
   }
