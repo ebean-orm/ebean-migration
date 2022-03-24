@@ -151,7 +151,15 @@ public class MigrationTable {
    */
   public void createIfNeededAndLock() throws SQLException, IOException {
     if (!tableExists()) {
-      createTable();
+      try {
+        createTable();
+      } catch (SQLException e) {
+        if (tableExists()) {
+          log.info("Ignoring error during table creation, as an other process may have created the table");
+        } else {
+          throw e;
+        }
+      }
     }
     obtainLockWithWait();
     readExistingMigrations();
@@ -181,6 +189,7 @@ public class MigrationTable {
   private void createTable() throws IOException, SQLException {
     scriptRunner.runScript(createTableDdl(), "create migration table");
     createInitMetaRow().executeInsert(connection, insertSql);
+    connection.commit();
   }
 
   /**
