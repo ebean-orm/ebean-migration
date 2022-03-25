@@ -49,6 +49,26 @@ public class MigrationTableAsyncTest {
     runTest();
   }
 
+  @Disabled
+  @Test
+  public void testOracle() throws Exception {
+    // init oracle docker container
+    OracleConfig conf = new OracleConfig("latest");
+    conf.setDbName("XE");
+    conf.setImage("oracleinanutshell/oracle-xe-11g:latest");
+    conf.setUser("test_ebean");
+    conf.setPassword("test");
+
+    OracleContainer container = new OracleContainer(conf);
+    container.startWithDropCreate();
+
+    config.setMigrationPath("dbmig_oracle");
+    config.setDbUsername("test_ebean");
+    config.setDbPassword("test");
+    config.setDbUrl(container.jdbcUrl());
+    runTest();
+  }
+
   @Test
   public void testMySqlDb() throws Exception {
     // init mysql docker container
@@ -109,9 +129,8 @@ public class MigrationTableAsyncTest {
 
 
   /**
-   * H2 does not work, implicit commits in DDL.
+   * H2 using logical lock mechanism.
    */
-  @Disabled
   @Test
   public void testH2() throws Exception {
     // thread A looses the lock while thread B runs the migrations.
@@ -146,13 +165,16 @@ public class MigrationTableAsyncTest {
   private void dropTable(String tableName) throws SQLException {
     try (Connection conn = dataSource.getConnection();
       Statement stmt = conn.createStatement()) {
-      if (conn.getMetaData().getDatabaseProductName().toLowerCase().contains("db2")) {
+      String dbProductName = conn.getMetaData().getDatabaseProductName().toLowerCase();
+      if (dbProductName.contains("db2")) {
         stmt.execute("begin\n"
           + "if exists (select tabname from syscat.tables where lcase(tabname) = '" + tableName + "' and tabschema = current_schema) then\n"
           + " prepare stmt from 'drop table " + tableName + "';\n"
           + " execute stmt;\n"
           + "end if;\n"
           + "end");
+      } else if (dbProductName.contains("oracle")) {
+        // do nothing, re-created via container.startWithDropCreate();
       } else {
         stmt.execute("drop table if exists " + tableName);
       }

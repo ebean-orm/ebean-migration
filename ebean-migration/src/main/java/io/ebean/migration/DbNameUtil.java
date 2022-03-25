@@ -75,6 +75,9 @@ class DbNameUtil implements DbPlatformNames {
       case MYSQL:
       case MARIADB:
         return new MigrationPlatform.MySql();
+      case ORACLE:
+      case H2:
+        return new MigrationPlatform.LogicalLock();
       case POSTGRES:
         return new MigrationPlatform.Postgres();
       case SQLSERVER:
