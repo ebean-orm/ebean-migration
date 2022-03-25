@@ -187,7 +187,8 @@ public class MigrationPlatform {
     }
 
     private boolean obtainNamedLock(Connection connection) throws SQLException {
-      try (PreparedStatement query = connection.prepareStatement("select get_lock('ebean_migration', 10)")) {
+      String hash = Integer.toHexString(connection.getMetaData().getURL().hashCode());
+      try (PreparedStatement query = connection.prepareStatement("select get_lock('ebean_migration-" + hash + "', 10)")) {
         try (ResultSet resultSet = query.executeQuery()) {
           if (resultSet.next()) {
             return resultSet.getInt(1) == 1;
@@ -199,7 +200,8 @@ public class MigrationPlatform {
 
     @Override
     void unlockMigrationTable(String sqlTable, Connection connection) throws SQLException {
-      try (PreparedStatement query = connection.prepareStatement("select release_lock('ebean_migration')")) {
+      String hash = Integer.toHexString(connection.getMetaData().getURL().hashCode());
+      try (PreparedStatement query = connection.prepareStatement("select release_lock('ebean_migration-" + hash + "')")) {
         query.execute();
       }
     }

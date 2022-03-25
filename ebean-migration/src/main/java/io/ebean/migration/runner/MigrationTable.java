@@ -150,18 +150,28 @@ public class MigrationTable {
    * </p>
    */
   public void createIfNeededAndLock() throws SQLException, IOException {
+    SQLException sqlEx = null;
     if (!tableExists()) {
       try {
         createTable();
       } catch (SQLException e) {
         if (tableExists()) {
-          log.info("Ignoring error during table creation, as an other process may have created the table");
+          sqlEx = e;
+          log.info("Ignoring error during table creation, as an other process may have created the table", e);
         } else {
           throw e;
         }
       }
     }
-    obtainLockWithWait();
+    try {
+      obtainLockWithWait();
+    } catch (RuntimeException re) {
+      // catch "failed to obtain row locks"
+      if (sqlEx != null) {
+        re.addSuppressed(sqlEx);
+      }
+      throw re;
+    }
     readExistingMigrations();
   }
 
