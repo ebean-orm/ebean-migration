@@ -1,68 +1,64 @@
 [![Build](https://github.com/ebean-orm/ebean-migration/actions/workflows/build.yml/badge.svg)](https://github.com/ebean-orm/ebean-migration/actions/workflows/build.yml)
+[![Maven Central : ebean](https://maven-badges.herokuapp.com/maven-central/io.ebean/ebean-migration/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.ebean/ebean-migration)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/ebean-orm/ebean-migration/blob/master/LICENSE)
+[![JDK EA](https://github.com/ebean-orm/ebean-migration/actions/workflows/jdk-ea.yml/badge.svg)](https://github.com/ebean-orm/ebean-migration/actions/workflows/jdk-ea.yml)
 
 # Ebean Migration
 DB Migration runner (similar to FlywayDB) which can be used standalone or with Ebean (to run DB Migrations on EbeanServer start)
 
 ## Example use
-To use firstly create a MigrationConfig and set properties (or load then from Properties).
+To use firstly create a MigrationConfig and set properties, then create and run MigrationRunner.
 ```java
-
     MigrationConfig config = new MigrationConfig();
     config.setDbUsername("sa");
     config.setDbPassword("");
-    config.setDbDriver("org.h2.Driver");
     config.setDbUrl("jdbc:h2:mem:db1");
-    
+
     // or load from Properties
     Properties properties = ...
-    
     config.load(properties);
 
+    // run it ...
+    MigrationRunner runner = new MigrationRunner(config);
+    runner.run();
 ```
-Then create an run a MigrationRunner. When running the database connection can either be:
+Then create a run a MigrationRunner. When running the database connection can either be:
 - Passing a Connection explicitly
 - Creating a connection (by specifying JDBC Driver and URL on MigrationConfig)
 - Passing a DataSource (MigrationConfig dbUsername and dbPassword used)
 
 ### Run with explicit connection
 ```java
-
     Connection connection = ...;
-    
+
     MigrationRunner runner = new MigrationRunner(config);
-    
+
     // pass explicit connection
     runner.run(connection);
 ```
 
 ### Run with explicit DataSource
 ```java
-
     DataSource dataSource = ...;
-    
+
     MigrationRunner runner = new MigrationRunner(config);
-    
+
     // pass a dataSource
     runner.run(dataSource);
 ```
 
 ### Run creating a Connection (via MigrationConfig)
 ```java
-
-    DataSource dataSource = ...;
-    
     MigrationRunner runner = new MigrationRunner(config);
-    
-    // pass a dataSource
-    runner.run(dataSource);
+    runner.run();
 ```
 
 ## Notes:
-MigrationConfig migrationPath is the root path (classpath or filesystem) where the migration scripts are searched for. 
+MigrationConfig migrationPath is the root path (classpath or filesystem) where the migration scripts are searched for.
 
 ```java
     MigrationConfig config = createMigrationConfig();
-    
+
     // load .sql migration resources from a file system location
     config.setMigrationPath("filesystem:my-directory/dbmigration");
 ```

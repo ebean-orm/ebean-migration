@@ -43,6 +43,7 @@ public class MigrationTable {
   private final String table;
   private final String sqlTable;
   private final String envUserName;
+  private final String basePlatformName;
   private final String platformName;
 
   private final Timestamp runOn = new Timestamp(System.currentTimeMillis());
@@ -94,6 +95,7 @@ public class MigrationTable {
     this.skipChecksum = config.isSkipChecksum();
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
+    this.basePlatformName = config.getBasePlatform();
     this.platformName = config.getPlatform();
     this.sqlTable = initSqlTable();
     this.insertSql = MigrationMetaRow.insertSql(sqlTable);
@@ -149,7 +151,15 @@ public class MigrationTable {
    */
   public void createIfNeededAndLock() throws SQLException, IOException {
     if (!tableExists()) {
-      createTable();
+      try {
+        createTable();
+      } catch (SQLException e) {
+        if (tableExists()) {
+          log.info("Ignoring error during table creation, as an other process may have created the table");
+        } else {
+          throw e;
+        }
+      }
     }
     obtainLockWithWait();
     readExistingMigrations();
@@ -162,6 +172,13 @@ public class MigrationTable {
    */
   private void obtainLockWithWait() throws SQLException {
     platform.lockMigrationTable(sqlTable, connection);
+  }
+
+  /**
+   * Release a lock on the migration table (MySql, MariaDB only).
+   */
+  public void unlockMigrationTable() throws SQLException {
+    platform.unlockMigrationTable(sqlTable, connection);
   }
 
   /**
@@ -179,6 +196,7 @@ public class MigrationTable {
   private void createTable() throws IOException, SQLException {
     scriptRunner.runScript(createTableDdl(), "create migration table");
     createInitMetaRow().executeInsert(connection, insertSql);
+    connection.commit();
   }
 
   /**
@@ -199,6 +217,10 @@ public class MigrationTable {
     if (script == null && platformName != null && !platformName.isEmpty()) {
       // look for platform specific create table
       script = readResource("migration-support/" + platformName + "-create-table.sql");
+    }
+    if (script == null && basePlatformName != null && !basePlatformName.isEmpty()) {
+      // look for platform specific create table
+      script = readResource("migration-support/" + basePlatformName + "-create-table.sql");
     }
     if (script == null) {
       // no, just use the default script

@@ -41,6 +41,18 @@ public interface AutoMigrationRunner {
   }
 
   /**
+   * Set the base platform for running the migration.
+   * <p>
+   * For example, with sqlserver17 the base platform is "sqlserver" and platform is "sqlserver17".
+   * Similarly, with db2luw the base platform is "db2" and the platform is "db2luw".
+   * <p>
+   * The migration runner can look for migrations to run based on the base platform or specific platform.
+   */
+  default void setBasePlatform(String basePlatform) {
+    // do nothing by default
+  }
+
+  /**
    * Run DB migrations using the given DataSource.
    */
   void run(DataSource dataSource);

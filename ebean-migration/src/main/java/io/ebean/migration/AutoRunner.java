@@ -36,6 +36,11 @@ public class AutoRunner implements AutoMigrationRunner {
   }
 
   @Override
+  public void setBasePlatform(String basePlatform) {
+    config.setBasePlatform(basePlatform);
+  }
+
+  @Override
   public void run(DataSource dataSource) {
     new MigrationRunner(config).run(dataSource);
   }
