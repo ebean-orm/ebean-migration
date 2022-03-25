@@ -5,9 +5,7 @@ import io.ebean.migration.runner.MigrationTable;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourcePool;
 import io.ebean.datasource.DataSourceFactory;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -65,6 +63,7 @@ public class MigrationTableTest {
         }
       }
       assertThat(rawVersions).containsExactly("0", "hello", "1.1", "1.2", "1.2.1", "m2_view");
+      table.unlockMigrationTable();
       conn.rollback();
     }
   }
@@ -81,6 +80,7 @@ public class MigrationTableTest {
       MigrationTable table = new MigrationTable(config, conn, false, platform);
       table.createIfNeededAndLock();
       assertThat(table.getVersions()).containsExactly("1.1");
+      table.unlockMigrationTable();
       conn.rollback();
     }
 
@@ -93,6 +93,7 @@ public class MigrationTableTest {
       MigrationTable table = new MigrationTable(config, conn, false, platform);
       table.createIfNeededAndLock();
       assertThat(table.getVersions()).containsExactly("1.1", "1.2", "m2_view");
+      table.unlockMigrationTable();
       conn.rollback();
     }
   }
@@ -110,6 +111,7 @@ public class MigrationTableTest {
       MigrationTable table = new MigrationTable(config, conn, false, platform);
       table.createIfNeededAndLock();
       assertThat(table.getVersions()).containsExactly("1.1");
+      table.unlockMigrationTable();
       conn.rollback();
     }
 
