@@ -99,6 +99,13 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+      <version>2.6.0</version>
+      <scope>test</scope>
+    </dependency>
+
     <!--
 mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
           -DartifactId=oracle-jdbc -Dversion=7.0 -Dpackaging=jar

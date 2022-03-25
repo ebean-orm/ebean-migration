@@ -8,6 +8,7 @@ public interface DbPlatformNames {
   String SQLSERVER = "sqlserver";
   String SQLITE = "sqlite";
   String POSTGRES = "postgres";
+  String MARIADB = "mariadb";
   String MYSQL = "mysql";
   String ORACLE = "oracle";
   String DB2 = "db2";

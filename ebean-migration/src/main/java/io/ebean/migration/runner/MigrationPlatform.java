@@ -31,18 +31,44 @@ public class MigrationPlatform {
     return DdlDetect.NONE;
   }
 
+  void unlockMigrationTable(String sqlTable, Connection connection) throws SQLException {
+    // do nothing by default for select for update case
+  }
+
   /**
    * Lock the migration table. The base implementation uses row locking but lock table would be preferred when available.
    */
   void lockMigrationTable(String sqlTable, Connection connection) throws SQLException {
+    for (int i = 0; i < 5; i++) {
+      if (lockRows(sqlTable, connection) > 0) {
+        return;
+      }
+      backoff();
+    }
+    throw new IllegalStateException("Failed to obtain row locks on migration table due to it being empty?");
+  }
+
+  private static void backoff() {
+    try {
+      Thread.sleep(100);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupted while trying to obtain lock on migration table", e);
+    }
+  }
+
+  private int lockRows(String sqlTable, Connection connection) throws SQLException {
+    int rowCount = 0;
     final String selectSql = sqlSelectForUpdate(sqlTable);
     try (PreparedStatement query = connection.prepareStatement(selectSql)) {
       try (ResultSet resultSet = query.executeQuery()) {
         while (resultSet.next()) {
           resultSet.getInt(1);
+          rowCount++;
         }
       }
     }
+    return rowCount;
   }
 
   /**
@@ -88,6 +114,37 @@ public class MigrationPlatform {
     @Override
     void lockMigrationTable(String sqlTable, Connection connection) throws SQLException {
       try (PreparedStatement query = connection.prepareStatement("lock table " + sqlTable)) {
+        query.execute();
+      }
+    }
+  }
+
+  /**
+   * MySql and MariaDB need to use named locks due to implicit commits with DDL.
+   */
+  public static class MySql extends MigrationPlatform {
+
+    @Override
+    void lockMigrationTable(String sqlTable, Connection connection) throws SQLException {
+      while (!obtainNamedLock(connection)) {
+        backoff();
+      }
+    }
+
+    private boolean obtainNamedLock(Connection connection) throws SQLException {
+      try (PreparedStatement query = connection.prepareStatement("select get_lock('ebean_migration', 10)")) {
+        try (ResultSet resultSet = query.executeQuery()) {
+          if (resultSet.next()) {
+            return resultSet.getInt(1) == 1;
+          }
+        }
+      }
+      return false;
+    }
+
+    @Override
+    void unlockMigrationTable(String sqlTable, Connection connection) throws SQLException {
+      try (PreparedStatement query = connection.prepareStatement("select release_lock('ebean_migration')")) {
         query.execute();
       }
     }

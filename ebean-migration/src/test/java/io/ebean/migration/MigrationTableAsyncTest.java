@@ -3,8 +3,10 @@ package io.ebean.migration;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourcePool;
 import io.ebean.datasource.DataSourceFactory;
+import io.ebean.docker.commands.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +38,7 @@ public class MigrationTableAsyncTest {
     dataSource.shutdown();
   }
 
+  @Disabled
   @Test
   public void testDb2() throws Exception {
     // Works
@@ -47,8 +50,17 @@ public class MigrationTableAsyncTest {
   }
 
   @Test
-  public void testMariaDb() throws Exception {
-    // does not properly lock migtable
+  public void testMySqlDb() throws Exception {
+    // init mysql docker container
+    MySqlConfig conf = new MySqlConfig("8.0");
+    conf.setPort(14307);
+    conf.setContainerName("mig_async_mysql");
+    conf.setDbName("test_ebean");
+    conf.setUser("test_ebean");
+    conf.setPassword("test");
+    MySqlContainer container = new MySqlContainer(conf);
+    container.startWithDropCreate();
+
     config.setMigrationPath("dbmig");
     config.setDbUsername("test_ebean");
     config.setDbPassword("test");
@@ -57,8 +69,37 @@ public class MigrationTableAsyncTest {
   }
 
   @Test
+  public void testMariaDb() throws Exception {
+    // init mariadb docker container
+    MariaDBConfig conf = new MariaDBConfig("10");
+    conf.setPort(14308);
+    conf.setContainerName("mig_async_mariadb");
+    conf.setDbName("test_ebean");
+    conf.setUser("test_ebean");
+    conf.setPassword("test");
+    MariaDBContainer container = new MariaDBContainer(conf);
+    container.startWithDropCreate();
+
+    config.setMigrationPath("dbmig");
+    config.setDbUsername("test_ebean");
+    config.setDbPassword("test");
+    config.setDbUrl("jdbc:mariadb://localhost:14308/test_ebean");
+    runTest();
+  }
+
+  //@Disabled
+  @Test
   public void testSqlServer() throws Exception {
-    // works
+    // init sqlserver docker container
+    SqlServerConfig conf = new SqlServerConfig("2017-GA-ubuntu");
+    conf.setPort(9435);
+    conf.setContainerName("mig_async_sqlserver");
+    conf.setDbName("test_ebean");
+    conf.setUser("test_ebean");
+    //conf.setPassword("SqlS3rv#r");
+    SqlServerContainer container = new SqlServerContainer(conf);
+    container.startWithDropCreate();
+
     config.setMigrationPath("dbmig_sqlserver");
     config.setDbUsername("test_ebean");
     config.setDbPassword("SqlS3rv#r");
@@ -66,7 +107,11 @@ public class MigrationTableAsyncTest {
     runTest();
   }
 
-  
+
+  /**
+   * H2 does not work, implicit commits in DDL.
+   */
+  @Disabled
   @Test
   public void testH2() throws Exception {
     // thread A looses the lock while thread B runs the migrations.
@@ -75,7 +120,6 @@ public class MigrationTableAsyncTest {
     config.setDbPassword("");
     config.setDbUrl("jdbc:h2:mem:dbAsync;LOCK_TIMEOUT=100000");
     runTest();
-
   }
 
   private void runTest() throws SQLException, InterruptedException, ExecutionException {
@@ -116,7 +160,7 @@ public class MigrationTableAsyncTest {
     }
   }
 
-  String runMigration() throws Exception {
+  String runMigration() {
     MigrationRunner runner = new MigrationRunner(config);
     runner.run(dataSource);
     return "OK";

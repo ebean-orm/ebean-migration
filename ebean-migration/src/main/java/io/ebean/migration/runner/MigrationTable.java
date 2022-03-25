@@ -175,6 +175,13 @@ public class MigrationTable {
   }
 
   /**
+   * Release a lock on the migration table (MySql, MariaDB only).
+   */
+  public void unlockMigrationTable() throws SQLException {
+    platform.unlockMigrationTable(sqlTable, connection);
+  }
+
+  /**
    * Read the migration table with details on what migrations have run.
    * This must execute after we have completed the wait for the lock on
    * the migration table such that it reads any migrations that have
