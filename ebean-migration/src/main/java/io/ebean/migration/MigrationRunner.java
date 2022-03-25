@@ -106,11 +106,13 @@ public class MigrationRunner {
 
       MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode, platform);
       table.createIfNeededAndLock();
-
-      runMigrations(resources, table, checkStateMode);
-      connection.commit();
-
-      table.runNonTransactional();
+      try {
+        runMigrations(resources, table, checkStateMode);
+        connection.commit();
+        table.runNonTransactional();
+      } finally {
+        table.unlockMigrationTable();
+      }
 
     } catch (MigrationException e) {
       rollback(connection);
@@ -131,7 +133,6 @@ public class MigrationRunner {
   private void runMigrations(LocalMigrationResources resources, MigrationTable table, boolean checkStateMode) throws SQLException {
     // get the migrations in version order
     List<LocalMigrationResource> localVersions = resources.getVersions();
-
     if (table.isEmpty()) {
       LocalMigrationResource initVersion = getInitVersion();
       if (initVersion != null) {
@@ -141,7 +142,6 @@ public class MigrationRunner {
         return;
       }
     }
-
     log.info("Local migrations:{}  existing migrations:{}  checkState:{}", localVersions.size(), table.size(), checkStateMode);
     checkMigrations = table.runAll(localVersions);
   }

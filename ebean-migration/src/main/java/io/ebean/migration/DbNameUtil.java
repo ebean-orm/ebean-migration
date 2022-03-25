@@ -26,6 +26,8 @@ class DbNameUtil implements DbPlatformNames {
         return readPostgres(connection);
       } else if (productName.contains(MYSQL)) {
         return MYSQL;
+      } else if (productName.contains(MARIADB)) {
+        return MARIADB;
       } else if (productName.contains(ORACLE)) {
         return ORACLE;
       } else if (productName.contains("microsoft")) {
@@ -70,6 +72,12 @@ class DbNameUtil implements DbPlatformNames {
   @Nonnull
   static MigrationPlatform platform(String platformName) {
     switch (platformName) {
+      case MYSQL:
+      case MARIADB:
+        return new MigrationPlatform.MySql();
+      case ORACLE:
+      case H2:
+        return new MigrationPlatform.LogicalLock();
       case POSTGRES:
         return new MigrationPlatform.Postgres();
       case SQLSERVER:
