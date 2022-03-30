@@ -4,6 +4,9 @@ import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourcePool;
 import io.ebean.datasource.DataSourceFactory;
 import io.ebean.docker.commands.*;
+import io.ebean.migration.runner.MigrationPlatform;
+import io.ebean.migration.runner.MigrationTable;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -38,15 +42,25 @@ public class MigrationTableAsyncTest {
     dataSource.shutdown();
   }
 
-  @Disabled
+  //@Disabled
   @Test
   public void testDb2() throws Exception {
     // Works
+    Db2Config conf = new Db2Config("latest");
+    conf.setPort(50055);
+    conf.setContainerName("mig_async_db2");
+    conf.setUser("test_ebean");
+    conf.setPassword("test");
+    
+    Db2Container container = new Db2Container(conf);
+    container.startWithCreate();
+    
     config.setMigrationPath("dbmig");
-    config.setDbUsername("unit");
+    config.setDbUsername("test_ebean");
     config.setDbPassword("test");
-    config.setDbUrl("jdbc:db2://localhost:50000/unit:currentSchema=ASYNC;");
-    runTest();
+    config.setDbUrl(container.jdbcUrl());
+    runTest(false);
+    runTest(true);
   }
 
   @Disabled
@@ -66,7 +80,8 @@ public class MigrationTableAsyncTest {
     config.setDbUsername("test_ebean");
     config.setDbPassword("test");
     config.setDbUrl(container.jdbcUrl());
-    runTest();
+    runTest(false);
+    runTest(true);
   }
 
   @Test
@@ -85,7 +100,8 @@ public class MigrationTableAsyncTest {
     config.setDbUsername("test_ebean");
     config.setDbPassword("test");
     config.setDbUrl("jdbc:mysql://localhost:14307/test_ebean");
-    runTest();
+    runTest(false);
+    runTest(true);
   }
 
   @Test
@@ -104,7 +120,8 @@ public class MigrationTableAsyncTest {
     config.setDbUsername("test_ebean");
     config.setDbPassword("test");
     config.setDbUrl("jdbc:mariadb://localhost:14308/test_ebean");
-    runTest();
+    runTest(false);
+    runTest(true);
   }
 
   //@Disabled
@@ -124,7 +141,8 @@ public class MigrationTableAsyncTest {
     config.setDbUsername("test_ebean");
     config.setDbPassword("SqlS3rv#r");
     config.setDbUrl("jdbc:sqlserver://localhost:9435;databaseName=test_ebean;sendTimeAsDateTime=false");
-    runTest();
+    runTest(true);
+    runTest(false);
   }
 
 
@@ -138,10 +156,11 @@ public class MigrationTableAsyncTest {
     config.setDbUsername("sa");
     config.setDbPassword("");
     config.setDbUrl("jdbc:h2:mem:dbAsync;LOCK_TIMEOUT=100000");
-    runTest();
+    runTest(false);
+    runTest(true);
   }
 
-  private void runTest() throws SQLException, InterruptedException, ExecutionException {
+  private void runTest(boolean withExisting) throws SQLException, InterruptedException, ExecutionException, IOException {
     DataSourceConfig dataSourceConfig = new DataSourceConfig();
     dataSourceConfig.setUrl(config.getDbUrl());
     dataSourceConfig.setUsername(config.getDbUsername());
@@ -151,6 +170,21 @@ public class MigrationTableAsyncTest {
     dropTable("m1");
     dropTable("m2");
     dropTable("m3");
+    
+    if (withExisting) {
+      // create empty migration table
+      try (Connection conn = dataSource.getConnection()) {
+        String derivedPlatformName = DbNameUtil.normalise(conn);
+
+        config.setPlatform(derivedPlatformName);
+        MigrationPlatform platform = DbNameUtil.platform(derivedPlatformName);
+        MigrationTable table = new MigrationTable(config, conn, false, platform);
+        table.createIfNeededAndLock();
+        table.unlockMigrationTable();
+        conn.commit();
+      }
+    }
+    
     ExecutorService exec = Executors.newFixedThreadPool(8);
     List<Future<String>> futures = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
@@ -176,6 +210,7 @@ public class MigrationTableAsyncTest {
       } else if (dbProductName.contains("oracle")) {
         // do nothing, re-created via container.startWithDropCreate();
       } else {
+        stmt.execute("drop view if exists " + tableName + "_vw");
         stmt.execute("drop table if exists " + tableName);
       }
       conn.commit();

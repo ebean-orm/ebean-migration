@@ -5,20 +5,12 @@ import io.ebean.migration.runner.MigrationTable;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourcePool;
 import io.ebean.datasource.DataSourceFactory;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class MigrationTableTestDb2 {
 
@@ -55,7 +47,9 @@ public class MigrationTableTestDb2 {
     try (Connection conn = dataSource.getConnection()) {
       MigrationTable table = new MigrationTable(config, conn, false, platform);
       table.createIfNeededAndLock();
+      table.unlockMigrationTable();
       table.createIfNeededAndLock();
+      table.unlockMigrationTable();
       conn.commit();
     }
   }
