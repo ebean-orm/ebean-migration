@@ -1,7 +1,7 @@
 package io.ebean.migration.runner;
 
-import io.ebean.migration.MigrationVersion;
 import io.avaje.classpath.scanner.Resource;
+import io.ebean.migration.MigrationVersion;
 
 import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
@@ -27,11 +27,23 @@ public class LocalDdlMigrationResource extends LocalMigrationResource {
    */
   @Nonnull
   public String getContent() {
-    return resource.loadAsString(StandardCharsets.UTF_8);
+    try {
+      return resource.loadAsString(StandardCharsets.UTF_8);
+    } catch (NullPointerException e) {
+      throw new IllegalStateException(missingOpensMessage(), e);
+    }
   }
 
   public List<String> lines() {
-    return resource.loadAsLines(StandardCharsets.UTF_8);
+    try {
+      return resource.loadAsLines(StandardCharsets.UTF_8);
+    } catch (NullPointerException e) {
+      throw new IllegalStateException(missingOpensMessage(), e);
+    }
+  }
+
+  private String missingOpensMessage() {
+    return "NPE reading DB migration content at [" + location + "] Probably missing an 'opens dbmigration;' in module-info.java";
   }
 
 }
