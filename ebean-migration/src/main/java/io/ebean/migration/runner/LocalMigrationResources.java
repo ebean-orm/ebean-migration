@@ -96,7 +96,9 @@ public class LocalMigrationResources {
   }
 
   private void addResources(List<Resource> resourceList) {
-    log.debug("resources: {}", resourceList);
+    if (!resourceList.isEmpty()) {
+      log.debug("resources: {}", resourceList);
+    }
     for (Resource resource : resourceList) {
       String filename = resource.name();
       if (filename.endsWith(".sql")) {
