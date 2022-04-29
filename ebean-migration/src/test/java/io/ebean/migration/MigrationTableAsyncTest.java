@@ -1,18 +1,15 @@
 package io.ebean.migration;
 
 import io.ebean.datasource.DataSourceConfig;
-import io.ebean.datasource.DataSourcePool;
 import io.ebean.datasource.DataSourceFactory;
+import io.ebean.datasource.DataSourcePool;
 import io.ebean.docker.commands.*;
 import io.ebean.migration.runner.MigrationPlatform;
 import io.ebean.migration.runner.MigrationTable;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -24,6 +21,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MigrationTableAsyncTest {
 
@@ -46,15 +45,15 @@ public class MigrationTableAsyncTest {
   @Test
   public void testDb2() throws Exception {
     // Works
-    Db2Config conf = new Db2Config("latest");
-    conf.setPort(50055);
-    conf.setContainerName("mig_async_db2");
-    conf.setUser("test_ebean");
-    conf.setPassword("test");
-    
-    Db2Container container = new Db2Container(conf);
+    Db2Container container = Db2Container.newBuilder("latest")
+      .port(50055)
+      .containerName("mig_async_db2")
+      .user("test_ebean")
+      .password("test")
+      .build();
+
     container.startWithCreate();
-    
+
     config.setMigrationPath("dbmig");
     config.setDbUsername("test_ebean");
     config.setDbPassword("test");
@@ -67,13 +66,12 @@ public class MigrationTableAsyncTest {
   @Test
   public void testOracle() throws Exception {
     // init oracle docker container
-    OracleConfig conf = new OracleConfig("latest");
-    conf.setDbName("XE");
-    conf.setImage("oracleinanutshell/oracle-xe-11g:latest");
-    conf.setUser("test_ebean");
-    conf.setPassword("test");
-
-    OracleContainer container = new OracleContainer(conf);
+    OracleContainer container = OracleContainer.newBuilder("latest")
+      .dbName("XE")
+      .image("oracleinanutshell/oracle-xe-11g:latest")
+      .user("test_ebean")
+      .password("test")
+      .build();
     container.startWithDropCreate();
 
     config.setMigrationPath("dbmig_oracle");
@@ -87,13 +85,14 @@ public class MigrationTableAsyncTest {
   @Test
   public void testMySqlDb() throws Exception {
     // init mysql docker container
-    MySqlConfig conf = new MySqlConfig("8.0");
-    conf.setPort(14307);
-    conf.setContainerName("mig_async_mysql");
-    conf.setDbName("test_ebean");
-    conf.setUser("test_ebean");
-    conf.setPassword("test");
-    MySqlContainer container = new MySqlContainer(conf);
+    MySqlContainer container = MySqlContainer.newBuilder("8.0")
+      .port(14307)
+      .containerName("mig_async_mysql")
+      .dbName("test_ebean")
+      .user("test_ebean")
+      .password("test")
+      .build();
+
     container.startWithDropCreate();
 
     config.setMigrationPath("dbmig");
@@ -107,13 +106,14 @@ public class MigrationTableAsyncTest {
   @Test
   public void testMariaDb() throws Exception {
     // init mariadb docker container
-    MariaDBConfig conf = new MariaDBConfig("10");
-    conf.setPort(14308);
-    conf.setContainerName("mig_async_mariadb");
-    conf.setDbName("test_ebean");
-    conf.setUser("test_ebean");
-    conf.setPassword("test");
-    MariaDBContainer container = new MariaDBContainer(conf);
+    MariaDBContainer container = MariaDBContainer.newBuilder("10")
+      .port(14308)
+      .containerName("mig_async_mariadb")
+      .dbName("test_ebean")
+      .user("test_ebean")
+      .password("test")
+      .build();
+
     container.startWithDropCreate();
 
     config.setMigrationPath("dbmig");
@@ -128,13 +128,14 @@ public class MigrationTableAsyncTest {
   @Test
   public void testSqlServer() throws Exception {
     // init sqlserver docker container
-    SqlServerConfig conf = new SqlServerConfig("2017-GA-ubuntu");
-    conf.setPort(9435);
-    conf.setContainerName("mig_async_sqlserver");
-    conf.setDbName("test_ebean");
-    conf.setUser("test_ebean");
+    SqlServerContainer container = SqlServerContainer.newBuilder("2017-GA-ubuntu")
+      .port(9435)
+      .containerName("mig_async_sqlserver")
+      .dbName("test_ebean")
+      .user("test_ebean")
+      .build();
     //conf.setPassword("SqlS3rv#r");
-    SqlServerContainer container = new SqlServerContainer(conf);
+
     container.startWithDropCreate();
 
     config.setMigrationPath("dbmig_sqlserver");
@@ -170,7 +171,7 @@ public class MigrationTableAsyncTest {
     dropTable("m1");
     dropTable("m2");
     dropTable("m3");
-    
+
     if (withExisting) {
       // create empty migration table
       try (Connection conn = dataSource.getConnection()) {
@@ -184,7 +185,7 @@ public class MigrationTableAsyncTest {
         conn.commit();
       }
     }
-    
+
     ExecutorService exec = Executors.newFixedThreadPool(8);
     List<Future<String>> futures = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
@@ -198,7 +199,7 @@ public class MigrationTableAsyncTest {
 
   private void dropTable(String tableName) throws SQLException {
     try (Connection conn = dataSource.getConnection();
-      Statement stmt = conn.createStatement()) {
+         Statement stmt = conn.createStatement()) {
       String dbProductName = conn.getMetaData().getDatabaseProductName().toLowerCase();
       if (dbProductName.contains("db2")) {
         stmt.execute("begin\n"

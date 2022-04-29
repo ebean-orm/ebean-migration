@@ -1,17 +1,8 @@
 package io.ebean.migration;
 
 import io.ebean.ddlrunner.DdlRunner;
-import io.ebean.docker.commands.DbConfig;
-import io.ebean.docker.commands.MySqlConfig;
-import io.ebean.docker.commands.MySqlContainer;
-import io.ebean.docker.commands.NuoDBConfig;
-import io.ebean.docker.commands.NuoDBContainer;
-import io.ebean.docker.commands.OracleConfig;
-import io.ebean.docker.commands.OracleContainer;
-import io.ebean.docker.commands.PostgresConfig;
-import io.ebean.docker.commands.PostgresContainer;
-import io.ebean.docker.commands.SqlServerConfig;
-import io.ebean.docker.commands.SqlServerContainer;
+import io.ebean.docker.commands.*;
+import io.ebean.docker.container.ContainerBuilderDb;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -30,47 +21,46 @@ public class MigrationRunner_platform_Test {
   private final MySqlContainer mysqlContainer = createMySqlContainer();
   private final OracleContainer oracleContainer = createOracleContainer();
 
-  private static void setContainerName(DbConfig config, String suffix) {
-    config.setContainerName("test_ebean_migration_" + suffix);
-    config.setUser("mig_test");
-    config.setDbName("mig_test");
+  private static void setContainerName(ContainerBuilderDb<?, ?> config, String suffix) {
+    config.containerName("test_ebean_migration_" + suffix);
+    config.user("mig_test");
+    config.dbName("mig_test");
   }
 
   private static NuoDBContainer createNuoDB() {
-    NuoDBConfig config = new NuoDBConfig();
-    config.setSchema("mig_test");
-    config.setUser("mig_test");
-    config.setPassword("test");
-    return new NuoDBContainer(config);
+    return NuoDBContainer.newBuilder("4.0")
+      .schema("mig_test")
+      .user("mig_test")
+      .password("test")
+      .build();
   }
 
   private static PostgresContainer createPostgres() {
-    PostgresConfig config = new PostgresConfig("13");
-    config.setPort(9823);
-    setContainerName(config, "pg13");
-    return new PostgresContainer(config);
+    PostgresContainer.Builder builder = PostgresContainer.newBuilder("13")
+      .port(9823);
+    setContainerName(builder, "pg13");
+    return builder.build();
   }
 
   private static SqlServerContainer createSqlServer() {
-    SqlServerConfig config = new SqlServerConfig("2017-GA-ubuntu");
-    config.setPort(2433);
-    setContainerName(config, "sql17");
-    return new SqlServerContainer(config);
+    SqlServerContainer.Builder builder = SqlServerContainer.newBuilder("2017-GA-ubuntu").port(2433);
+    setContainerName(builder, "sql17");
+    return builder.build();
   }
 
   private static MySqlContainer createMySqlContainer() {
-    MySqlConfig config = new MySqlConfig("8.0");
-    config.setPort(14306);
-    setContainerName(config, "mysql");
-    return new MySqlContainer(config);
+    MySqlContainer.Builder builder = MySqlContainer.newBuilder("8.0").port(14306);
+    setContainerName(builder, "mysql");
+    return builder.build();
   }
 
   private static OracleContainer createOracleContainer() {
-    OracleConfig config = new OracleConfig("latest");
-    setContainerName(config, "oracle");
-    config.setDbName("XE");
-    config.setImage("oracleinanutshell/oracle-xe-11g:latest");
-    return new OracleContainer(config);
+    OracleContainer.Builder builder = OracleContainer.newBuilder("latest");
+    setContainerName(builder, "oracle");
+    return builder
+      .dbName("XE")
+      .image("oracleinanutshell/oracle-xe-11g:latest")
+      .build();
   }
 
   private MigrationConfig newMigrationConfig() {
@@ -176,8 +166,8 @@ public class MigrationRunner_platform_Test {
 
     String content =
       "insert into m1 (id, acol) values (1001, 'one');\n" +
-      "insert into m1 (id, acol) values (1002, 'two');\n" +
-      "insert into m1 (id, acol) values (1003, 'three');\n";
+        "insert into m1 (id, acol) values (1002, 'two');\n" +
+        "insert into m1 (id, acol) values (1003, 'three');\n";
 
     try (Connection connection = postgresContainer.createConnection()) {
       connection.setAutoCommit(false);
