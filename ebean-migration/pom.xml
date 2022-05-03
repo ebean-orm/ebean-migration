@@ -24,13 +24,6 @@
   <dependencies>
 
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.36</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-ddl-runner</artifactId>
       <version>2.0</version>
@@ -57,6 +50,13 @@
     </dependency>
 
     <!-- test dependencies -->
+
+    <dependency>
+      <groupId>io.avaje</groupId>
+      <artifactId>avaje-slf4j-jpl</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>com.h2database</groupId>
