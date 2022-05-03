@@ -41,18 +41,19 @@ public class MigrationTableAsyncTest {
     dataSource.shutdown();
   }
 
-  //@Disabled
+  @Disabled
   @Test
   public void testDb2() throws Exception {
     // Works
     Db2Container container = Db2Container.newBuilder("latest")
       .port(50055)
       .containerName("mig_async_db2")
+      .dbName("mig_test")
       .user("test_ebean")
       .password("test")
       .build();
 
-    container.startWithCreate();
+    container.startWithDropCreate();
 
     config.setMigrationPath("dbmig");
     config.setDbUsername("test_ebean");
