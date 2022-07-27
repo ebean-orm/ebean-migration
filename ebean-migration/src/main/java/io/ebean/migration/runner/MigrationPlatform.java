@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class MigrationPlatform {
 
-  private static final System.Logger log = System.getLogger("io.ebean.DDL");
+  private static final System.Logger log = MigrationTable.log;
 
   private static final String BASE_SELECT_ID = "select id from ";
   private static final String BASE_SELECT_ALL = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from ";

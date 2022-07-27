@@ -1,5 +1,6 @@
 package io.ebean.migration.runner;
 
+import io.avaje.applog.AppLog;
 import io.ebean.ddlrunner.ScriptTransform;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
@@ -10,16 +11,8 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.lang.System.Logger.Level;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.sql.*;
+import java.util.*;
 
 import static io.ebean.migration.MigrationVersion.BOOTINIT_TYPE;
 import static io.ebean.migration.MigrationVersion.VERSION_TYPE;
@@ -27,9 +20,9 @@ import static io.ebean.migration.MigrationVersion.VERSION_TYPE;
 /**
  * Manages the migration table.
  */
-public class MigrationTable {
+public final class MigrationTable {
 
-  private static final System.Logger log = System.getLogger("io.ebean.DDL");
+  static final System.Logger log = AppLog.getLogger("io.ebean.DDL");
 
   private static final String INIT_VER_0 = "0";
 

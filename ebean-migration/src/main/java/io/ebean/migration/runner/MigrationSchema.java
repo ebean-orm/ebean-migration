@@ -1,5 +1,6 @@
 package io.ebean.migration.runner;
 
+import io.avaje.applog.AppLog;
 import io.ebean.migration.MigrationConfig;
 
 import java.lang.System.Logger.Level;
@@ -11,9 +12,9 @@ import java.sql.Statement;
 /**
  * Create Schema if needed and set current Schema in Migration
  */
-public class MigrationSchema {
+public final class MigrationSchema {
 
-  private static final System.Logger log = System.getLogger("io.ebean.migration");
+  static final System.Logger log = AppLog.getLogger("io.ebean.migration");
 
   private final Connection connection;
   private final String dbSchema;

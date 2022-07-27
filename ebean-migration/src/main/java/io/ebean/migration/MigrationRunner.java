@@ -1,10 +1,7 @@
 package io.ebean.migration;
 
-import io.ebean.migration.runner.LocalMigrationResource;
-import io.ebean.migration.runner.LocalMigrationResources;
-import io.ebean.migration.runner.MigrationPlatform;
-import io.ebean.migration.runner.MigrationSchema;
-import io.ebean.migration.runner.MigrationTable;
+import io.avaje.applog.AppLog;
+import io.ebean.migration.runner.*;
 
 import javax.annotation.Nonnull;
 import javax.sql.DataSource;
@@ -18,7 +15,7 @@ import java.util.List;
  */
 public class MigrationRunner {
 
-  static final System.Logger log = System.getLogger("io.ebean.migration");
+  static final System.Logger log = AppLog.getLogger("io.ebean.migration");
 
   protected final MigrationConfig migrationConfig;
 

@@ -18,7 +18,7 @@ import java.util.function.Predicate;
  */
 public class LocalMigrationResources {
 
-  private static final System.Logger log = System.getLogger("io.ebean.migration");
+  private static final System.Logger log = MigrationSchema.log;
 
   private final List<LocalMigrationResource> versions = new ArrayList<>();
   private final MigrationConfig migrationConfig;
