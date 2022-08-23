@@ -2,6 +2,8 @@ package io.ebean.migration;
 
 import java.util.Arrays;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * The version of a migration used so that migrations are processed in order.
  */
@@ -216,8 +218,8 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
         delimiterPos++;
       } catch (NumberFormatException e) {
         // stop parsing
-        MigrationRunner.log.warn("The migrationscript '{}' contains non numeric version part. "
-          + "This may lead to misordered version scripts. NumberFormatException {}", raw, e.getMessage());
+        MigrationRunner.log.log(WARNING, "The migrationscript '{0}' contains non numeric version part. "
+          + "This may lead to misordered version scripts. NumberFormatException {1}", raw, e.getMessage());
         break;
       }
     }

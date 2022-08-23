@@ -5,8 +5,6 @@ import io.avaje.classpath.scanner.core.Scanner;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -14,12 +12,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 /**
  * Loads the DB migration resources and sorts them into execution order.
  */
 public class LocalMigrationResources {
 
-  private static final Logger log = LoggerFactory.getLogger("io.ebean.migration");
+  private static final System.Logger log = MigrationSchema.log;
 
   private final List<LocalMigrationResource> versions = new ArrayList<>();
   private final MigrationConfig migrationConfig;
@@ -73,7 +73,7 @@ public class LocalMigrationResources {
     if (versions.isEmpty()) {
       return false;
     }
-    log.debug("platform migrations for {}", platform);
+    log.log(DEBUG, "platform migrations for {0}", platform);
     if (searchForJdbcMigrations) {
       addResources(scanForJdbcOnly(path));
     }
@@ -97,7 +97,7 @@ public class LocalMigrationResources {
 
   private void addResources(List<Resource> resourceList) {
     if (!resourceList.isEmpty()) {
-      log.debug("resources: {}", resourceList);
+      log.log(DEBUG, "resources: {0}", resourceList);
     }
     for (Resource resource : resourceList) {
       String filename = resource.name();

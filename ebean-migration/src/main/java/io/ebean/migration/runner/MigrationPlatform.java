@@ -1,9 +1,6 @@
 package io.ebean.migration.runner;
 
-
 import io.ebean.ddlrunner.DdlDetect;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
@@ -13,12 +10,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Handle database platform specific locking on db migration table.
  */
 public class MigrationPlatform {
 
-  private static final Logger log = LoggerFactory.getLogger("io.ebean.DDL");
+  private static final System.Logger log = MigrationTable.log;
 
   private static final String BASE_SELECT_ID = "select id from ";
   private static final String BASE_SELECT_ALL = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from ";
@@ -56,9 +55,9 @@ public class MigrationPlatform {
   private static void backoff(int attempt) {
     try {
       if (attempt % 100 == 0) {
-        log.warn("In backoff loop attempting to obtain lock on DBMigration table ...");
+        log.log(WARNING, "In backoff loop attempting to obtain lock on DBMigration table ...");
       } else {
-        log.trace("in backoff loop obtaining lock...");
+        log.log(TRACE, "in backoff loop obtaining lock...");
       }
       Thread.sleep(100);
     } catch (InterruptedException e) {
@@ -122,7 +121,7 @@ public class MigrationPlatform {
       while (!obtainLogicalLock(sqlTable, connection)) {
         backoff(++attempts);
       }
-      log.trace("obtained logical lock");
+      log.log(TRACE, "obtained logical lock");
     }
 
     @Override
@@ -150,9 +149,9 @@ public class MigrationPlatform {
       String sql = "update " + sqlTable + " set mcomment='<init>' where id=0";
       try (PreparedStatement query = connection.prepareStatement(sql)) {
         if (query.executeUpdate() != 1) {
-          log.error("Failed to release logical lock. Please review why [" + sql + "] didn't update the row?");
+          log.log(ERROR, "Failed to release logical lock. Please review why [" + sql + "] didn't update the row?");
         } else {
-          log.trace("released logical lock");
+          log.log(TRACE, "released logical lock");
         }
       }
     }

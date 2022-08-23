@@ -8,6 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static java.lang.System.Logger.Level.WARNING;
+
 /**
  * Derive well known database platform names from JDBC MetaData.
  */
@@ -64,7 +66,7 @@ class DbNameUtil implements DbPlatformNames {
         }
       }
     } catch (SQLException e) {
-      MigrationRunner.log.warn("Error running detection query on Postgres", e);
+      MigrationRunner.log.log(WARNING, "Error running detection query on Postgres", e);
     }
     return POSTGRES;
   }

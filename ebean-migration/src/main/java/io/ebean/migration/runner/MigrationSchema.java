@@ -1,20 +1,21 @@
 package io.ebean.migration.runner;
 
+import io.avaje.applog.AppLog;
 import io.ebean.migration.MigrationConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static java.lang.System.Logger.Level.INFO;
+
 /**
  * Create Schema if needed and set current Schema in Migration
  */
-public class MigrationSchema {
+public final class MigrationSchema {
 
-  private static final Logger log = LoggerFactory.getLogger("io.ebean.migration");
+  static final System.Logger log = AppLog.getLogger("io.ebean.migration");
 
   private final Connection connection;
   private final String dbSchema;
@@ -40,7 +41,7 @@ public class MigrationSchema {
    */
   public void createAndSetIfNeeded() throws SQLException {
     if (dbSchema != null) {
-      log.info("Migration Schema: {}", dbSchema);
+      log.log(INFO, "Migration Schema: {0}", dbSchema);
       if (createSchemaIfNotExists) {
         createSchemaIfNeeded();
       }
@@ -52,7 +53,7 @@ public class MigrationSchema {
 
   private void createSchemaIfNeeded() throws SQLException {
     if (!schemaExists()) {
-      log.info("Creating Schema: {}", dbSchema);
+      log.log(INFO, "Creating Schema: {0}", dbSchema);
       try (Statement query = connection.createStatement()) {
         query.executeUpdate("CREATE SCHEMA " + dbSchema);
       }
@@ -72,7 +73,7 @@ public class MigrationSchema {
   }
 
   private void setSchema() throws SQLException {
-    log.info("Setting Schema: {}", dbSchema);
+    log.log(INFO, "Setting Schema: {0}", dbSchema);
     connection.setSchema(dbSchema);
   }
 
