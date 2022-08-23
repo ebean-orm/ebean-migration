@@ -3,11 +3,12 @@ package io.ebean.migration.runner;
 import io.avaje.applog.AppLog;
 import io.ebean.migration.MigrationConfig;
 
-import java.lang.System.Logger.Level;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import static java.lang.System.Logger.Level.INFO;
 
 /**
  * Create Schema if needed and set current Schema in Migration
@@ -40,7 +41,7 @@ public final class MigrationSchema {
    */
   public void createAndSetIfNeeded() throws SQLException {
     if (dbSchema != null) {
-      log.log(Level.INFO, "Migration Schema: {0}", dbSchema);
+      log.log(INFO, "Migration Schema: {0}", dbSchema);
       if (createSchemaIfNotExists) {
         createSchemaIfNeeded();
       }
@@ -52,7 +53,7 @@ public final class MigrationSchema {
 
   private void createSchemaIfNeeded() throws SQLException {
     if (!schemaExists()) {
-      log.log(Level.INFO, "Creating Schema: {0}", dbSchema);
+      log.log(INFO, "Creating Schema: {0}", dbSchema);
       try (Statement query = connection.createStatement()) {
         query.executeUpdate("CREATE SCHEMA " + dbSchema);
       }
@@ -72,7 +73,7 @@ public final class MigrationSchema {
   }
 
   private void setSchema() throws SQLException {
-    log.log(Level.INFO, "Setting Schema: {0}", dbSchema);
+    log.log(INFO, "Setting Schema: {0}", dbSchema);
     connection.setSchema(dbSchema);
   }
 

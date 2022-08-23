@@ -7,11 +7,12 @@ import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
 
 import javax.annotation.Nonnull;
-import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 /**
  * Loads the DB migration resources and sorts them into execution order.
@@ -72,7 +73,7 @@ public class LocalMigrationResources {
     if (versions.isEmpty()) {
       return false;
     }
-    log.log(Level.DEBUG, "platform migrations for {0}", platform);
+    log.log(DEBUG, "platform migrations for {0}", platform);
     if (searchForJdbcMigrations) {
       addResources(scanForJdbcOnly(path));
     }
@@ -96,7 +97,7 @@ public class LocalMigrationResources {
 
   private void addResources(List<Resource> resourceList) {
     if (!resourceList.isEmpty()) {
-      log.log(Level.DEBUG, "resources: {0}", resourceList);
+      log.log(DEBUG, "resources: {0}", resourceList);
     }
     for (Resource resource : resourceList) {
       String filename = resource.name();

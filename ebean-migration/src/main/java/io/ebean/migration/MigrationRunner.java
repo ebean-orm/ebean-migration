@@ -5,10 +5,11 @@ import io.ebean.migration.runner.*;
 
 import javax.annotation.Nonnull;
 import javax.sql.DataSource;
-import java.lang.System.Logger.Level;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+
+import static java.lang.System.Logger.Level.*;
 
 /**
  * Runs the DB migration typically on application start.
@@ -77,7 +78,7 @@ public class MigrationRunner {
       if (username == null) {
         return dataSource.getConnection();
       }
-      log.log(Level.DEBUG, "using db user [{0}] to run migrations ...", username);
+      log.log(DEBUG, "using db user [{0}] to run migrations ...", username);
       return dataSource.getConnection(username, migrationConfig.getDbPassword());
     } catch (SQLException e) {
       String msgSuffix = (username == null) ? "" : " using user [" + username + "]";
@@ -92,7 +93,7 @@ public class MigrationRunner {
     try {
       LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
       if (!resources.readResources() && !resources.readInitResources()) {
-        log.log(Level.DEBUG, "no migrations to check");
+        log.log(DEBUG, "no migrations to check");
         return;
       }
 
@@ -133,12 +134,12 @@ public class MigrationRunner {
       LocalMigrationResource initVersion = getInitVersion();
       if (initVersion != null) {
         // run using a dbinit script
-        log.log(Level.INFO, "dbinit migration version:{0}  local migrations:{1}  checkState:{2}", initVersion, localVersions.size(), checkStateMode);
+        log.log(INFO, "dbinit migration version:{0}  local migrations:{1}  checkState:{2}", initVersion, localVersions.size(), checkStateMode);
         checkMigrations = table.runInit(initVersion, localVersions);
         return;
       }
     }
-    log.log(Level.INFO, "Local migrations:{0}  existing migrations:{1}  checkState:{2}", localVersions.size(), table.size(), checkStateMode);
+    log.log(INFO, "Local migrations:{0}  existing migrations:{1}  checkState:{2}", localVersions.size(), table.size(), checkStateMode);
     checkMigrations = table.runAll(localVersions);
   }
 
@@ -179,7 +180,7 @@ public class MigrationRunner {
         connection.close();
       }
     } catch (SQLException e) {
-      log.log(Level.WARNING, "Error closing connection", e);
+      log.log(WARNING, "Error closing connection", e);
     }
   }
 
@@ -192,7 +193,7 @@ public class MigrationRunner {
         connection.rollback();
       }
     } catch (SQLException e) {
-      log.log(Level.WARNING, "Error on connection rollback", e);
+      log.log(WARNING, "Error on connection rollback", e);
     }
   }
 }

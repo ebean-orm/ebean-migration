@@ -3,13 +3,14 @@ package io.ebean.migration.runner;
 import io.ebean.ddlrunner.DdlDetect;
 
 import javax.annotation.Nonnull;
-import java.lang.System.Logger.Level;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.System.Logger.Level.*;
 
 /**
  * Handle database platform specific locking on db migration table.
@@ -54,9 +55,9 @@ public class MigrationPlatform {
   private static void backoff(int attempt) {
     try {
       if (attempt % 100 == 0) {
-        log.log(Level.WARNING, "In backoff loop attempting to obtain lock on DBMigration table ...");
+        log.log(WARNING, "In backoff loop attempting to obtain lock on DBMigration table ...");
       } else {
-        log.log(Level.TRACE, "in backoff loop obtaining lock...");
+        log.log(TRACE, "in backoff loop obtaining lock...");
       }
       Thread.sleep(100);
     } catch (InterruptedException e) {
@@ -120,7 +121,7 @@ public class MigrationPlatform {
       while (!obtainLogicalLock(sqlTable, connection)) {
         backoff(++attempts);
       }
-      log.log(Level.TRACE, "obtained logical lock");
+      log.log(TRACE, "obtained logical lock");
     }
 
     @Override
@@ -148,9 +149,9 @@ public class MigrationPlatform {
       String sql = "update " + sqlTable + " set mcomment='<init>' where id=0";
       try (PreparedStatement query = connection.prepareStatement(sql)) {
         if (query.executeUpdate() != 1) {
-          log.log(Level.ERROR, "Failed to release logical lock. Please review why [" + sql + "] didn't update the row?");
+          log.log(ERROR, "Failed to release logical lock. Please review why [" + sql + "] didn't update the row?");
         } else {
-          log.log(Level.TRACE, "released logical lock");
+          log.log(TRACE, "released logical lock");
         }
       }
     }
