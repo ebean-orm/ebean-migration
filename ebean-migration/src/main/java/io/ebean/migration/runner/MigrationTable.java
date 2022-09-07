@@ -195,10 +195,15 @@ public final class MigrationTable {
     }
   }
 
-  private void createTable() throws IOException, SQLException {
-    scriptRunner.runScript(createTableDdl(), "create migration table");
-    createInitMetaRow().executeInsert(connection, insertSql);
-    connection.commit();
+  void createTable() throws IOException, SQLException {
+    try {
+      scriptRunner.runScript(createTableDdl(), "create migration table");
+      createInitMetaRow().executeInsert(connection, insertSql);
+      connection.commit();
+    } catch (SQLException e) {
+      connection.rollback();
+      throw e;
+    }
   }
 
   /**
@@ -247,7 +252,7 @@ public final class MigrationTable {
   /**
    * Return true if the table exists.
    */
-  private boolean tableExists() throws SQLException {
+  boolean tableExists() throws SQLException {
     String migTable = table;
     DatabaseMetaData metaData = connection.getMetaData();
     if (metaData.storesUpperCaseIdentifiers()) {
