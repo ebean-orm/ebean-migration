@@ -45,7 +45,7 @@ public class MigrationTableAsyncTest {
   @Test
   public void testDb2() throws Exception {
     // Works
-    Db2Container container = Db2Container.newBuilder("latest")
+    Db2Container container = Db2Container.builder("latest")
       .port(50055)
       .containerName("mig_async_db2")
       .dbName("mig_test")
@@ -67,7 +67,7 @@ public class MigrationTableAsyncTest {
   @Test
   public void testOracle() throws Exception {
     // init oracle docker container
-    OracleContainer container = OracleContainer.newBuilder("latest")
+    OracleContainer container = OracleContainer.builder("latest")
       .dbName("XE")
       .image("oracleinanutshell/oracle-xe-11g:latest")
       .user("test_ebean")
@@ -86,7 +86,7 @@ public class MigrationTableAsyncTest {
   @Test
   public void testMySqlDb() throws Exception {
     // init mysql docker container
-    MySqlContainer container = MySqlContainer.newBuilder("8.0")
+    MySqlContainer container = MySqlContainer.builder("8.0")
       .port(14307)
       .containerName("mig_async_mysql")
       .dbName("test_ebean")
@@ -107,7 +107,7 @@ public class MigrationTableAsyncTest {
   @Test
   public void testMariaDb() throws Exception {
     // init mariadb docker container
-    MariaDBContainer container = MariaDBContainer.newBuilder("10")
+    MariaDBContainer container = MariaDBContainer.builder("10")
       .port(14308)
       .containerName("mig_async_mariadb")
       .dbName("test_ebean")
@@ -129,7 +129,7 @@ public class MigrationTableAsyncTest {
   @Test
   public void testSqlServer() throws Exception {
     // init sqlserver docker container
-    SqlServerContainer container = SqlServerContainer.newBuilder("2017-GA-ubuntu")
+    SqlServerContainer container = SqlServerContainer.builder("2017-GA-ubuntu")
       .port(9435)
       .containerName("mig_async_sqlserver")
       .dbName("test_ebean")

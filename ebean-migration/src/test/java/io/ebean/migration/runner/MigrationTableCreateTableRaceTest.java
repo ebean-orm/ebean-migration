@@ -16,10 +16,10 @@ import static org.assertj.core.api.Assertions.fail;
 
 class MigrationTableCreateTableRaceTest {
 
-  private MigrationPlatform platform = new MigrationPlatform();
+  private final MigrationPlatform platform = new MigrationPlatform();
 
   private static PostgresContainer createPostgres() {
-    PostgresContainer.Builder builder = PostgresContainer.newBuilder("13")
+    PostgresContainer.Builder builder = PostgresContainer.builder("13")
       .port(9823);
     builder.containerName("test_ebean_migration_pg13");
     builder.user("mig_create_test");

@@ -28,7 +28,7 @@ public class MigrationRunner_platform_Test {
   }
 
   private static NuoDBContainer createNuoDB() {
-    return NuoDBContainer.newBuilder("4.0")
+    return NuoDBContainer.builder("4.0")
       .schema("mig_test")
       .user("mig_test")
       .password("test")
@@ -36,26 +36,26 @@ public class MigrationRunner_platform_Test {
   }
 
   private static PostgresContainer createPostgres() {
-    PostgresContainer.Builder builder = PostgresContainer.newBuilder("13")
+    PostgresContainer.Builder builder = PostgresContainer.builder("13")
       .port(9823);
     setContainerName(builder, "pg13");
     return builder.build();
   }
 
   private static SqlServerContainer createSqlServer() {
-    SqlServerContainer.Builder builder = SqlServerContainer.newBuilder("2017-GA-ubuntu").port(2433);
+    SqlServerContainer.Builder builder = SqlServerContainer.builder("2017-GA-ubuntu").port(2433);
     setContainerName(builder, "sql17");
     return builder.build();
   }
 
   private static MySqlContainer createMySqlContainer() {
-    MySqlContainer.Builder builder = MySqlContainer.newBuilder("8.0").port(14306);
+    MySqlContainer.Builder builder = MySqlContainer.builder("8.0").port(14306);
     setContainerName(builder, "mysql");
     return builder.build();
   }
 
   private static OracleContainer createOracleContainer() {
-    OracleContainer.Builder builder = OracleContainer.newBuilder("latest");
+    OracleContainer.Builder builder = OracleContainer.builder("latest");
     setContainerName(builder, "oracle");
     return builder
       .dbName("XE")

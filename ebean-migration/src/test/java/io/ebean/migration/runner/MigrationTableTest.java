@@ -29,7 +29,7 @@ public class MigrationTableTest {
 
     MigrationConfig config = new MigrationConfig();
     config.setDbSchema("bar");
-    config.setPlatformName(DbPlatformNames.SQLSERVER);
+    config.setPlatform(DbPlatformNames.SQLSERVER);
 
     MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
     String tableSql = mt.createTableDdl();
