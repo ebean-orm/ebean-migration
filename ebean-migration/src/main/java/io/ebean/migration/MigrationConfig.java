@@ -460,6 +460,9 @@ public class MigrationConfig {
    * Load configuration from standard properties.
    */
   public void load(Properties props) {
+    if (props == null) {
+      return;
+    }
     this.properties = props;
     dbUsername = getProperty("username", dbUsername);
     dbPassword = getProperty("password", dbPassword);
