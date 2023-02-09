@@ -79,6 +79,7 @@ class DbNameUtil implements DbPlatformNames {
         return new MigrationPlatform.MySql();
       case ORACLE:
       case H2:
+      case DB2:
         return new MigrationPlatform.LogicalLock();
       case POSTGRES:
         return new MigrationPlatform.Postgres();

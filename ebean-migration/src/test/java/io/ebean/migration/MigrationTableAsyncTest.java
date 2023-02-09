@@ -44,7 +44,12 @@ public class MigrationTableAsyncTest {
   @Disabled
   @Test
   public void testDb2() throws Exception {
-    // Works
+    // Note: Holding any lock during "reorg table" does not work
+    // (checked row lock and 'lock table x in exclusive mode')
+    // as soon as reorg table is executed, all locks held by the current
+    // connection are dropped
+    // See comment in 1.1__initial.sql
+    
     Db2Container container = Db2Container.builder("latest")
       .port(50055)
       .containerName("mig_async_db2")
