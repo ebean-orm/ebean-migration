@@ -218,8 +218,8 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
         delimiterPos++;
       } catch (NumberFormatException e) {
         // stop parsing
-        MigrationRunner.log.log(WARNING, "The migrationscript '{0}' contains non numeric version part. "
-          + "This may lead to misordered version scripts. NumberFormatException {1}", raw, e.getMessage());
+        MigrationRunner.log.log(WARNING, "The migrationscript [{0}] contains non numeric version part. "
+          + "This may lead to mis-ordered version scripts. NumberFormatException {1}", raw, e.getMessage());
         break;
       }
     }
