@@ -8,11 +8,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MigrationVersionTest {
+class MigrationVersionTest {
 
 
   @Test
-  public void sort() {
+  void sort() {
 
     List<MigrationVersion> list = new ArrayList<>();
     list.add(MigrationVersion.parse("1.1__point"));
@@ -31,7 +31,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_subversions() {
+  void test_subversions() {
 
     MigrationVersion v141 = MigrationVersion.parse("V1.4.1__comment");
     MigrationVersion v14 = MigrationVersion.parse("V1.4__comment");
@@ -40,7 +40,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_parse_hyphenSnapshot() {
+  void test_parse_hyphenSnapshot() {
 
     MigrationVersion version = MigrationVersion.parse("0.1.1-SNAPSHOT");
     assertThat(version.normalised()).isEqualTo("0.1.1");
@@ -49,7 +49,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_parse_hyphenSnapshot_when_underscores() {
+  void test_parse_hyphenSnapshot_when_underscores() {
 
     MigrationVersion version = MigrationVersion.parse("0_1_1-SNAPSHOT__Foo");
     assertThat(version.normalised()).isEqualTo("0.1.1");
@@ -57,7 +57,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_parse_when_repeatable() {
+  void test_parse_when_repeatable() {
 
     MigrationVersion version = MigrationVersion.parse("R__Foo");
     assertThat(version.getComment()).isEqualTo("Foo");
@@ -67,7 +67,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_parse_when_init() {
+  void test_parse_when_init() {
 
     MigrationVersion version = MigrationVersion.parse("I__Foo");
     assertThat(version.getComment()).isEqualTo("Foo");
@@ -77,7 +77,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_parse_when_repeatable_R1() {
+  void test_parse_when_repeatable_R1() {
 
     MigrationVersion version = MigrationVersion.parse("R1__Foo");
     assertThat(version.getComment()).isEqualTo("Foo");
@@ -87,7 +87,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_parse_when_repeatable_case() {
+  void test_parse_when_repeatable_case() {
 
     MigrationVersion version = MigrationVersion.parse("r__Foo");
     assertThat(version.isRepeatable()).isTrue();
@@ -97,7 +97,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_parse_when_v_prefix() {
+  void test_parse_when_v_prefix() {
 
     MigrationVersion version = MigrationVersion.parse("v1_0__Foo");
     assertThat(version.isRepeatable()).isFalse();
@@ -109,7 +109,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void repeatable_compareTo() {
+  void repeatable_compareTo() {
 
     MigrationVersion foo = MigrationVersion.parse("R__Foo");
     MigrationVersion bar = MigrationVersion.parse("R__Bar");
@@ -121,7 +121,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void repeatable_init_compareTo() {
+  void repeatable_init_compareTo() {
 
     MigrationVersion foo = MigrationVersion.parse("R__Foo");
     MigrationVersion goo = MigrationVersion.parse("I__Goo");
@@ -130,7 +130,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void repeatable_compareTo_when_caseDifferent() {
+  void repeatable_compareTo_when_caseDifferent() {
 
     MigrationVersion none = MigrationVersion.parse("R__");
     MigrationVersion bar = MigrationVersion.parse("R__Bar");
@@ -141,7 +141,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_parse_getComment(){
+  void test_parse_getComment(){
 
     assertThat(MigrationVersion.parse("1.1.1_2__Foo").getComment()).isEqualTo("Foo");
     assertThat(MigrationVersion.parse("1.1.1.2__junk").getComment()).isEqualTo("junk");
@@ -152,7 +152,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_nextVersion_expect_preserveUnderscores() {
+  void test_nextVersion_expect_preserveUnderscores() {
 
     assertThat(MigrationVersion.parse("2").nextVersion()).isEqualTo("3");
     assertThat(MigrationVersion.parse("1.0").nextVersion()).isEqualTo("1.1");
@@ -165,7 +165,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_normalised_expect_periods() {
+  void test_normalised_expect_periods() {
 
     assertThat(MigrationVersion.parse("2").normalised()).isEqualTo("2");
     assertThat(MigrationVersion.parse("1.0").normalised()).isEqualTo("1.0");
@@ -178,7 +178,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_compareTo_isEqual() {
+  void test_compareTo_isEqual() {
 
     MigrationVersion v0 = MigrationVersion.parse("1.1.1_2__Foo");
     MigrationVersion v1 = MigrationVersion.parse("1.1.1.2_junk");
@@ -198,7 +198,7 @@ public class MigrationVersionTest {
   }
 
   @Test
-  public void test_compareTo() {
+  void test_compareTo() {
 
     MigrationVersion v0 = MigrationVersion.parse("1.1.1.1_junk");
     MigrationVersion v1 = MigrationVersion.parse("1.1.1.2_junk");
