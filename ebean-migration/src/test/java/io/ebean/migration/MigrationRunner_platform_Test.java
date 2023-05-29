@@ -36,9 +36,9 @@ public class MigrationRunner_platform_Test {
   }
 
   private static PostgresContainer createPostgres() {
-    PostgresContainer.Builder builder = PostgresContainer.builder("13")
+    PostgresContainer.Builder builder = PostgresContainer.builder("15")
       .port(9823);
-    setContainerName(builder, "pg13");
+    setContainerName(builder, "pg15");
     return builder.build();
   }
 
