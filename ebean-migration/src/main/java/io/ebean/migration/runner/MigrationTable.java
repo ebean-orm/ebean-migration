@@ -26,7 +26,7 @@ public final class MigrationTable {
   private static final String INIT_VER_0 = "0";
 
   private final Connection connection;
-  private final boolean checkState;
+  private final boolean checkStateOnly;
   private final MigrationPlatform platform;
   private final MigrationScriptRunner scriptRunner;
   private final String catalog;
@@ -72,11 +72,11 @@ public final class MigrationTable {
   /**
    * Construct with server, configuration and jdbc connection (DB admin user).
    */
-  public MigrationTable(MigrationConfig config, Connection connection, boolean checkState, MigrationPlatform platform) {
+  public MigrationTable(MigrationConfig config, Connection connection, boolean checkStateOnly, MigrationPlatform platform) {
     this.platform = platform;
     this.connection = connection;
     this.scriptRunner = new MigrationScriptRunner(connection, platform);
-    this.checkState = checkState;
+    this.checkStateOnly = checkStateOnly;
     this.migrations = new LinkedHashMap<>();
     this.catalog = null;
     this.allowErrorInRepeatable = config.isAllowErrorInRepeatable();
@@ -322,7 +322,7 @@ public final class MigrationTable {
   private boolean patchInsertMigration(LocalMigrationResource local, int checksum) throws SQLException {
     if (patchInsertVersions != null && patchInsertVersions.contains(local.key())) {
       log.log(INFO, "Patch migration, insert into history {0}", local.getLocation());
-      if (!checkState) {
+      if (!checkStateOnly) {
         insertIntoHistory(local, checksum, 0);
       }
       return true;
@@ -356,7 +356,7 @@ public final class MigrationTable {
    */
   private boolean patchResetChecksum(MigrationMetaRow existing, int newChecksum) throws SQLException {
     if (isResetOnVersion(existing.getVersion())) {
-      if (!checkState) {
+      if (!checkStateOnly) {
         existing.resetChecksum(newChecksum, connection, updateChecksumSql);
       }
       return true;
@@ -373,7 +373,7 @@ public final class MigrationTable {
    * Run a migration script as new migration or update on existing repeatable migration.
    */
   private void executeMigration(LocalMigrationResource local, String script, int checksum, MigrationMetaRow existing) throws SQLException {
-    if (checkState) {
+    if (checkStateOnly) {
       checkMigrations.add(local);
       // simulate the migration being run such that following migrations also match
       addMigration(local.key(), createMetaRow(local, checksum, 1));
@@ -554,8 +554,8 @@ public final class MigrationTable {
    * as such the migration isn't truely atomic - the migration can run and
    * complete and the non-transactional statements fail.
    */
-  public void runNonTransactional() {
-    scriptRunner.runNonTransactional();
+  public int runNonTransactional() {
+    return scriptRunner.runNonTransactional();
   }
 
   public int count() {
