@@ -58,25 +58,25 @@ class MigrationMetaRow {
   /**
    * Return the id for this migration.
    */
-  int getId() {
+  int id() {
     return id;
   }
 
   /**
    * Return the normalised version for this migration.
    */
-  String getVersion() {
+  String version() {
     return version;
   }
 
   /**
    * Return the checksum for this migration.
    */
-  int getChecksum() {
+  int checksum() {
     return checksum;
   }
 
-  String getType() {
+  String type() {
     return type;
   }
 

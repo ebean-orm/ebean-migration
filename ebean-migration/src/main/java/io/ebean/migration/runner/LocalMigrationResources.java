@@ -16,7 +16,7 @@ import static java.lang.System.Logger.Level.DEBUG;
 /**
  * Loads the DB migration resources and sorts them into execution order.
  */
-public class LocalMigrationResources {
+public final class LocalMigrationResources {
 
   private static final System.Logger log = MigrationSchema.log;
 
@@ -134,10 +134,9 @@ public class LocalMigrationResources {
   /**
    * Return the list of migration resources in version order.
    */
-  public List<LocalMigrationResource> getVersions() {
+  public List<LocalMigrationResource> versions() {
     return versions;
   }
-
 
   /**
    * Filter used to find the migration scripts.
