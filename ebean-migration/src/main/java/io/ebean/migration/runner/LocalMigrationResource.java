@@ -2,8 +2,6 @@ package io.ebean.migration.runner;
 
 import io.ebean.migration.MigrationVersion;
 
-import javax.annotation.Nonnull;
-
 /**
  * A DB migration resource (DDL or Jdbc)
  */
@@ -52,7 +50,6 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
   /**
    * Return the "key" that identifies the migration.
    */
-  @Nonnull
   public String key() {
     if (isRepeatable()) {
       return version.getComment().toLowerCase();
@@ -64,7 +61,6 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
   /**
    * Return the migration comment.
    */
-  @Nonnull
   public String getComment() {
     String comment = version.getComment();
     return (comment == null || comment.isEmpty()) ? "-" : comment;
@@ -81,7 +77,6 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
   /**
    * Return the underlying migration version.
    */
-  @Nonnull
   public MigrationVersion getVersion() {
     return version;
   }
@@ -96,13 +91,11 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
   /**
    * Return the content of the migration.
    */
-  @Nonnull
   public abstract String getContent();
 
   /**
    * Return the type code ("R" or "V") for this migration.
    */
-  @Nonnull
   public String getType() {
     return type;
   }

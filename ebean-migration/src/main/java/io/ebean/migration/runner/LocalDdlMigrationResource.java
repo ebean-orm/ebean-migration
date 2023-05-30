@@ -3,7 +3,6 @@ package io.ebean.migration.runner;
 import io.avaje.classpath.scanner.Resource;
 import io.ebean.migration.MigrationVersion;
 
-import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -25,7 +24,6 @@ public class LocalDdlMigrationResource extends LocalMigrationResource {
   /**
    * Return the content for the migration apply ddl script.
    */
-  @Nonnull
   public String getContent() {
     try {
       return resource.loadAsString(StandardCharsets.UTF_8);

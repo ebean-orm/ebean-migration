@@ -6,7 +6,6 @@ import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -135,7 +134,6 @@ public class LocalMigrationResources {
   /**
    * Return the list of migration resources in version order.
    */
-  @Nonnull
   public List<LocalMigrationResource> getVersions() {
     return versions;
   }

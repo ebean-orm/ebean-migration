@@ -7,7 +7,6 @@ import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationException;
 import io.ebean.migration.MigrationVersion;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.*;
@@ -68,6 +67,8 @@ public final class MigrationTable {
    */
   private MigrationVersion dbInitVersion;
 
+  private int executionCount;
+
   /**
    * Construct with server, configuration and jdbc connection (DB admin user).
    */
@@ -123,7 +124,6 @@ public final class MigrationTable {
   /**
    * Returns the versions that are already applied.
    */
-  @Nonnull
   public Set<String> getVersions() {
     return migrations.keySet();
   }
@@ -209,7 +209,6 @@ public final class MigrationTable {
   /**
    * Return the create table script.
    */
-  @Nonnull
   String createTableDdl() throws IOException {
     String script = ScriptTransform.replace("${table}", sqlTable, getCreateTableScript());
     return ScriptTransform.replace("${pk_table}", sqlPrimaryKey(), script);
@@ -414,6 +413,7 @@ public final class MigrationTable {
       log.log(INFO, "Executing jdbc migration version: {0} - {1}", local.getVersion(), migration);
       migration.migrate(connection);
     }
+    executionCount++;
     return System.currentTimeMillis() - start;
   }
 
@@ -493,11 +493,9 @@ public final class MigrationTable {
   /**
    * Run all the migrations in order as needed.
    *
-   * @return the migrations that have been run (collected if checkstate is true).
+   * @return the migrations that have been run (collected if checkState is true).
    */
-  @Nonnull
   public List<LocalMigrationResource> runAll(List<LocalMigrationResource> localVersions) throws SQLException {
-
     checkMinVersion();
     for (LocalMigrationResource localVersion : localVersions) {
       if (!localVersion.isRepeatable() && dbInitVersion != null && dbInitVersion.compareTo(localVersion.getVersion()) >= 0) {
@@ -525,11 +523,8 @@ public final class MigrationTable {
    *
    * @return the migrations that have been run (collected if checkstate is true).
    */
-  @Nonnull
   public List<LocalMigrationResource> runInit(LocalMigrationResource initVersion, List<LocalMigrationResource> localVersions) throws SQLException {
-
     runRepeatableInit(localVersions);
-
     initVersion.setInitType();
     if (!shouldRun(initVersion, null)) {
       throw new IllegalStateException("Expected to run init migration but it didn't?");
@@ -561,5 +556,9 @@ public final class MigrationTable {
    */
   public void runNonTransactional() {
     scriptRunner.runNonTransactional();
+  }
+
+  public int count() {
+    return executionCount;
   }
 }
