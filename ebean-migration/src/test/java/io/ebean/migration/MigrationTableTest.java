@@ -52,7 +52,7 @@ public class MigrationTableTest {
     try (Connection conn = dataSource.getConnection()) {
       MigrationTable table = new MigrationTable(config, conn, false, platform);
       table.createIfNeededAndLock();
-      assertThat(table.getVersions()).containsExactly("hello", "1.1", "1.2", "1.2.1", "m2_view");
+      assertThat(table.versions()).containsExactly("hello", "1.1", "1.2", "1.2.1", "m2_view");
 
       List<String> rawVersions = new ArrayList<>();
       try (PreparedStatement stmt = conn.prepareStatement("select mversion from db_migration order by id")) {
@@ -79,7 +79,7 @@ public class MigrationTableTest {
     try (Connection conn = dataSource.getConnection()) {
       MigrationTable table = new MigrationTable(config, conn, false, platform);
       table.createIfNeededAndLock();
-      assertThat(table.getVersions()).containsExactly("1.1");
+      assertThat(table.versions()).containsExactly("1.1");
       table.unlockMigrationTable();
       conn.rollback();
     }
@@ -92,7 +92,7 @@ public class MigrationTableTest {
     try (Connection conn = dataSource.getConnection()) {
       MigrationTable table = new MigrationTable(config, conn, false, platform);
       table.createIfNeededAndLock();
-      assertThat(table.getVersions()).containsExactly("1.1", "1.2", "m2_view");
+      assertThat(table.versions()).containsExactly("1.1", "1.2", "m2_view");
       table.unlockMigrationTable();
       conn.rollback();
     }
@@ -110,7 +110,7 @@ public class MigrationTableTest {
     try (Connection conn = dataSource.getConnection()) {
       MigrationTable table = new MigrationTable(config, conn, false, platform);
       table.createIfNeededAndLock();
-      assertThat(table.getVersions()).containsExactly("1.1");
+      assertThat(table.versions()).containsExactly("1.1");
       table.unlockMigrationTable();
       conn.rollback();
     }
@@ -143,7 +143,7 @@ public class MigrationTableTest {
       // we expect, that 1.1 and 1.2 is executed (but not the R__ script)
       MigrationTable table = new MigrationTable(config, conn, false, platform);
       table.createIfNeededAndLock();
-      assertThat(table.getVersions()).containsExactly("1.1", "1.2");
+      assertThat(table.versions()).containsExactly("1.1", "1.2");
       conn.rollback();
     }
   }

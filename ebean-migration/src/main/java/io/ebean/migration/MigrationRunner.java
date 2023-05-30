@@ -101,7 +101,7 @@ public class MigrationRunner {
       MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateOnly, platform);
       table.createIfNeededAndLock();
       try {
-        List<LocalMigrationResource> migrations = resources.getVersions();
+        List<LocalMigrationResource> migrations = resources.versions();
         runMigrations(migrations, table, checkStateOnly);
         connection.commit();
         if (!checkStateOnly) {
@@ -152,7 +152,7 @@ public class MigrationRunner {
   private LocalMigrationResource getInitVersion() {
     LocalMigrationResources initResources = new LocalMigrationResources(migrationConfig);
     if (initResources.readInitResources()) {
-      List<LocalMigrationResource> initVersions = initResources.getVersions();
+      List<LocalMigrationResource> initVersions = initResources.versions();
       if (!initVersions.isEmpty()) {
         return initVersions.get(initVersions.size() - 1);
       }

@@ -121,7 +121,7 @@ public final class MigrationTable {
   /**
    * Returns the versions that are already applied.
    */
-  public Set<String> getVersions() {
+  public Set<String> versions() {
     return migrations.keySet();
   }
 
@@ -188,7 +188,7 @@ public final class MigrationTable {
    */
   private void readExistingMigrations() throws SQLException {
     for (MigrationMetaRow metaRow : platform.readExistingMigrations(sqlTable, connection)) {
-      addMigration(metaRow.getVersion(), metaRow);
+      addMigration(metaRow.version(), metaRow);
     }
   }
 
@@ -207,14 +207,14 @@ public final class MigrationTable {
    * Return the create table script.
    */
   String createTableDdl() throws IOException {
-    String script = ScriptTransform.replace("${table}", sqlTable, getCreateTableScript());
+    String script = ScriptTransform.replace("${table}", sqlTable, createTableScript());
     return ScriptTransform.replace("${pk_table}", sqlPrimaryKey(), script);
   }
 
   /**
    * Return the create table script.
    */
-  private String getCreateTableScript() throws IOException {
+  private String createTableScript() throws IOException {
     // supply a script to override the default table create script
     String script = readResource("migration-support/create-table.sql");
     if (script == null && platformName != null && !platformName.isEmpty()) {
@@ -233,7 +233,7 @@ public final class MigrationTable {
   }
 
   private String readResource(String location) throws IOException {
-    Enumeration<URL> resources = getClassLoader().getResources(location);
+    Enumeration<URL> resources = classLoader().getResources(location);
     if (resources.hasMoreElements()) {
       URL url = resources.nextElement();
       return IOUtils.readUtf8(url);
@@ -241,7 +241,7 @@ public final class MigrationTable {
     return null;
   }
 
-  private ClassLoader getClassLoader() {
+  private ClassLoader classLoader() {
     return Thread.currentThread().getContextClassLoader();
   }
 
@@ -331,7 +331,7 @@ public final class MigrationTable {
    * Return true if the migration should be skipped.
    */
   boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
-    boolean matchChecksum = (existing.getChecksum() == checksum);
+    boolean matchChecksum = (existing.checksum() == checksum);
     if (matchChecksum) {
       log.log(TRACE, "skip unchanged migration {0}", local.location());
       return true;
@@ -352,7 +352,7 @@ public final class MigrationTable {
    * Return true if the checksum is reset on the existing migration.
    */
   private boolean patchResetChecksum(MigrationMetaRow existing, int newChecksum) throws SQLException {
-    if (isResetOnVersion(existing.getVersion())) {
+    if (isResetOnVersion(existing.version())) {
       if (!checkStateOnly) {
         existing.resetChecksum(newChecksum, connection, updateChecksumSql);
       }
@@ -428,16 +428,13 @@ public final class MigrationTable {
    * Create the MigrationMetaRow for this migration.
    */
   private MigrationMetaRow createMetaRow(LocalMigrationResource migration, int checksum, long exeMillis) {
-
     int nextId = 1;
     if (lastMigration != null) {
-      nextId = lastMigration.getId() + 1;
+      nextId = lastMigration.id() + 1;
     }
-
     String type = migration.type();
     String runVersion = migration.key();
     String comment = migration.comment();
-
     return new MigrationMetaRow(nextId, type, runVersion, comment, checksum, envUserName, runOn, exeMillis);
   }
 
@@ -464,17 +461,17 @@ public final class MigrationTable {
       return;
     }
     lastMigration = metaRow;
-    if (metaRow.getVersion() == null) {
+    if (metaRow.version() == null) {
       throw new IllegalStateException("No runVersion in db migration table row? " + metaRow);
     }
 
     migrations.put(key, metaRow);
-    if (VERSION_TYPE.equals(metaRow.getType()) || BOOTINIT_TYPE.equals(metaRow.getType())) {
-      MigrationVersion rowVersion = MigrationVersion.parse(metaRow.getVersion());
+    if (VERSION_TYPE.equals(metaRow.type()) || BOOTINIT_TYPE.equals(metaRow.type())) {
+      MigrationVersion rowVersion = MigrationVersion.parse(metaRow.version());
       if (currentVersion == null || rowVersion.compareTo(currentVersion) > 0) {
         currentVersion = rowVersion;
       }
-      if (BOOTINIT_TYPE.equals(metaRow.getType())) {
+      if (BOOTINIT_TYPE.equals(metaRow.type())) {
         dbInitVersion = rowVersion;
       }
     }
@@ -555,6 +552,9 @@ public final class MigrationTable {
     return scriptRunner.runNonTransactional();
   }
 
+  /**
+   * Return the count of migrations that were run.
+   */
   public int count() {
     return executionCount;
   }

@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Runs the DDL migration scripts.
  */
-class MigrationScriptRunner {
+final class MigrationScriptRunner {
 
   private final Connection connection;
 
