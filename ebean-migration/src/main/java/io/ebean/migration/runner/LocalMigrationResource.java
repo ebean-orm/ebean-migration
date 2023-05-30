@@ -1,11 +1,12 @@
 package io.ebean.migration.runner;
 
+import io.ebean.migration.MigrationResource;
 import io.ebean.migration.MigrationVersion;
 
 /**
  * A DB migration resource (DDL or Jdbc)
  */
-public abstract class LocalMigrationResource implements Comparable<LocalMigrationResource> {
+public abstract class LocalMigrationResource implements MigrationResource {
 
   protected final MigrationVersion version;
 
@@ -19,7 +20,7 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
   public LocalMigrationResource(MigrationVersion version, String location) {
     this.version = version;
     this.location = location;
-    this.type = version.getType();
+    this.type = version.type();
   }
 
   public String toString() {
@@ -47,56 +48,39 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
     return version.isRepeatableLast();
   }
 
-  /**
-   * Return the "key" that identifies the migration.
-   */
+
+  @Override
   public String key() {
     if (isRepeatable()) {
-      return version.getComment().toLowerCase();
+      return version.comment().toLowerCase();
     } else {
       return version.normalised();
     }
   }
 
-  /**
-   * Return the migration comment.
-   */
-  public String getComment() {
-    String comment = version.getComment();
+  @Override
+  public String comment() {
+    String comment = version.comment();
     return (comment == null || comment.isEmpty()) ? "-" : comment;
   }
 
-  /**
-   * Default ordering by version.
-   */
   @Override
-  public int compareTo(LocalMigrationResource o) {
-    return version.compareTo(o.version);
+  public int compareTo(MigrationResource other) {
+    return version.compareTo(other.version());
   }
 
-  /**
-   * Return the underlying migration version.
-   */
-  public MigrationVersion getVersion() {
+  @Override
+  public MigrationVersion version() {
     return version;
   }
 
-  /**
-   * Return the resource location.
-   */
-  public String getLocation() {
+  @Override
+  public String location() {
     return location;
   }
 
-  /**
-   * Return the content of the migration.
-   */
-  public abstract String getContent();
-
-  /**
-   * Return the type code ("R" or "V") for this migration.
-   */
-  public String getType() {
+  @Override
+  public String type() {
     return type;
   }
 

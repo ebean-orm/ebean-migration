@@ -3,7 +3,6 @@ package io.ebean.migration;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourceFactory;
 import io.ebean.datasource.DataSourcePool;
-import io.ebean.migration.runner.LocalMigrationResource;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -37,12 +36,12 @@ public class MigrationRunnerTest {
     config.setMigrationPath("dbmig");
     MigrationRunner runner = new MigrationRunner(config);
 
-    List<LocalMigrationResource> check = runner.checkState();
+    List<MigrationResource> check = runner.checkState();
     assertThat(check).hasSize(5);
 
-    assertThat(check.get(0).getContent()).contains("-- do nothing");
-    assertThat(check.get(1).getContent()).contains("create table m1");
-    assertThat(check.get(2).getContent()).contains("create table m3");
+    assertThat(check.get(0).content()).contains("-- do nothing");
+    assertThat(check.get(1).content()).contains("create table m1");
+    assertThat(check.get(2).content()).contains("create table m3");
 
     runner.run();
   }
@@ -95,9 +94,9 @@ public class MigrationRunnerTest {
     config.setMigrationPath("dbmig4");
 
     config.setPatchResetChecksumOn("m2_view,1.2");
-    List<LocalMigrationResource> checkState = runner.checkState(dataSource);
+    List<MigrationResource> checkState = runner.checkState(dataSource);
     assertThat(checkState).hasSize(1);
-    assertThat(checkState.get(0).getVersion().asString()).isEqualTo("1.3");
+    assertThat(checkState.get(0).version().asString()).isEqualTo("1.3");
 
     config.setPatchInsertOn("1.3");
     checkState = runner.checkState(dataSource);

@@ -23,11 +23,11 @@ class MigrationVersionTest {
 
     Collections.sort(list);
 
-    assertThat(list.get(0).getComment()).isEqualTo("init");
-    assertThat(list.get(1).getComment()).isEqualTo("point");
-    assertThat(list.get(2).getComment()).isEqualTo("three");
-    assertThat(list.get(3).getComment()).isEqualTo("alpha");
-    assertThat(list.get(4).getComment()).isEqualTo("beta");
+    assertThat(list.get(0).comment()).isEqualTo("init");
+    assertThat(list.get(1).comment()).isEqualTo("point");
+    assertThat(list.get(2).comment()).isEqualTo("three");
+    assertThat(list.get(3).comment()).isEqualTo("alpha");
+    assertThat(list.get(4).comment()).isEqualTo("beta");
   }
 
   @Test
@@ -44,8 +44,8 @@ class MigrationVersionTest {
 
     MigrationVersion version = MigrationVersion.parse("0.1.1-SNAPSHOT");
     assertThat(version.normalised()).isEqualTo("0.1.1");
-    assertThat(version.getComment()).isEqualTo("");
-    assertThat(version.getType()).isEqualTo("V");
+    assertThat(version.comment()).isEqualTo("");
+    assertThat(version.type()).isEqualTo("V");
   }
 
   @Test
@@ -53,37 +53,37 @@ class MigrationVersionTest {
 
     MigrationVersion version = MigrationVersion.parse("0_1_1-SNAPSHOT__Foo");
     assertThat(version.normalised()).isEqualTo("0.1.1");
-    assertThat(version.getComment()).isEqualTo("Foo");
+    assertThat(version.comment()).isEqualTo("Foo");
   }
 
   @Test
   void test_parse_when_repeatable() {
 
     MigrationVersion version = MigrationVersion.parse("R__Foo");
-    assertThat(version.getComment()).isEqualTo("Foo");
+    assertThat(version.comment()).isEqualTo("Foo");
     assertThat(version.isRepeatable()).isTrue();
     assertThat(version.normalised()).isEqualTo("R");
-    assertThat(version.getType()).isEqualTo("R");
+    assertThat(version.type()).isEqualTo("R");
   }
 
   @Test
   void test_parse_when_init() {
 
     MigrationVersion version = MigrationVersion.parse("I__Foo");
-    assertThat(version.getComment()).isEqualTo("Foo");
+    assertThat(version.comment()).isEqualTo("Foo");
     assertThat(version.isRepeatable()).isTrue();
     assertThat(version.normalised()).isEqualTo("I");
-    assertThat(version.getType()).isEqualTo("I");
+    assertThat(version.type()).isEqualTo("I");
   }
 
   @Test
   void test_parse_when_repeatable_R1() {
 
     MigrationVersion version = MigrationVersion.parse("R1__Foo");
-    assertThat(version.getComment()).isEqualTo("Foo");
+    assertThat(version.comment()).isEqualTo("Foo");
     assertThat(version.normalised()).isEqualTo("R");
     assertThat(version.isRepeatable()).isTrue();
-    assertThat(version.getType()).isEqualTo("R");
+    assertThat(version.type()).isEqualTo("R");
   }
 
   @Test
@@ -91,9 +91,9 @@ class MigrationVersionTest {
 
     MigrationVersion version = MigrationVersion.parse("r__Foo");
     assertThat(version.isRepeatable()).isTrue();
-    assertThat(version.getComment()).isEqualTo("Foo");
+    assertThat(version.comment()).isEqualTo("Foo");
     assertThat(version.normalised()).isEqualTo("R");
-    assertThat(version.getType()).isEqualTo("R");
+    assertThat(version.type()).isEqualTo("R");
   }
 
   @Test
@@ -101,11 +101,11 @@ class MigrationVersionTest {
 
     MigrationVersion version = MigrationVersion.parse("v1_0__Foo");
     assertThat(version.isRepeatable()).isFalse();
-    assertThat(version.getComment()).isEqualTo("Foo");
+    assertThat(version.comment()).isEqualTo("Foo");
     assertThat(version.normalised()).isEqualTo("1.0");
     assertThat(version.asString()).isEqualTo("1_0");
-    assertThat(version.getRaw()).isEqualTo("1_0__Foo");
-    assertThat(version.getType()).isEqualTo("V");
+    assertThat(version.raw()).isEqualTo("1_0__Foo");
+    assertThat(version.type()).isEqualTo("V");
   }
 
   @Test
@@ -143,12 +143,12 @@ class MigrationVersionTest {
   @Test
   void test_parse_getComment(){
 
-    assertThat(MigrationVersion.parse("1.1.1_2__Foo").getComment()).isEqualTo("Foo");
-    assertThat(MigrationVersion.parse("1.1.1.2__junk").getComment()).isEqualTo("junk");
-    assertThat(MigrationVersion.parse("1.1_1.2_foo").getComment()).isEqualTo("");
-    assertThat(MigrationVersion.parse("1.1_1.2_d").getComment()).isEqualTo("");
-    assertThat(MigrationVersion.parse("1.1_1.2_").getComment()).isEqualTo("");
-    assertThat(MigrationVersion.parse("1.1_1.2").getComment()).isEqualTo("");
+    assertThat(MigrationVersion.parse("1.1.1_2__Foo").comment()).isEqualTo("Foo");
+    assertThat(MigrationVersion.parse("1.1.1.2__junk").comment()).isEqualTo("junk");
+    assertThat(MigrationVersion.parse("1.1_1.2_foo").comment()).isEqualTo("");
+    assertThat(MigrationVersion.parse("1.1_1.2_d").comment()).isEqualTo("");
+    assertThat(MigrationVersion.parse("1.1_1.2_").comment()).isEqualTo("");
+    assertThat(MigrationVersion.parse("1.1_1.2").comment()).isEqualTo("");
   }
 
   @Test

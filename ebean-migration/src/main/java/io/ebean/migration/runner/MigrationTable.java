@@ -2,10 +2,7 @@ package io.ebean.migration.runner;
 
 import io.avaje.applog.AppLog;
 import io.ebean.ddlrunner.ScriptTransform;
-import io.ebean.migration.JdbcMigration;
-import io.ebean.migration.MigrationConfig;
-import io.ebean.migration.MigrationException;
-import io.ebean.migration.MigrationVersion;
+import io.ebean.migration.*;
 
 import java.io.IOException;
 import java.net.URL;
@@ -60,7 +57,7 @@ public final class MigrationTable {
   private MigrationMetaRow lastMigration;
   private LocalMigrationResource priorVersion;
 
-  private final List<LocalMigrationResource> checkMigrations = new ArrayList<>();
+  private final List<MigrationResource> checkMigrations = new ArrayList<>();
 
   /**
    * Version of a dbinit script. When set this means all migration version less than this are ignored.
@@ -274,7 +271,7 @@ public final class MigrationTable {
   private boolean shouldRun(LocalMigrationResource localVersion, LocalMigrationResource prior) throws SQLException {
     if (prior != null && !localVersion.isRepeatable()) {
       if (!migrationExists(prior)) {
-        log.log(ERROR, "Migration {0} requires prior migration {1} which has not been run", localVersion.getVersion(), prior.getVersion());
+        log.log(ERROR, "Migration {0} requires prior migration {1} which has not been run", localVersion.version(), prior.version());
         return false;
       }
     }
@@ -300,7 +297,7 @@ public final class MigrationTable {
     String script = null;
     int checksum;
     if (local instanceof LocalDdlMigrationResource) {
-      script = convertScript(local.getContent());
+      script = convertScript(local.content());
       checksum = Checksum.calculate(script);
     } else {
       checksum = ((LocalJdbcMigrationResource) local).getChecksum();
@@ -321,7 +318,7 @@ public final class MigrationTable {
    */
   private boolean patchInsertMigration(LocalMigrationResource local, int checksum) throws SQLException {
     if (patchInsertVersions != null && patchInsertVersions.contains(local.key())) {
-      log.log(INFO, "Patch migration, insert into history {0}", local.getLocation());
+      log.log(INFO, "Patch migration, insert into history {0}", local.location());
       if (!checkStateOnly) {
         insertIntoHistory(local, checksum, 0);
       }
@@ -336,18 +333,18 @@ public final class MigrationTable {
   boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
     boolean matchChecksum = (existing.getChecksum() == checksum);
     if (matchChecksum) {
-      log.log(TRACE, "skip unchanged migration {0}", local.getLocation());
+      log.log(TRACE, "skip unchanged migration {0}", local.location());
       return true;
 
     } else if (patchResetChecksum(existing, checksum)) {
-      log.log(INFO, "Patch migration, reset checksum on {0}", local.getLocation());
+      log.log(INFO, "Patch migration, reset checksum on {0}", local.location());
       return true;
 
     } else if (local.isRepeatable() || skipChecksum) {
       // re-run the migration
       return false;
     } else {
-      throw new MigrationException("Checksum mismatch on migration " + local.getLocation());
+      throw new MigrationException("Checksum mismatch on migration " + local.location());
     }
   }
 
@@ -383,7 +380,7 @@ public final class MigrationTable {
     long exeMillis = 0;
     try {
       if (skipMigrationRun) {
-        log.log(DEBUG, "skip migration {0}", local.getLocation());
+        log.log(DEBUG, "skip migration {0}", local.location());
       } else {
         exeMillis = executeMigration(local, script);
       }
@@ -396,7 +393,7 @@ public final class MigrationTable {
     } catch (SQLException e) {
       if (allowErrorInRepeatable && local.isRepeatableLast()) {
         // log the exception and continue on repeatable migration
-        log.log(ERROR, "Continue migration with error executing repeatable migration " + local.getVersion(), e);
+        log.log(ERROR, "Continue migration with error executing repeatable migration " + local.version(), e);
       } else {
         throw e;
       }
@@ -406,11 +403,11 @@ public final class MigrationTable {
   private long executeMigration(LocalMigrationResource local, String script) throws SQLException {
     long start = System.currentTimeMillis();
     if (local instanceof LocalDdlMigrationResource) {
-      log.log(DEBUG, "run migration {0}", local.getLocation());
-      scriptRunner.runScript(script, "run migration version: " + local.getVersion());
+      log.log(DEBUG, "run migration {0}", local.location());
+      scriptRunner.runScript(script, "run migration version: " + local.version());
     } else {
       JdbcMigration migration = ((LocalJdbcMigrationResource) local).getMigration();
-      log.log(INFO, "Executing jdbc migration version: {0} - {1}", local.getVersion(), migration);
+      log.log(INFO, "Executing jdbc migration version: {0} - {1}", local.version(), migration);
       migration.migrate(connection);
     }
     executionCount++;
@@ -437,9 +434,9 @@ public final class MigrationTable {
       nextId = lastMigration.getId() + 1;
     }
 
-    String type = migration.getType();
+    String type = migration.type();
     String runVersion = migration.key();
-    String comment = migration.getComment();
+    String comment = migration.comment();
 
     return new MigrationMetaRow(nextId, type, runVersion, comment, checksum, envUserName, runOn, exeMillis);
   }
@@ -495,10 +492,10 @@ public final class MigrationTable {
    *
    * @return the migrations that have been run (collected if checkState is true).
    */
-  public List<LocalMigrationResource> runAll(List<LocalMigrationResource> localVersions) throws SQLException {
+  public List<MigrationResource> runAll(List<LocalMigrationResource> localVersions) throws SQLException {
     checkMinVersion();
     for (LocalMigrationResource localVersion : localVersions) {
-      if (!localVersion.isRepeatable() && dbInitVersion != null && dbInitVersion.compareTo(localVersion.getVersion()) >= 0) {
+      if (!localVersion.isRepeatable() && dbInitVersion != null && dbInitVersion.compareTo(localVersion.version()) >= 0) {
         log.log(DEBUG, "migration skipped by dbInitVersion {0}", dbInitVersion);
       } else if (!shouldRun(localVersion, priorVersion)) {
         break;
@@ -523,7 +520,7 @@ public final class MigrationTable {
    *
    * @return the migrations that have been run (collected if checkstate is true).
    */
-  public List<LocalMigrationResource> runInit(LocalMigrationResource initVersion, List<LocalMigrationResource> localVersions) throws SQLException {
+  public List<MigrationResource> runInit(LocalMigrationResource initVersion, List<LocalMigrationResource> localVersions) throws SQLException {
     runRepeatableInit(localVersions);
     initVersion.setInitType();
     if (!shouldRun(initVersion, null)) {
