@@ -3,10 +3,7 @@ package io.ebean.migration;
 import io.ebean.migration.runner.MigrationPlatform;
 
 import javax.annotation.Nonnull;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 import static java.lang.System.Logger.Level.WARNING;
 
@@ -56,10 +53,10 @@ class DbNameUtil implements DbPlatformNames {
     // PostgreSQL driver use a non-trustable hardcoded product name.
     // The following block try to retrieve DBMS version to determine
     // if used DBMS is PostgreSQL or Cockroach.
-    try (PreparedStatement statement = connection.prepareStatement("SELECT version() AS \"version\"")) {
-      try (ResultSet resultSet = statement.executeQuery()) {
+    try (Statement statement = connection.createStatement()) {
+      try (ResultSet resultSet = statement.executeQuery("SELECT version()")) {
         if (resultSet.next()) {
-          String productVersion = resultSet.getString("version").toLowerCase();
+          String productVersion = resultSet.getString(1).toLowerCase();
           if (productVersion.contains("cockroach")) {
             return COCKROACH;
           }

@@ -125,7 +125,6 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
    * NextVersion means bump/increase the last version number by 1.
    */
   private String formattedVersion(boolean normalised, boolean nextVersion) {
-
     if (isRepeatable()) {
       return getType();
     }
@@ -147,7 +146,6 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
 
   @Override
   public int compareTo(MigrationVersion other) {
-
     int otherLength = other.ordering.length;
     for (int i = 0; i < ordering.length; i++) {
       if (i >= otherLength) {
@@ -175,7 +173,6 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
    * Parse the raw version string into a MigrationVersion.
    */
   public static MigrationVersion parse(String raw) {
-
     if (raw.startsWith("V") || raw.startsWith("v")) {
       raw = raw.substring(1);
     }
@@ -190,9 +187,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
     }
 
     value = value.replace('_', '.');
-
     String[] sections = value.split("[\\.-]");
-
     if (sections[0].startsWith("R") || sections[0].startsWith("r")) {
       // a "repeatable" version (does not have a version number)
       return new MigrationVersion(raw, comment, false);
@@ -205,7 +200,6 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
 
     boolean[] underscores = new boolean[sections.length];
     int[] ordering = new int[sections.length];
-
     int delimiterPos = 0;
     int stopIndex = 0;
     for (int i = 0; i < sections.length; i++) {
@@ -218,7 +212,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
         delimiterPos++;
       } catch (NumberFormatException e) {
         // stop parsing
-        MigrationRunner.log.log(WARNING, "The migrationscript [{0}] contains non numeric version part. "
+        MigrationRunner.log.log(WARNING, "The migration script [{0}] contains non numeric version part. "
           + "This may lead to mis-ordered version scripts. NumberFormatException {1}", raw, e.getMessage());
         break;
       }
@@ -226,7 +220,6 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
 
     int[] actualOrder = Arrays.copyOf(ordering, stopIndex);
     boolean[] actualUnderscores = Arrays.copyOf(underscores, stopIndex);
-
     return new MigrationVersion(raw, actualOrder, actualUnderscores, comment);
   }
 
