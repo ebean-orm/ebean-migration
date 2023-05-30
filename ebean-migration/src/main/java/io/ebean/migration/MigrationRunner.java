@@ -3,7 +3,6 @@ package io.ebean.migration;
 import io.avaje.applog.AppLog;
 import io.ebean.migration.runner.*;
 
-import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -29,7 +28,6 @@ public class MigrationRunner {
   /**
    * Return the migrations that would be applied if the migration is run.
    */
-  @Nonnull
   public List<LocalMigrationResource> checkState() {
     return checkState(migrationConfig.createConnection());
   }
@@ -37,7 +35,6 @@ public class MigrationRunner {
   /**
    * Return the migrations that would be applied if the migration is run.
    */
-  @Nonnull
   public List<LocalMigrationResource> checkState(DataSource dataSource) {
     return checkState(getConnection(dataSource));
   }
@@ -45,7 +42,6 @@ public class MigrationRunner {
   /**
    * Return the migrations that would be applied if the migration is run.
    */
-  @Nonnull
   public List<LocalMigrationResource> checkState(Connection connection) {
     run(connection, true);
     return checkMigrations;
@@ -97,6 +93,7 @@ public class MigrationRunner {
         return;
       }
 
+      long start = System.currentTimeMillis();
       connection.setAutoCommit(false);
       MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
       new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
@@ -104,8 +101,13 @@ public class MigrationRunner {
       MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode, platform);
       table.createIfNeededAndLock();
       try {
-        runMigrations(resources, table, checkStateMode);
+        List<LocalMigrationResource> migrations = resources.getVersions();
+        runMigrations(migrations, table, checkStateMode);
         connection.commit();
+        if (!checkStateMode) {
+          long exeMillis = System.currentTimeMillis() - start;
+          log.log(INFO, "DB migrations completed in {0}ms - executed:{1} size:{2}", exeMillis, table.count(), migrations.size());
+        }
         table.runNonTransactional();
       } finally {
         table.unlockMigrationTable();
@@ -127,9 +129,8 @@ public class MigrationRunner {
   /**
    * Run all the migrations as needed.
    */
-  private void runMigrations(LocalMigrationResources resources, MigrationTable table, boolean checkStateMode) throws SQLException {
+  private void runMigrations(List<LocalMigrationResource> localVersions, MigrationTable table, boolean checkStateMode) throws SQLException {
     // get the migrations in version order
-    List<LocalMigrationResource> localVersions = resources.getVersions();
     if (table.isEmpty()) {
       LocalMigrationResource initVersion = getInitVersion();
       if (initVersion != null) {
@@ -139,7 +140,6 @@ public class MigrationRunner {
         return;
       }
     }
-    log.log(INFO, "Local migrations:{0}  existing migrations:{1}  checkState:{2}", localVersions.size(), table.size(), checkStateMode);
     checkMigrations = table.runAll(localVersions);
   }
 

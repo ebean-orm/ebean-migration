@@ -2,7 +2,6 @@ package io.ebean.migration;
 
 import io.ebean.migration.runner.MigrationPlatform;
 
-import javax.annotation.Nonnull;
 import java.sql.*;
 
 import static java.lang.System.Logger.Level.WARNING;
@@ -17,7 +16,6 @@ class DbNameUtil implements DbPlatformNames {
    * <p>
    * At this point only sql server has platform specific handling required (create table and for update).
    */
-  @Nonnull
   static String normalise(Connection connection) {
     try {
       final String productName = connection.getMetaData().getDatabaseProductName().toLowerCase();
@@ -68,7 +66,6 @@ class DbNameUtil implements DbPlatformNames {
     return POSTGRES;
   }
 
-  @Nonnull
   static MigrationPlatform platform(String platformName) {
     switch (platformName) {
       case MYSQL:

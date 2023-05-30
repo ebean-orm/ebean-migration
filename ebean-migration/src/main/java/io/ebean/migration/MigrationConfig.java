@@ -1,6 +1,5 @@
 package io.ebean.migration;
 
-import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -583,7 +582,6 @@ public class MigrationConfig {
    */
   public class DefaultMigrationFactory implements JdbcMigrationFactory {
 
-    @Nonnull
     @Override
     public JdbcMigration createInstance(String className) {
       try {
