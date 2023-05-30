@@ -34,10 +34,11 @@ class MigrationScriptRunner {
     nonTransactional.addAll(runner.runAll(content, connection));
   }
 
-  public void runNonTransactional() {
+  int runNonTransactional() {
     if (!nonTransactional.isEmpty()) {
       DdlRunner runner = new DdlRunner(false, "Non-transactional DDL", platform.ddlDetect());
       runner.runNonTransactional(connection, nonTransactional);
     }
+    return nonTransactional.size();
   }
 }

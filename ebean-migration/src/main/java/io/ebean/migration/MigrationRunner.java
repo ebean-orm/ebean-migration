@@ -93,7 +93,7 @@ public class MigrationRunner {
         return;
       }
 
-      long start = System.currentTimeMillis();
+      long startMs = System.currentTimeMillis();
       connection.setAutoCommit(false);
       MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
       new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
@@ -105,9 +105,12 @@ public class MigrationRunner {
         runMigrations(migrations, table, checkStateOnly);
         connection.commit();
         if (!checkStateOnly) {
-          long exeMillis = System.currentTimeMillis() - start;
-          log.log(INFO, "DB migrations completed in {0}ms - executed:{1} size:{2}", exeMillis, table.count(), migrations.size());
-          table.runNonTransactional();
+          long commitMs = System.currentTimeMillis();
+          log.log(INFO, "DB migrations completed in {0}ms - executed:{1} totalMigrations:{2}", (commitMs - startMs), table.count(), migrations.size());
+          int countNonTransactional = table.runNonTransactional();
+          if (countNonTransactional > 0) {
+            log.log(INFO, "Non-transactional DB migrations completed in {0}ms - executed:{1}", (System.currentTimeMillis() - commitMs), countNonTransactional);
+          }
         }
       } finally {
         table.unlockMigrationTable();

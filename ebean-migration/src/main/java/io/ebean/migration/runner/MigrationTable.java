@@ -554,8 +554,8 @@ public final class MigrationTable {
    * as such the migration isn't truely atomic - the migration can run and
    * complete and the non-transactional statements fail.
    */
-  public void runNonTransactional() {
-    scriptRunner.runNonTransactional();
+  public int runNonTransactional() {
+    return scriptRunner.runNonTransactional();
   }
 
   public int count() {
