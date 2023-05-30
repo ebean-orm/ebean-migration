@@ -9,14 +9,14 @@ import io.ebean.migration.MigrationVersion;
  *
  * @author Roland Praml, FOCONIS AG
  */
-public class LocalJdbcMigrationResource extends LocalMigrationResource {
+final class LocalJdbcMigrationResource extends LocalMigrationResource {
 
   private final JdbcMigration migration;
 
   /**
    * Construct with version and resource.
    */
-  public LocalJdbcMigrationResource(MigrationVersion version, String location, JdbcMigration migration) {
+  LocalJdbcMigrationResource(MigrationVersion version, String location, JdbcMigration migration) {
     super(version, location);
     this.migration = migration;
   }
@@ -24,14 +24,14 @@ public class LocalJdbcMigrationResource extends LocalMigrationResource {
   /**
    * Return the migration
    */
-  public JdbcMigration getMigration() {
+  JdbcMigration migration() {
     return migration;
   }
 
   /**
    * Returns the checksum of the migration routine.
    */
-  public int getChecksum() {
+  int checksum() {
     if (migration instanceof MigrationChecksumProvider) {
       return ((MigrationChecksumProvider) migration).getChecksum();
     } else {

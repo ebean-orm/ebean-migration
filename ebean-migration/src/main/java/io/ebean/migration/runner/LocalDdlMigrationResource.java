@@ -9,14 +9,14 @@ import java.util.List;
 /**
  * A DB migration resource (DDL script with version).
  */
-public class LocalDdlMigrationResource extends LocalMigrationResource {
+final class LocalDdlMigrationResource extends LocalMigrationResource {
 
   private final Resource resource;
 
   /**
    * Construct with version and resource.
    */
-  public LocalDdlMigrationResource(MigrationVersion version, String location, Resource resource) {
+  LocalDdlMigrationResource(MigrationVersion version, String location, Resource resource) {
     super(version, location);
     this.resource = resource;
   }
@@ -24,17 +24,10 @@ public class LocalDdlMigrationResource extends LocalMigrationResource {
   /**
    * Return the content for the migration apply ddl script.
    */
+  @Override
   public String content() {
     try {
       return resource.loadAsString(StandardCharsets.UTF_8);
-    } catch (NullPointerException e) {
-      throw new IllegalStateException(missingOpensMessage(), e);
-    }
-  }
-
-  public List<String> lines() {
-    try {
-      return resource.loadAsLines(StandardCharsets.UTF_8);
     } catch (NullPointerException e) {
       throw new IllegalStateException(missingOpensMessage(), e);
     }

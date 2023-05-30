@@ -300,7 +300,7 @@ public final class MigrationTable {
       script = convertScript(local.content());
       checksum = Checksum.calculate(script);
     } else {
-      checksum = ((LocalJdbcMigrationResource) local).getChecksum();
+      checksum = ((LocalJdbcMigrationResource) local).checksum();
     }
 
     if (existing == null && patchInsertMigration(local, checksum)) {
@@ -406,7 +406,7 @@ public final class MigrationTable {
       log.log(DEBUG, "run migration {0}", local.location());
       scriptRunner.runScript(script, "run migration version: " + local.version());
     } else {
-      JdbcMigration migration = ((LocalJdbcMigrationResource) local).getMigration();
+      JdbcMigration migration = ((LocalJdbcMigrationResource) local).migration();
       log.log(INFO, "Executing jdbc migration version: {0} - {1}", local.version(), migration);
       migration.migrate(connection);
     }
