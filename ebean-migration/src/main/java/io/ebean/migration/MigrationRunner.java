@@ -85,7 +85,7 @@ public class MigrationRunner {
   /**
    * Run the migrations if there are any that need running.
    */
-  protected void run(Connection connection, boolean checkStateMode) {
+  protected void run(Connection connection, boolean checkStateOnly) {
     try {
       LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
       if (!resources.readResources() && !resources.readInitResources()) {
@@ -98,17 +98,17 @@ public class MigrationRunner {
       MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
       new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
 
-      MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateMode, platform);
+      MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateOnly, platform);
       table.createIfNeededAndLock();
       try {
         List<LocalMigrationResource> migrations = resources.getVersions();
-        runMigrations(migrations, table, checkStateMode);
+        runMigrations(migrations, table, checkStateOnly);
         connection.commit();
-        if (!checkStateMode) {
+        if (!checkStateOnly) {
           long exeMillis = System.currentTimeMillis() - start;
           log.log(INFO, "DB migrations completed in {0}ms - executed:{1} size:{2}", exeMillis, table.count(), migrations.size());
+          table.runNonTransactional();
         }
-        table.runNonTransactional();
       } finally {
         table.unlockMigrationTable();
       }
