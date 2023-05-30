@@ -19,7 +19,7 @@ public class MigrationRunner {
 
   protected final MigrationConfig migrationConfig;
 
-  protected List<LocalMigrationResource> checkMigrations;
+  protected List<MigrationResource> checkMigrations;
 
   public MigrationRunner(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
@@ -28,21 +28,21 @@ public class MigrationRunner {
   /**
    * Return the migrations that would be applied if the migration is run.
    */
-  public List<LocalMigrationResource> checkState() {
+  public List<MigrationResource> checkState() {
     return checkState(migrationConfig.createConnection());
   }
 
   /**
    * Return the migrations that would be applied if the migration is run.
    */
-  public List<LocalMigrationResource> checkState(DataSource dataSource) {
+  public List<MigrationResource> checkState(DataSource dataSource) {
     return checkState(getConnection(dataSource));
   }
 
   /**
    * Return the migrations that would be applied if the migration is run.
    */
-  public List<LocalMigrationResource> checkState(Connection connection) {
+  public List<MigrationResource> checkState(Connection connection) {
     run(connection, true);
     return checkMigrations;
   }

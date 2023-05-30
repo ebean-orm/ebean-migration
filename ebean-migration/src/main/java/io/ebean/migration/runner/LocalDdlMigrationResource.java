@@ -24,7 +24,7 @@ public class LocalDdlMigrationResource extends LocalMigrationResource {
   /**
    * Return the content for the migration apply ddl script.
    */
-  public String getContent() {
+  public String content() {
     try {
       return resource.loadAsString(StandardCharsets.UTF_8);
     } catch (NullPointerException e) {

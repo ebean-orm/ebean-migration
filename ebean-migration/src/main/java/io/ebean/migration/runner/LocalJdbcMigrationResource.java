@@ -40,7 +40,7 @@ public class LocalJdbcMigrationResource extends LocalMigrationResource {
   }
 
   @Override
-  public String getContent() {
+  public String content() {
     return "location:" + location;
   }
 }
