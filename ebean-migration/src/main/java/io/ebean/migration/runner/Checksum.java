@@ -14,9 +14,9 @@ class Checksum {
   /**
    * Returns the checksum of the string content.
    */
-  static int calculate(String str) {
+  static int calculate(String content) {
     final CRC32 crc32 = new CRC32();
-    BufferedReader bufferedReader = new BufferedReader(new StringReader(str));
+    BufferedReader bufferedReader = new BufferedReader(new StringReader(content));
     try {
       String line;
       while ((line = bufferedReader.readLine()) != null) {
