@@ -7,7 +7,7 @@ import static java.lang.System.Logger.Level.*;
 /**
  * The version of a migration used so that migrations are processed in order.
  */
-public class MigrationVersion implements Comparable<MigrationVersion> {
+public final class MigrationVersion implements Comparable<MigrationVersion> {
 
   public static final String BOOTINIT_TYPE = "B";
   private static final String INIT_TYPE = "I";
@@ -73,8 +73,9 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
   }
 
   /**
-   * Return the full version.
+   * Deprecated migrate to raw().
    */
+  @Deprecated
   public String getFull() {
     return raw;
   }
@@ -86,6 +87,14 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
   /**
    * Return the version comment.
    */
+  public String comment() {
+    return comment;
+  }
+
+  /**
+   * Deprecated migrate to comment();
+   */
+  @Deprecated
   public String getComment() {
     return comment;
   }
@@ -93,8 +102,16 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
   /**
    * Return the version in raw form.
    */
-  public String getRaw() {
+  public String raw() {
     return raw;
+  }
+
+  /**
+   * Deprecated migrate to raw().
+   */
+  @Deprecated
+  public String getRaw() {
+    return raw();
   }
 
   /**
@@ -126,7 +143,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
    */
   private String formattedVersion(boolean normalised, boolean nextVersion) {
     if (isRepeatable()) {
-      return getType();
+      return type();
     }
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < ordering.length; i++) {
@@ -226,7 +243,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
   /**
    * Return the version type (I, R or V).
    */
-  public String getType() {
+  public String type() {
     if (ordering == REPEAT_ORDERING_MIN) {
       return INIT_TYPE;
 
@@ -236,5 +253,13 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
     } else {
       return VERSION_TYPE;
     }
+  }
+
+  /**
+   * Deprecated migrate to type().
+   */
+  @Deprecated
+  public String getType() {
+    return type();
   }
 }

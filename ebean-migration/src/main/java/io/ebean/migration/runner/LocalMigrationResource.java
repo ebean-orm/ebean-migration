@@ -19,7 +19,7 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
   public LocalMigrationResource(MigrationVersion version, String location) {
     this.version = version;
     this.location = location;
-    this.type = version.getType();
+    this.type = version.type();
   }
 
   public String toString() {
@@ -52,7 +52,7 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
    */
   public String key() {
     if (isRepeatable()) {
-      return version.getComment().toLowerCase();
+      return version.comment().toLowerCase();
     } else {
       return version.normalised();
     }
@@ -62,7 +62,7 @@ public abstract class LocalMigrationResource implements Comparable<LocalMigratio
    * Return the migration comment.
    */
   public String getComment() {
-    String comment = version.getComment();
+    String comment = version.comment();
     return (comment == null || comment.isEmpty()) ? "-" : comment;
   }
 
