@@ -3,10 +3,7 @@ package io.ebean.migration.runner;
 import io.ebean.ddlrunner.DdlDetect;
 
 import javax.annotation.Nonnull;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,8 +66,8 @@ public class MigrationPlatform {
   private int lockRows(String sqlTable, Connection connection) throws SQLException {
     int rowCount = 0;
     final String selectSql = sqlSelectForUpdate(sqlTable);
-    try (PreparedStatement query = connection.prepareStatement(selectSql)) {
-      try (ResultSet resultSet = query.executeQuery()) {
+    try (Statement query = connection.createStatement()) {
+      try (ResultSet resultSet = query.executeQuery(selectSql)) {
         while (resultSet.next()) {
           resultSet.getInt(1);
           rowCount++;
@@ -87,8 +84,8 @@ public class MigrationPlatform {
   List<MigrationMetaRow> readExistingMigrations(String sqlTable, Connection connection) throws SQLException {
     final String selectSql = sqlSelectForReading(sqlTable);
     List<MigrationMetaRow> rows = new ArrayList<>();
-    try (PreparedStatement query = connection.prepareStatement(selectSql)) {
-      try (ResultSet resultSet = query.executeQuery()) {
+    try (Statement query = connection.createStatement()) {
+      try (ResultSet resultSet = query.executeQuery(selectSql)) {
         while (resultSet.next()) {
           rows.add(new MigrationMetaRow(resultSet));
         }
@@ -146,9 +143,9 @@ public class MigrationPlatform {
     }
 
     private void releaseLogicalLock(String sqlTable, Connection connection) throws SQLException {
-      String sql = "update " + sqlTable + " set mcomment='<init>' where id=0";
-      try (PreparedStatement query = connection.prepareStatement(sql)) {
-        if (query.executeUpdate() != 1) {
+      final String sql = "update " + sqlTable + " set mcomment='<init>' where id=0";
+      try (Statement query = connection.createStatement()) {
+        if (query.executeUpdate(sql) != 1) {
           log.log(ERROR, "Failed to release logical lock. Please review why [" + sql + "] didn't update the row?");
         } else {
           log.log(TRACE, "released logical lock");
@@ -166,8 +163,8 @@ public class MigrationPlatform {
 
     @Override
     void lockMigrationTable(String sqlTable, Connection connection) throws SQLException {
-      try (PreparedStatement query = connection.prepareStatement("lock table " + sqlTable)) {
-        query.execute();
+      try (Statement query = connection.createStatement()) {
+        query.executeUpdate("lock table " + sqlTable);
       }
     }
   }
@@ -187,8 +184,8 @@ public class MigrationPlatform {
 
     private boolean obtainNamedLock(Connection connection) throws SQLException {
       String hash = Integer.toHexString(connection.getMetaData().getURL().hashCode());
-      try (PreparedStatement query = connection.prepareStatement("select get_lock('ebean_migration-" + hash + "', 10)")) {
-        try (ResultSet resultSet = query.executeQuery()) {
+      try (Statement query = connection.createStatement()) {
+        try (ResultSet resultSet = query.executeQuery("select get_lock('ebean_migration-" + hash + "', 10)")) {
           if (resultSet.next()) {
             return resultSet.getInt(1) == 1;
           }
@@ -200,8 +197,8 @@ public class MigrationPlatform {
     @Override
     void unlockMigrationTable(String sqlTable, Connection connection) throws SQLException {
       String hash = Integer.toHexString(connection.getMetaData().getURL().hashCode());
-      try (PreparedStatement query = connection.prepareStatement("select release_lock('ebean_migration-" + hash + "')")) {
-        query.execute();
+      try (Statement query = connection.createStatement()) {
+        query.execute("select release_lock('ebean_migration-" + hash + "')");
       }
     }
   }
