@@ -83,7 +83,7 @@ public class MigrationRunner {
    * Run the migrations if there are any that need running.
    */
   private List<MigrationResource> run(Connection connection, boolean checkStateOnly) {
-    return new MigrationEngine(migrationConfig).run(connection, checkStateOnly);
+    return new MigrationEngine(migrationConfig, checkStateOnly).run(connection);
   }
 
 }

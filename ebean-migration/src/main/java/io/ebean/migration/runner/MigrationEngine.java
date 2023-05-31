@@ -5,6 +5,7 @@ import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationException;
 import io.ebean.migration.MigrationResource;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -21,18 +22,20 @@ public class MigrationEngine {
   static final System.Logger log = AppLog.getLogger("io.ebean.migration");
 
   private final MigrationConfig migrationConfig;
+  private final boolean checkStateOnly;
 
   /**
    * Create with the MigrationConfig.
    */
-  public MigrationEngine(MigrationConfig migrationConfig) {
+  public MigrationEngine(MigrationConfig migrationConfig, boolean checkStateOnly) {
     this.migrationConfig = migrationConfig;
+    this.checkStateOnly = checkStateOnly;
   }
 
   /**
    * Run the migrations if there are any that need running.
    */
-  public List<MigrationResource> run(Connection connection, boolean checkStateOnly) {
+  public List<MigrationResource> run(Connection connection) {
     try {
       LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
       if (!resources.readResources() && !resources.readInitResources()) {
@@ -42,18 +45,13 @@ public class MigrationEngine {
 
       long startMs = System.currentTimeMillis();
       connection.setAutoCommit(false);
-      MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
-      new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
-
-      MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateOnly, platform);
-      table.createIfNeededAndLock();
+      MigrationTable table = initialiseMigrationTable(connection);
       try {
-        List<LocalMigrationResource> migrations = resources.versions();
-        List<MigrationResource> result = runMigrations(migrations, table, checkStateOnly);
+        List<MigrationResource> result = runMigrations(resources.versions(), table, checkStateOnly);
         connection.commit();
         if (!checkStateOnly) {
           long commitMs = System.currentTimeMillis();
-          log.log(INFO, "DB migrations completed in {0}ms - executed:{1} totalMigrations:{2}", (commitMs - startMs), table.count(), migrations.size());
+          log.log(INFO, "DB migrations completed in {0}ms - executed:{1} totalMigrations:{2}", (commitMs - startMs), table.count(), table.size());
           int countNonTransactional = table.runNonTransactional();
           if (countNonTransactional > 0) {
             log.log(INFO, "Non-transactional DB migrations completed in {0}ms - executed:{1}", (System.currentTimeMillis() - commitMs), countNonTransactional);
@@ -70,11 +68,20 @@ public class MigrationEngine {
 
     } catch (Exception e) {
       rollback(connection);
-      throw new RuntimeException(e);
+      throw new MigrationException("Error running DB migrations", e);
 
     } finally {
       close(connection);
     }
+  }
+
+  private MigrationTable initialiseMigrationTable(Connection connection) throws SQLException, IOException {
+    MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
+    new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
+
+    final MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateOnly, platform);
+    table.createIfNeededAndLock();
+    return table;
   }
 
   /**
