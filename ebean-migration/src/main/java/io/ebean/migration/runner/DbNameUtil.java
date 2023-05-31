@@ -1,6 +1,4 @@
-package io.ebean.migration;
-
-import io.ebean.migration.runner.MigrationPlatform;
+package io.ebean.migration.runner;
 
 import java.sql.*;
 
@@ -61,7 +59,7 @@ class DbNameUtil implements DbPlatformNames {
         }
       }
     } catch (SQLException e) {
-      MigrationRunner.log.log(WARNING, "Error running detection query on Postgres", e);
+      MigrationEngine.log.log(WARNING, "Error running detection query on Postgres", e);
     }
     return POSTGRES;
   }

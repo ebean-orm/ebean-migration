@@ -1,11 +1,11 @@
-package io.ebean.migration;
+package io.ebean.migration.runner;
 
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourceFactory;
 import io.ebean.datasource.DataSourcePool;
 import io.ebean.docker.commands.*;
-import io.ebean.migration.runner.MigrationPlatform;
-import io.ebean.migration.runner.MigrationTable;
+import io.ebean.migration.MigrationConfig;
+import io.ebean.migration.MigrationRunner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -49,7 +49,7 @@ public class MigrationTableAsyncTest {
     // as soon as reorg table is executed, all locks held by the current
     // connection are dropped
     // See comment in 1.1__initial.sql
-    
+
     Db2Container container = Db2Container.builder("latest")
       .port(50055)
       .containerName("mig_async_db2")

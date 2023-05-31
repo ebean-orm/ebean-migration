@@ -16,7 +16,7 @@ import static java.lang.System.Logger.Level.DEBUG;
 /**
  * Loads the DB migration resources and sorts them into execution order.
  */
-public final class LocalMigrationResources {
+final class LocalMigrationResources {
 
   private static final System.Logger log = MigrationSchema.log;
 
@@ -28,7 +28,7 @@ public final class LocalMigrationResources {
   /**
    * Construct with configuration options.
    */
-  public LocalMigrationResources(MigrationConfig migrationConfig) {
+  LocalMigrationResources(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
     this.classLoader = migrationConfig.getClassLoader();
     this.searchForJdbcMigrations = migrationConfig.getJdbcMigrationFactory() != null;
@@ -37,14 +37,14 @@ public final class LocalMigrationResources {
   /**
    * Read the init migration resources (usually only 1) returning true if there are versions.
    */
-  public boolean readInitResources() {
+  boolean readInitResources() {
     return readResourcesForPath(migrationConfig.getMigrationInitPath());
   }
 
   /**
    * Read all the migration resources (SQL scripts) returning true if there are versions.
    */
-  public boolean readResources() {
+  boolean readResources() {
     return readResourcesForPath(migrationConfig.getMigrationPath());
   }
 
@@ -134,14 +134,14 @@ public final class LocalMigrationResources {
   /**
    * Return the list of migration resources in version order.
    */
-  public List<LocalMigrationResource> versions() {
+  List<LocalMigrationResource> versions() {
     return versions;
   }
 
   /**
    * Filter used to find the migration scripts.
    */
-  private static class Match implements Predicate<String> {
+  private static final class Match implements Predicate<String> {
 
     private final boolean searchJdbc;
 
@@ -158,7 +158,7 @@ public final class LocalMigrationResources {
   /**
    * Filter to find JDBC migrations only.
    */
-  private static class JdbcOnly implements Predicate<String> {
+  private static final class JdbcOnly implements Predicate<String> {
     @Override
     public boolean test(String name) {
       return name.endsWith(".class") && !name.contains("$");

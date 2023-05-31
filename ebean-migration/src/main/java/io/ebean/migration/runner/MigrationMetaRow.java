@@ -9,7 +9,7 @@ import java.sql.Timestamp;
 /**
  * Bean holding migration execution details stored in the migration table.
  */
-class MigrationMetaRow {
+final class MigrationMetaRow {
 
   private final int id;
   //private String status;

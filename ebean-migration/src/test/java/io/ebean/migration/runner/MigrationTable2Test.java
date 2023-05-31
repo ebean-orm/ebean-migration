@@ -1,6 +1,5 @@
 package io.ebean.migration.runner;
 
-import io.ebean.migration.DbPlatformNames;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
 import org.junit.jupiter.api.Test;
@@ -9,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class MigrationTableTest {
+public class MigrationTable2Test {
 
   @Test
   void testCreateTableDdl() throws Exception {

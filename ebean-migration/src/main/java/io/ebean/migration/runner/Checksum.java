@@ -9,7 +9,7 @@ import java.util.zip.CRC32;
 /**
  * Calculates the checksum for the given string content.
  */
-class Checksum {
+final class Checksum {
 
   /**
    * Returns the checksum of the string content.

@@ -6,7 +6,7 @@ import io.ebean.migration.MigrationVersion;
 /**
  * A DB migration resource (DDL or Jdbc)
  */
-public abstract class LocalMigrationResource implements MigrationResource {
+abstract class LocalMigrationResource implements MigrationResource {
 
   protected final MigrationVersion version;
 
@@ -17,12 +17,13 @@ public abstract class LocalMigrationResource implements MigrationResource {
   /**
    * Construct with version and resource.
    */
-  public LocalMigrationResource(MigrationVersion version, String location) {
+  LocalMigrationResource(MigrationVersion version, String location) {
     this.version = version;
     this.location = location;
     this.type = version.type();
   }
 
+  @Override
   public String toString() {
     return version.toString();
   }
@@ -30,21 +31,21 @@ public abstract class LocalMigrationResource implements MigrationResource {
   /**
    * Return true if the underlying version is "repeatable".
    */
-  public boolean isRepeatable() {
+  boolean isRepeatable() {
     return version.isRepeatable();
   }
 
   /**
    * Return true if the underlying version is "repeatable init".
    */
-  public boolean isRepeatableInit() {
+  boolean isRepeatableInit() {
     return version.isRepeatableInit();
   }
 
   /**
    * Return true if the underlying version is "repeatable last".
    */
-  public boolean isRepeatableLast() {
+  boolean isRepeatableLast() {
     return version.isRepeatableLast();
   }
 
@@ -87,7 +88,7 @@ public abstract class LocalMigrationResource implements MigrationResource {
   /**
    * Set the migration to be an Init migration.
    */
-  public void setInitType() {
+  void setInitType() {
     this.type = MigrationVersion.BOOTINIT_TYPE;
   }
 }

@@ -16,7 +16,7 @@ import static java.lang.System.Logger.Level.*;
 /**
  * Manages the migration table.
  */
-public final class MigrationTable {
+final class MigrationTable {
 
   static final System.Logger log = AppLog.getLogger("io.ebean.DDL");
 
@@ -69,7 +69,7 @@ public final class MigrationTable {
   /**
    * Construct with server, configuration and jdbc connection (DB admin user).
    */
-  public MigrationTable(MigrationConfig config, Connection connection, boolean checkStateOnly, MigrationPlatform platform) {
+  MigrationTable(MigrationConfig config, Connection connection, boolean checkStateOnly, MigrationPlatform platform) {
     this.platform = platform;
     this.connection = connection;
     this.scriptRunner = new MigrationScriptRunner(connection, platform);
@@ -114,14 +114,14 @@ public final class MigrationTable {
   /**
    * Return the number of migrations in the DB migration table.
    */
-  public int size() {
+  int size() {
     return migrations.size();
   }
 
   /**
    * Returns the versions that are already applied.
    */
-  public Set<String> versions() {
+  Set<String> versions() {
     return migrations.keySet();
   }
 
@@ -138,7 +138,7 @@ public final class MigrationTable {
    * Also holds DB lock on migration table and loads existing migrations.
    * </p>
    */
-  public void createIfNeededAndLock() throws SQLException, IOException {
+  void createIfNeededAndLock() throws SQLException, IOException {
     SQLException sqlEx = null;
     if (!tableExists()) {
       try {
@@ -176,7 +176,7 @@ public final class MigrationTable {
   /**
    * Release a lock on the migration table (MySql, MariaDB only).
    */
-  public void unlockMigrationTable() throws SQLException {
+  void unlockMigrationTable() throws SQLException {
     platform.unlockMigrationTable(sqlTable, connection);
   }
 
@@ -480,7 +480,7 @@ public final class MigrationTable {
   /**
    * Return true if there are no migrations.
    */
-  public boolean isEmpty() {
+  boolean isEmpty() {
     return migrations.isEmpty();
   }
 
@@ -489,7 +489,7 @@ public final class MigrationTable {
    *
    * @return the migrations that have been run (collected if checkState is true).
    */
-  public List<MigrationResource> runAll(List<LocalMigrationResource> localVersions) throws SQLException {
+  List<MigrationResource> runAll(List<LocalMigrationResource> localVersions) throws SQLException {
     checkMinVersion();
     for (LocalMigrationResource localVersion : localVersions) {
       if (!localVersion.isRepeatable() && dbInitVersion != null && dbInitVersion.compareTo(localVersion.version()) >= 0) {
@@ -517,7 +517,7 @@ public final class MigrationTable {
    *
    * @return the migrations that have been run (collected if checkstate is true).
    */
-  public List<MigrationResource> runInit(LocalMigrationResource initVersion, List<LocalMigrationResource> localVersions) throws SQLException {
+  List<MigrationResource> runInit(LocalMigrationResource initVersion, List<LocalMigrationResource> localVersions) throws SQLException {
     runRepeatableInit(localVersions);
     initVersion.setInitType();
     if (!shouldRun(initVersion, null)) {
@@ -548,14 +548,14 @@ public final class MigrationTable {
    * as such the migration isn't truely atomic - the migration can run and
    * complete and the non-transactional statements fail.
    */
-  public int runNonTransactional() {
+  int runNonTransactional() {
     return scriptRunner.runNonTransactional();
   }
 
   /**
    * Return the count of migrations that were run.
    */
-  public int count() {
+  int count() {
     return executionCount;
   }
 }
