@@ -14,10 +14,15 @@ import java.sql.Connection;
  *
  * @author Roland Praml, FOCONIS AG
  */
-public interface JdbcMigration {
+public interface JdbcMigration extends MigrationChecksumProvider {
 
   /**
    * Execute the migration using the connection.
    */
   void migrate(Connection connection);
+
+  @Override
+  default int getChecksum() {
+    return 0;
+  }
 }

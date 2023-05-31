@@ -1,7 +1,6 @@
 package io.ebean.migration.runner;
 
 import io.ebean.migration.JdbcMigration;
-import io.ebean.migration.MigrationChecksumProvider;
 import io.ebean.migration.MigrationVersion;
 
 /**
@@ -32,11 +31,7 @@ final class LocalJdbcMigrationResource extends LocalMigrationResource {
    * Returns the checksum of the migration routine.
    */
   int checksum() {
-    if (migration instanceof MigrationChecksumProvider) {
-      return ((MigrationChecksumProvider) migration).getChecksum();
-    } else {
-      return 0; // maybe we can build a checksum over the byte code, but this may change on different java versions.
-    }
+    return migration.getChecksum();
   }
 
   @Override
