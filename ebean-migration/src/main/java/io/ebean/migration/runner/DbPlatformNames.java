@@ -3,7 +3,7 @@ package io.ebean.migration.runner;
 /**
  * Known database platform names.
  */
-public interface DbPlatformNames {
+interface DbPlatformNames {
 
   String SQLSERVER = "sqlserver";
   String SQLITE = "sqlite";
