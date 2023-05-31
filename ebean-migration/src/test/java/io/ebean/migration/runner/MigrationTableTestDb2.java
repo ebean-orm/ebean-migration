@@ -1,7 +1,6 @@
-package io.ebean.migration;
+package io.ebean.migration.runner;
 
-import io.ebean.migration.runner.MigrationPlatform;
-import io.ebean.migration.runner.MigrationTable;
+import io.ebean.migration.MigrationConfig;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourcePool;
 import io.ebean.datasource.DataSourceFactory;

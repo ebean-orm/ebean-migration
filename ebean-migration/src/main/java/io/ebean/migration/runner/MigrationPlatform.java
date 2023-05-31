@@ -11,7 +11,7 @@ import static java.lang.System.Logger.Level.*;
 /**
  * Handle database platform specific locking on db migration table.
  */
-public class MigrationPlatform {
+class MigrationPlatform {
 
   private static final System.Logger log = MigrationTable.log;
 
@@ -106,7 +106,7 @@ public class MigrationPlatform {
     return BASE_SELECT_ALL + table + forUpdateSuffix;
   }
 
-  public static class LogicalLock extends MigrationPlatform {
+  static final class LogicalLock extends MigrationPlatform {
 
     @Override
     void lockMigrationTable(String sqlTable, Connection connection) throws SQLException {
@@ -150,7 +150,7 @@ public class MigrationPlatform {
     }
   }
 
-  public static class Postgres extends MigrationPlatform {
+  static final class Postgres extends MigrationPlatform {
 
     @Override
     DdlDetect ddlDetect() {
@@ -168,7 +168,7 @@ public class MigrationPlatform {
   /**
    * MySql and MariaDB need to use named locks due to implicit commits with DDL.
    */
-  public static class MySql extends MigrationPlatform {
+  static final class MySql extends MigrationPlatform {
 
     @Override
     void lockMigrationTable(String sqlTable, Connection connection) throws SQLException {
@@ -199,16 +199,16 @@ public class MigrationPlatform {
     }
   }
 
-  public static class SqlServer extends MigrationPlatform {
+  static final class SqlServer extends MigrationPlatform {
 
-    public SqlServer() {
+    SqlServer() {
       this.forUpdateSuffix = " with (updlock) order by id";
     }
   }
 
-  public static class NoLocking extends MigrationPlatform {
+  static final class NoLocking extends MigrationPlatform {
 
-    public NoLocking() {
+    NoLocking() {
       this.forUpdateSuffix = " order by id";
     }
 

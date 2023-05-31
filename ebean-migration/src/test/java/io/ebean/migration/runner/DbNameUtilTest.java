@@ -1,5 +1,6 @@
-package io.ebean.migration;
+package io.ebean.migration.runner;
 
+import io.ebean.migration.MigrationConfig;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 

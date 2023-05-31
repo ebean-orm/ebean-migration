@@ -14,7 +14,7 @@ import static java.lang.System.Logger.Level.INFO;
 /**
  * Create Schema if needed and set current Schema in Migration
  */
-public final class MigrationSchema {
+final class MigrationSchema {
 
   static final System.Logger log = AppLog.getLogger("io.ebean.migration");
 
@@ -26,7 +26,7 @@ public final class MigrationSchema {
   /**
    * Construct with configuration and connection.
    */
-  public MigrationSchema(MigrationConfig migrationConfig, Connection connection) {
+  MigrationSchema(MigrationConfig migrationConfig, Connection connection) {
     this.dbSchema = trim(migrationConfig.getDbSchema());
     this.createSchemaIfNotExists = migrationConfig.isCreateSchemaIfNotExists();
     this.setCurrentSchema = migrationConfig.isSetCurrentSchema();
@@ -40,7 +40,7 @@ public final class MigrationSchema {
   /**
    * Create and set the DB schema if desired.
    */
-  public void createAndSetIfNeeded() throws SQLException {
+  void createAndSetIfNeeded() throws SQLException {
     if (dbSchema != null) {
       log.log(DEBUG, "Migration using schema: {0}", dbSchema);
       if (createSchemaIfNotExists) {

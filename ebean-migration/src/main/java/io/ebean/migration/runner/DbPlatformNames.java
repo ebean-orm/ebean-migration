@@ -1,4 +1,4 @@
-package io.ebean.migration;
+package io.ebean.migration.runner;
 
 /**
  * Known database platform names.
