@@ -5,7 +5,6 @@ import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationException;
 import io.ebean.migration.MigrationResource;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -44,7 +43,6 @@ public class MigrationEngine {
       }
 
       long startMs = System.currentTimeMillis();
-      connection.setAutoCommit(false);
       MigrationTable table = initialiseMigrationTable(connection);
       try {
         List<MigrationResource> result = runMigrations(resources.versions(), table, checkStateOnly);
@@ -58,30 +56,31 @@ public class MigrationEngine {
           }
         }
         return result;
+      } catch (Exception e) {
+        log.log(ERROR, "Perform rollback due to DB migration error", e);
+        rollback(connection);
+        throw new MigrationException("Error running DB migrations", e);
       } finally {
         table.unlockMigrationTable();
       }
-
-    } catch (MigrationException e) {
-      rollback(connection);
-      throw e;
-
-    } catch (Exception e) {
-      rollback(connection);
-      throw new MigrationException("Error running DB migrations", e);
-
     } finally {
       close(connection);
     }
   }
 
-  private MigrationTable initialiseMigrationTable(Connection connection) throws SQLException, IOException {
-    MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
-    new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
+  private MigrationTable initialiseMigrationTable(Connection connection) {
+    try {
+      connection.setAutoCommit(false);
+      MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
+      new MigrationSchema(migrationConfig, connection).createAndSetIfNeeded();
 
-    final MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateOnly, platform);
-    table.createIfNeededAndLock();
-    return table;
+      final MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateOnly, platform);
+      table.createIfNeededAndLock();
+      return table;
+    } catch (Exception e) {
+      rollback(connection);
+      throw new MigrationException("Error initialising db migrations table", e);
+    }
   }
 
   /**
