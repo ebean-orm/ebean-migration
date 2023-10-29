@@ -135,8 +135,8 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
 
     <dependency>
       <groupId>io.ebean</groupId>
-      <artifactId>ebean-test-docker</artifactId>
-      <version>5.4</version>
+      <artifactId>ebean-test-containers</artifactId>
+      <version>7.1</version>
       <scope>test</scope>
     </dependency>
 

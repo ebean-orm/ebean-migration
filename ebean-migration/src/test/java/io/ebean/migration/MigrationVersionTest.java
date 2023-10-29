@@ -109,6 +109,18 @@ class MigrationVersionTest {
   }
 
   @Test
+  void test_parse_when_sql_suffix() {
+
+    MigrationVersion version = MigrationVersion.parse("v1_0__Foo.sql");
+    assertThat(version.isRepeatable()).isFalse();
+    assertThat(version.comment()).isEqualTo("Foo");
+    assertThat(version.normalised()).isEqualTo("1.0");
+    assertThat(version.asString()).isEqualTo("1_0");
+    assertThat(version.raw()).isEqualTo("1_0__Foo");
+    assertThat(version.type()).isEqualTo("V");
+  }
+
+  @Test
   void repeatable_compareTo() {
 
     MigrationVersion foo = MigrationVersion.parse("R__Foo");

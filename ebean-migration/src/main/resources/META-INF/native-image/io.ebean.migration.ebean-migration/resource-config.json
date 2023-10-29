@@ -1,0 +1,10 @@
+{
+ "resources": [
+  {
+   "pattern": ".*\\.sql"
+  },
+  {
+   "pattern": ".*\\.migrations"
+  }
+ ]
+}

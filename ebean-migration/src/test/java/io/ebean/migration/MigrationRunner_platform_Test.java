@@ -1,8 +1,7 @@
 package io.ebean.migration;
 
 import io.ebean.ddlrunner.DdlRunner;
-import io.ebean.docker.commands.*;
-import io.ebean.docker.container.ContainerBuilderDb;
+import io.ebean.test.containers.*;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
