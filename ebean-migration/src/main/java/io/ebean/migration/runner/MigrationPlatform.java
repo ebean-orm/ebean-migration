@@ -12,6 +12,7 @@ import static java.lang.System.Logger.Level.*;
 /**
  * Handle database platform specific locking on db migration table.
  */
+@SuppressWarnings({"SqlDialectInspection", "SqlSourceToSinkFlow"})
 class MigrationPlatform {
 
   private static final System.Logger log = MigrationTable.log;
@@ -124,7 +125,7 @@ class MigrationPlatform {
         releaseLogicalLock(sqlTable, connection);
         connection.commit();
       } catch (SQLException e) {
-        rollback(connection);
+        MigrationEngine.rollback(connection);
         throw new MigrationException("Error releasing logical lock for ebean migrations");
       }
     }
@@ -196,7 +197,6 @@ class MigrationPlatform {
       return false;
     }
 
-    @SuppressWarnings("all")
     @Override
     void unlockMigrationTable(String sqlTable, Connection connection) {
       try {

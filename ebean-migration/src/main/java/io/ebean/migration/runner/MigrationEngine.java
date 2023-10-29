@@ -56,6 +56,9 @@ public class MigrationEngine {
           }
         }
         return result;
+      } catch (MigrationException e) {
+        rollback(connection);
+        throw e;
       } catch (Exception e) {
         log.log(ERROR, "Perform rollback due to DB migration error", e);
         rollback(connection);
@@ -143,7 +146,7 @@ public class MigrationEngine {
   /**
    * Rollback the connection logging if an error occurs.
    */
-  private void rollback(Connection connection) {
+  static void rollback(Connection connection) {
     try {
       if (connection != null) {
         connection.rollback();
