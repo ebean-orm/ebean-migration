@@ -549,7 +549,7 @@ public class MigrationConfig {
    * Return the base platform that was set.
    */
   public String getBasePlatform() {
-    return basePlatform;
+    return basePlatform != null ? basePlatform : platform;
   }
 
   /**

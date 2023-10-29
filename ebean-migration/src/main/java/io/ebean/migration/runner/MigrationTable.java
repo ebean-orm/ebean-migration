@@ -296,7 +296,10 @@ final class MigrationTable {
   private boolean runMigration(LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
     String script = null;
     int checksum;
-    if (local instanceof LocalDdlMigrationResource) {
+    if (local instanceof LocalUriMigrationResource) {
+      script = convertScript(local.content());
+      checksum = ((LocalUriMigrationResource)local).checksum();
+    } else if (local instanceof LocalDdlMigrationResource) {
       script = convertScript(local.content());
       checksum = Checksum.calculate(script);
     } else {
@@ -402,13 +405,13 @@ final class MigrationTable {
 
   private long executeMigration(LocalMigrationResource local, String script) throws SQLException {
     long start = System.currentTimeMillis();
-    if (local instanceof LocalDdlMigrationResource) {
-      log.log(DEBUG, "run migration {0}", local.location());
-      scriptRunner.runScript(script, "run migration version: " + local.version());
-    } else {
+    if (local instanceof LocalJdbcMigrationResource) {
       JdbcMigration migration = ((LocalJdbcMigrationResource) local).migration();
       log.log(INFO, "Executing jdbc migration version: {0} - {1}", local.version(), migration);
       migration.migrate(connection);
+    } else {
+      log.log(DEBUG, "run migration {0}", local.location());
+      scriptRunner.runScript(script, "run migration version: " + local.version());
     }
     executionCount++;
     return System.currentTimeMillis() - start;

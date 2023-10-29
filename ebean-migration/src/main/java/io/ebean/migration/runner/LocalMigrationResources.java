@@ -6,6 +6,8 @@ import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
 
+import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +47,58 @@ final class LocalMigrationResources {
    * Read all the migration resources (SQL scripts) returning true if there are versions.
    */
   boolean readResources() {
+    if (readFromIndex()) {
+      return true;
+    }
     return readResourcesForPath(migrationConfig.getMigrationPath());
+  }
+
+  private boolean readFromIndex() {
+    final var base = "/" + migrationConfig.getMigrationPath() + "/";
+    final var basePlatform = migrationConfig.getBasePlatform();
+    final var indexName = "idx_" + basePlatform + ".migrations";
+    URL idx = resource(base + indexName);
+    if (idx != null) {
+      return loadFromIndexFile(idx, base);
+    }
+    idx = resource(base + basePlatform + '/' + indexName);
+    if (idx != null) {
+      return loadFromIndexFile(idx, base + basePlatform + '/');
+    }
+    final var platform = migrationConfig.getPlatform();
+    idx = resource(base + platform + indexName);
+    if (idx != null) {
+      return loadFromIndexFile(idx, base + platform + '/');
+    }
+    return false;
+  }
+
+  private URL resource(String base) {
+    return LocalMigrationResources.class.getResource(base);
+  }
+
+  private boolean loadFromIndexFile(URL idx, String base) {
+    try (var reader = new LineNumberReader(new InputStreamReader(idx.openStream()))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        if (!line.isEmpty()) {
+          final String[] pair = line.split(",");
+          if (pair.length == 2) {
+            final var checksum = Integer.parseInt(pair[0]);
+            final var location = pair[1].trim();
+            final String substring = location.substring(0, location.length() - 4);
+            final var version = MigrationVersion.parse(substring);
+            final var url = resource(base + location);
+            versions.add(new LocalUriMigrationResource(version, location, url, checksum));
+          }
+        }
+      }
+
+      return !versions.isEmpty();
+
+    } catch (IOException e) {
+      throw new UncheckedIOException("Error reading idx file", e);
+    }
   }
 
   private boolean readResourcesForPath(String path) {

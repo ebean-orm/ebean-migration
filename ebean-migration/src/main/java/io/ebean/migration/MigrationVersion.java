@@ -190,6 +190,9 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
    * Parse the raw version string into a MigrationVersion.
    */
   public static MigrationVersion parse(String raw) {
+    if (raw.endsWith(".sql")) {
+      raw = raw.substring(0, raw.length() - 4);
+    }
     if (raw.startsWith("V") || raw.startsWith("v")) {
       raw = raw.substring(1);
     }

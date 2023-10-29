@@ -3,8 +3,8 @@ package io.ebean.migration.runner;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourceFactory;
 import io.ebean.datasource.DataSourcePool;
-import io.ebean.docker.commands.PostgresContainer;
 import io.ebean.migration.MigrationConfig;
+import io.ebean.test.containers.PostgresContainer;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
