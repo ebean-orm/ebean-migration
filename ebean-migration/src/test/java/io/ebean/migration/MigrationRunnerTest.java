@@ -57,6 +57,37 @@ public class MigrationRunnerTest {
   }
 
   @Test
+  public void run_when_error() throws SQLException {
+
+    DataSourceConfig dataSourceConfig = new DataSourceConfig();
+    dataSourceConfig.setDriver("org.h2.Driver");
+    dataSourceConfig.setUrl("jdbc:h2:mem:err.db");
+    dataSourceConfig.setUsername("sa");
+    dataSourceConfig.setPassword("");
+
+    DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
+
+    MigrationConfig config = createMigrationConfig();
+    config.setMigrationPath("dbmig_error");
+    MigrationRunner runner = new MigrationRunner(config);
+    try {
+      runner.run(dataSource);
+    } catch (Exception expected) {
+      try (Connection connection = dataSource.getConnection()) {
+        try (var pstmt = connection.prepareStatement("select count(*) from m1")) {
+          try (var resultSet = pstmt.executeQuery()) {
+            assertThat(resultSet.next()).isTrue();
+            int val = resultSet.getInt(1);
+            assertThat(val).isEqualTo(0);
+          }
+        } catch (SQLException ex) {
+          fail(ex);
+        }
+      }
+    }
+  }
+
+  @Test
   public void run_when_suppliedConnection() {
 
     MigrationConfig config = createMigrationConfig();
