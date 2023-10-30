@@ -35,5 +35,5 @@ jobs:
       run: |
         mvn clean install -DskipTests
         cd test-native-image
-        mvn clean package -Pnative
-        ./target/test-native-image
+        mvn clean package -DskipTests -Pnative
+        mvn test
