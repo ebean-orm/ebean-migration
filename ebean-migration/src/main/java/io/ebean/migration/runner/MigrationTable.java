@@ -176,7 +176,7 @@ final class MigrationTable {
   /**
    * Release a lock on the migration table (MySql, MariaDB only).
    */
-  void unlockMigrationTable() throws SQLException {
+  void unlockMigrationTable() {
     platform.unlockMigrationTable(sqlTable, connection);
   }
 

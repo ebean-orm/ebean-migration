@@ -1,6 +1,7 @@
 package io.ebean.migration.runner;
 
 import io.ebean.ddlrunner.DdlDetect;
+import io.ebean.migration.MigrationException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import static java.lang.System.Logger.Level.*;
 /**
  * Handle database platform specific locking on db migration table.
  */
+@SuppressWarnings({"SqlDialectInspection", "SqlSourceToSinkFlow"})
 class MigrationPlatform {
 
   private static final System.Logger log = MigrationTable.log;
@@ -30,7 +32,7 @@ class MigrationPlatform {
     return DdlDetect.NONE;
   }
 
-  void unlockMigrationTable(String sqlTable, Connection connection) throws SQLException {
+  void unlockMigrationTable(String sqlTable, Connection connection) {
     // do nothing by default for select for update case
   }
 
@@ -118,9 +120,14 @@ class MigrationPlatform {
     }
 
     @Override
-    void unlockMigrationTable(String sqlTable, Connection connection) throws SQLException {
-      releaseLogicalLock(sqlTable, connection);
-      connection.commit();
+    void unlockMigrationTable(String sqlTable, Connection connection) {
+      try {
+        releaseLogicalLock(sqlTable, connection);
+        connection.commit();
+      } catch (SQLException e) {
+        MigrationEngine.rollback(connection);
+        throw new MigrationException("Error releasing logical lock for ebean migrations");
+      }
     }
 
     private boolean obtainLogicalLock(String sqlTable, Connection connection) throws SQLException {
@@ -191,10 +198,14 @@ class MigrationPlatform {
     }
 
     @Override
-    void unlockMigrationTable(String sqlTable, Connection connection) throws SQLException {
-      String hash = Integer.toHexString(connection.getMetaData().getURL().hashCode());
-      try (Statement query = connection.createStatement()) {
-        query.execute("select release_lock('ebean_migration-" + hash + "')");
+    void unlockMigrationTable(String sqlTable, Connection connection) {
+      try {
+        String hash = Integer.toHexString(connection.getMetaData().getURL().hashCode());
+        try (Statement query = connection.createStatement()) {
+          query.execute("select release_lock('ebean_migration-" + hash + "')");
+        }
+      } catch (SQLException e) {
+        throw new MigrationException("Error releasing lock for ebean_migration", e);
       }
     }
   }
