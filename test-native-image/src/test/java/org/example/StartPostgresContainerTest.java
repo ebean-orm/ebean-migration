@@ -1,13 +1,14 @@
 package org.example;
 
+import io.ebean.test.containers.PostgresContainer;
 import org.junit.jupiter.api.Test;
-import io.ebean.test.containers.*;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class StartPostgresContainerTest {
 
@@ -32,6 +33,16 @@ class StartPostgresContainerTest {
     int code = process.waitFor();
     System.out.println("exit code: " + code);
 
-    Files.lines(out.toPath()).forEach(System.out::println);
+    List<String> lines = Files.lines(out.toPath()).toList();
+
+    lines.forEach(System.out::println);
+
+    Optional<String> dbMigrationsCompleted = lines.stream()
+      .filter(line -> line.contains("DB migrations completed"))
+      .findFirst();
+
+    assertThat(dbMigrationsCompleted)
+      .isPresent()
+      .asString().contains("executed:2 totalMigrations:2");
   }
 }
