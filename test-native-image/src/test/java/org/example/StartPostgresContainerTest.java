@@ -12,17 +12,16 @@ import java.util.List;
 class StartPostgresContainerTest {
 
   @Test
-  void test() {
-    PostgresContainer.builder("15")
+  void test() throws Exception {
+    PostgresContainer container = PostgresContainer.builder("15")
       .port(6432)
       .dbName("mig")
       .build()
       .start();
-  }
 
-  @Test
-  void run() throws Exception {
-    File out = new File("out");
+    System.out.println("Postgres container running " + container.isRunning());
+
+    var out = new File("out");
 
     Process process = new ProcessBuilder()
       .command("./target/test-native-image")
@@ -31,7 +30,7 @@ class StartPostgresContainerTest {
       .start();
 
     int code = process.waitFor();
-    System.out.println("exit " + code);
+    System.out.println("exit code: " + code);
 
     Files.lines(out.toPath()).forEach(System.out::println);
   }
