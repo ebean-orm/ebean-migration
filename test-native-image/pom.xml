@@ -6,14 +6,15 @@
   <parent>
     <groupId>org.avaje</groupId>
     <artifactId>java11-oss</artifactId>
-    <version>3.10</version>
+    <version>3.12</version>
+    <relativePath/>
   </parent>
 
   <groupId>org.example</groupId>
   <artifactId>test-native-image</artifactId>
 
   <properties>
-    <maven.compiler.release>21</maven.compiler.release>
+    <java.release>21</java.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.plugin.nativeimage>0.9.27</version.plugin.nativeimage>
     <mainClass>org.example.Main</mainClass>
