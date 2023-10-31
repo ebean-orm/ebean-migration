@@ -59,7 +59,7 @@ public class MigrationEngine {
       } catch (MigrationException e) {
         rollback(connection);
         throw e;
-      } catch (Exception e) {
+      } catch (Throwable e) {
         log.log(ERROR, "Perform rollback due to DB migration error", e);
         rollback(connection);
         throw new MigrationException("Error running DB migrations", e);
@@ -80,7 +80,7 @@ public class MigrationEngine {
       final MigrationTable table = new MigrationTable(migrationConfig, connection, checkStateOnly, platform);
       table.createIfNeededAndLock();
       return table;
-    } catch (Exception e) {
+    } catch (Throwable e) {
       rollback(connection);
       throw new MigrationException("Error initialising db migrations table", e);
     }
