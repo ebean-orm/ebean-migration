@@ -24,6 +24,8 @@ final class MigrationTable {
 
   private final Connection connection;
   private final boolean checkStateOnly;
+  private final boolean autoPatchChecksum;
+  private final boolean useEarlyChecksum;
   private final MigrationPlatform platform;
   private final MigrationScriptRunner scriptRunner;
   private final String catalog;
@@ -74,6 +76,8 @@ final class MigrationTable {
     this.connection = connection;
     this.scriptRunner = new MigrationScriptRunner(connection, platform);
     this.checkStateOnly = checkStateOnly;
+    this.useEarlyChecksum = config.isEarlyChecksumMode();
+    this.autoPatchChecksum = !checkStateOnly && config.isAutoPatchChecksum();
     this.migrations = new LinkedHashMap<>();
     this.catalog = null;
     this.allowErrorInRepeatable = config.isAllowErrorInRepeatable();
@@ -296,12 +300,16 @@ final class MigrationTable {
   private boolean runMigration(LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
     String script = null;
     int checksum;
+    int checksum2 = 0;
     if (local instanceof LocalUriMigrationResource) {
-      script = convertScript(local.content());
       checksum = ((LocalUriMigrationResource)local).checksum();
-    } else if (local instanceof LocalDdlMigrationResource) {
       script = convertScript(local.content());
-      checksum = Checksum.calculate(script);
+    } else if (local instanceof LocalDdlMigrationResource) {
+      final String content = local.content();
+      script = convertScript(content);
+      // checksum on original content (NEW) or converted script content (LEGACY)
+      checksum = Checksum.calculate(useEarlyChecksum ? content : script);
+      checksum2 = autoPatchChecksum ? Checksum.calculate(script) : 0;
     } else {
       checksum = ((LocalJdbcMigrationResource) local).checksum();
     }
@@ -309,7 +317,7 @@ final class MigrationTable {
     if (existing == null && patchInsertMigration(local, checksum)) {
       return true;
     }
-    if (existing != null && skipMigration(checksum, local, existing)) {
+    if (existing != null && skipMigration(checksum, checksum2, local, existing)) {
       return true;
     }
     executeMigration(local, script, checksum, existing);
@@ -333,10 +341,15 @@ final class MigrationTable {
   /**
    * Return true if the migration should be skipped.
    */
-  boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
+  boolean skipMigration(int checksum, int checksum2, LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
     boolean matchChecksum = (existing.checksum() == checksum);
     if (matchChecksum) {
       log.log(TRACE, "skip unchanged migration {0}", local.location());
+      return true;
+
+    } else if (autoPatchChecksum && existing.checksum() == checksum2) {
+      log.log(INFO, "Patch migration, reset checksum on {0}", local.location());
+      existing.resetChecksum(checksum, connection, updateChecksumSql);
       return true;
 
     } else if (patchResetChecksum(existing, checksum)) {
