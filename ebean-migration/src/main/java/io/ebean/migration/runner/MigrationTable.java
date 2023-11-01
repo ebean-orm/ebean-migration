@@ -351,7 +351,7 @@ final class MigrationTable {
 
     } else if (patchLegacyChecksums && existing.checksum() == checksum2) {
       if (!checkStateOnly) {
-        log.log(INFO, "Patch migration, set earlyChecksumMode on {0}", local.location());
+        log.log(INFO, "Patch migration, set early mode checksum on {0}", local.location());
         existing.resetChecksum(checksum, connection, updateChecksumSql);
       }
       return true;
@@ -479,7 +479,7 @@ final class MigrationTable {
   private void addMigration(String key, MigrationMetaRow metaRow) {
     if (INIT_VER_0.equals(key)) {
       if (metaRow.checksum() == EARLY_MODE_CHECKSUM && !earlyChecksumMode) {
-        throw new IllegalStateException("<init> 0 db migration row has unexpected checksum value? " + metaRow);
+        throw new IllegalStateException("Unexpected checksum value on <init> row " + metaRow);
       }
       initMetaRow = metaRow;
       patchLegacyChecksums = earlyChecksumMode && metaRow.checksum() == LEGACY_MODE_CHECKSUM;
