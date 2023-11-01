@@ -21,11 +21,12 @@ final class MigrationTable {
   static final System.Logger log = AppLog.getLogger("io.ebean.DDL");
 
   private static final String INIT_VER_0 = "0";
+  private static final int LEGACY_MODE_CHECKSUM = 0;
+  private static final int EARLY_MODE_CHECKSUM = 1;
 
   private final Connection connection;
   private final boolean checkStateOnly;
-  private final boolean autoPatchChecksum;
-  private final boolean useEarlyChecksum;
+  private final boolean earlyChecksumMode;
   private final MigrationPlatform platform;
   private final MigrationScriptRunner scriptRunner;
   private final String catalog;
@@ -67,6 +68,8 @@ final class MigrationTable {
   private MigrationVersion dbInitVersion;
 
   private int executionCount;
+  private boolean patchLegacyChecksums;
+  private MigrationMetaRow initMetaRow;
 
   /**
    * Construct with server, configuration and jdbc connection (DB admin user).
@@ -76,8 +79,7 @@ final class MigrationTable {
     this.connection = connection;
     this.scriptRunner = new MigrationScriptRunner(connection, platform);
     this.checkStateOnly = checkStateOnly;
-    this.useEarlyChecksum = config.isEarlyChecksumMode();
-    this.autoPatchChecksum = !checkStateOnly && config.isAutoPatchChecksum();
+    this.earlyChecksumMode = config.isEarlyChecksumMode();
     this.migrations = new LinkedHashMap<>();
     this.catalog = null;
     this.allowErrorInRepeatable = config.isAllowErrorInRepeatable();
@@ -308,8 +310,8 @@ final class MigrationTable {
       final String content = local.content();
       script = convertScript(content);
       // checksum on original content (NEW) or converted script content (LEGACY)
-      checksum = Checksum.calculate(useEarlyChecksum ? content : script);
-      checksum2 = autoPatchChecksum ? Checksum.calculate(script) : 0;
+      checksum = Checksum.calculate(earlyChecksumMode ? content : script);
+      checksum2 = patchLegacyChecksums ? Checksum.calculate(script) : 0;
     } else {
       checksum = ((LocalJdbcMigrationResource) local).checksum();
     }
@@ -347,9 +349,11 @@ final class MigrationTable {
       log.log(TRACE, "skip unchanged migration {0}", local.location());
       return true;
 
-    } else if (autoPatchChecksum && existing.checksum() == checksum2) {
-      log.log(INFO, "Patch migration, reset checksum on {0}", local.location());
-      existing.resetChecksum(checksum, connection, updateChecksumSql);
+    } else if (patchLegacyChecksums && existing.checksum() == checksum2) {
+      if (!checkStateOnly) {
+        log.log(INFO, "Patch migration, set earlyChecksumMode on {0}", local.location());
+        existing.resetChecksum(checksum, connection, updateChecksumSql);
+      }
       return true;
 
     } else if (patchResetChecksum(existing, checksum)) {
@@ -437,7 +441,8 @@ final class MigrationTable {
   }
 
   private MigrationMetaRow createInitMetaRow() {
-    return new MigrationMetaRow(0, "I", INIT_VER_0, "<init>", 0, envUserName, runOn, 0);
+    final int mode = earlyChecksumMode ? EARLY_MODE_CHECKSUM : LEGACY_MODE_CHECKSUM;
+    return new MigrationMetaRow(0, "I", INIT_VER_0, "<init>", mode, envUserName, runOn, 0);
   }
 
   /**
@@ -473,7 +478,11 @@ final class MigrationTable {
    */
   private void addMigration(String key, MigrationMetaRow metaRow) {
     if (INIT_VER_0.equals(key)) {
-      // ignore the version 0 <init> row
+      if (metaRow.checksum() == EARLY_MODE_CHECKSUM && !earlyChecksumMode) {
+        throw new IllegalStateException("<init> 0 db migration row has unexpected checksum value? " + metaRow);
+      }
+      initMetaRow = metaRow;
+      patchLegacyChecksums = earlyChecksumMode && metaRow.checksum() == LEGACY_MODE_CHECKSUM;
       return;
     }
     lastMigration = metaRow;
@@ -513,6 +522,10 @@ final class MigrationTable {
       } else if (!shouldRun(localVersion, priorVersion)) {
         break;
       }
+    }
+    if (patchLegacyChecksums && !checkStateOnly) {
+      // only patch the legacy checksums once
+      initMetaRow.resetChecksum(EARLY_MODE_CHECKSUM, connection, updateChecksumSql);
     }
     return checkMigrations;
   }

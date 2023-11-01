@@ -66,7 +66,7 @@ public class MigrationConfig {
   private String platform;
   private Properties properties;
   private boolean earlyChecksumMode;
-  private boolean autoPatchChecksum = true;
+
   /**
    * Return the name of the migration table.
    */
@@ -470,8 +470,7 @@ public class MigrationConfig {
     dbSchema = getProperty("schema", dbSchema);
     skipMigrationRun = getBool("skipMigrationRun", skipMigrationRun);
     skipChecksum = getBool("skipChecksum", skipChecksum);
-    earlyChecksumMode = getBool("earlyChecksum", earlyChecksumMode);
-    autoPatchChecksum = getBool("autoPatchChecksum", autoPatchChecksum);
+    earlyChecksumMode = getBool("earlyChecksumMode", earlyChecksumMode);
     createSchemaIfNotExists = getBool("createSchemaIfNotExists", createSchemaIfNotExists);
     setCurrentSchema = getBool("setCurrentSchema", setCurrentSchema);
     basePlatform = getProperty("basePlatform", basePlatform);
@@ -576,21 +575,6 @@ public class MigrationConfig {
    */
   public void setPlatform(String platform) {
     this.platform = platform;
-  }
-
-  /**
-   * Return true if changing to use earlyChecksumMode, and we want to automatically
-   * patch checksums that were computed on the original mode.
-   */
-  public boolean isAutoPatchChecksum() {
-    return autoPatchChecksum;
-  }
-
-  /**
-   * Set this to false in order to turn off auto patching for earlyChecksumMode.
-   */
-  public void setAutoPatchChecksum(boolean autoPatchChecksum) {
-    this.autoPatchChecksum = autoPatchChecksum;
   }
 
   /**
