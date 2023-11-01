@@ -58,7 +58,6 @@ public class MigrationTable2Test {
 
     MigrationConfig config = new MigrationConfig();
     config.setSkipChecksum(true);
-    config.setAutoPatchChecksum(true);
 
     MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
 
