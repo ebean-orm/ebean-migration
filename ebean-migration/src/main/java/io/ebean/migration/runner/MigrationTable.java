@@ -26,7 +26,7 @@ final class MigrationTable {
 
   private final Connection connection;
   private final boolean checkStateOnly;
-  private final boolean earlyChecksumMode;
+  private boolean earlyChecksumMode;
   private final MigrationPlatform platform;
   private final MigrationScriptRunner scriptRunner;
   private final String catalog;
@@ -479,7 +479,8 @@ final class MigrationTable {
   private void addMigration(String key, MigrationMetaRow metaRow) {
     if (INIT_VER_0.equals(key)) {
       if (metaRow.checksum() == EARLY_MODE_CHECKSUM && !earlyChecksumMode) {
-        throw new IllegalStateException("Unexpected checksum value on <init> row " + metaRow);
+        log.log(DEBUG, "automatically detected earlyChecksumMode");
+        earlyChecksumMode = true;
       }
       initMetaRow = metaRow;
       patchLegacyChecksums = earlyChecksumMode && metaRow.checksum() == LEGACY_MODE_CHECKSUM;
@@ -586,5 +587,12 @@ final class MigrationTable {
    */
   int count() {
     return executionCount;
+  }
+
+  /**
+   * Return the mode being used by this migration run.
+   */
+  String mode() {
+    return !earlyChecksumMode ? "legacy" : (patchLegacyChecksums ? "earlyChecksum with patching" : "earlyChecksum");
   }
 }
