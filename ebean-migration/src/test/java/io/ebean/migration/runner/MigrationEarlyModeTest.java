@@ -34,7 +34,6 @@ class MigrationEarlyModeTest {
       .build();
   }
 
-  // @Disabled
   @Test
   void testEarlyMode() {
     createPostgres().startWithDropCreate();
@@ -60,15 +59,17 @@ class MigrationEarlyModeTest {
     log.log(INFO, "-- RE-RUN EARLY MODE -- ");
     new MigrationRunner(config).run(dataSource);
 
-    log.log(INFO, "-- EARLY MODE AGAIN -- ");
+    log.log(INFO, "-- LEGACY MODE AGAIN (will auto detect early mode) -- ");
     config.setEarlyChecksumMode(false);
     new MigrationRunner(config).run(dataSource);
 
+    log.log(INFO, "-- LEGACY MODE with more migrations -- ");
+
     config.setRunPlaceholderMap(Map.of("my_table_name", "my_table", "other_table_name", "other"));
     config.setMigrationPath("dbmig_postgres_early1");
-
     new MigrationRunner(config).run(dataSource);
 
+    log.log(INFO, "-- EARLY MODE again -- ");
     config.setEarlyChecksumMode(true);
     new MigrationRunner(config).run(dataSource);
 
@@ -81,11 +82,4 @@ class MigrationEarlyModeTest {
       .setPassword(pw);
     return DataSourceFactory.create("mig_early", dataSourceConfig);
   }
-
-//  private static void dropTable(Connection conn) throws SQLException {
-//    try (PreparedStatement stmt = conn.prepareStatement("drop table if exists db_migration")) {
-//      stmt.executeUpdate();
-//    }
-//  }
-
 }
