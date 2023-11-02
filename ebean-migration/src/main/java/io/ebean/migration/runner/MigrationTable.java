@@ -23,6 +23,7 @@ final class MigrationTable {
   private static final String INIT_VER_0 = "0";
   private static final int LEGACY_MODE_CHECKSUM = 0;
   private static final int EARLY_MODE_CHECKSUM = 1;
+  private static final int AUTO_PATCH_CHECKSUM = -1;
 
   private final Connection connection;
   private final boolean checkStateOnly;
@@ -305,6 +306,7 @@ final class MigrationTable {
     int checksum2 = 0;
     if (local instanceof LocalUriMigrationResource) {
       checksum = ((LocalUriMigrationResource)local).checksum();
+      checksum2 = patchLegacyChecksums ? AUTO_PATCH_CHECKSUM : 0;
       script = convertScript(local.content());
     } else if (local instanceof LocalDdlMigrationResource) {
       final String content = local.content();
@@ -349,7 +351,7 @@ final class MigrationTable {
       log.log(TRACE, "skip unchanged migration {0}", local.location());
       return true;
 
-    } else if (patchLegacyChecksums && existing.checksum() == checksum2) {
+    } else if (patchLegacyChecksums && (existing.checksum() == checksum2 || checksum2 == AUTO_PATCH_CHECKSUM)) {
       if (!checkStateOnly) {
         log.log(INFO, "Patch migration, set early mode checksum on {0}", local.location());
         existing.resetChecksum(checksum, connection, updateChecksumSql);
