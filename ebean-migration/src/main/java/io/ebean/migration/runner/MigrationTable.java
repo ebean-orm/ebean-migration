@@ -366,13 +366,13 @@ final class MigrationTable {
 
     } else if (patchLegacyChecksums && (existing.checksum() == checksum2 || checksum2 == AUTO_PATCH_CHECKSUM)) {
       if (!checkStateOnly) {
-        log.log(INFO, "Patch migration, set early mode checksum on {0}", local.location());
+        log.log(INFO, "Auto patch migration, set early mode checksum on {0} to {1,number} from {2,number}", local.location(), checksum, existing.checksum());
         existing.resetChecksum(checksum, connection, updateChecksumSql);
       }
       return true;
 
     } else if (patchResetChecksum(existing, checksum)) {
-      log.log(INFO, "Patch migration, reset checksum on {0}", local.location());
+      log.log(INFO, "Patch migration, reset checksum on {0} to {1,number} from {2,number}", local.location(), checksum, existing.checksum());
       return true;
 
     } else if (local.isRepeatable() || skipChecksum) {
@@ -398,7 +398,7 @@ final class MigrationTable {
   }
 
   private boolean isResetOnVersion(String version) {
-    return patchResetChecksumVersions != null && patchResetChecksumVersions.contains(version);
+    return patchResetChecksumVersions != null && (patchResetChecksumVersions.contains(version) || patchResetChecksumVersions.contains("*"));
   }
 
   /**
