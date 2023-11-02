@@ -92,7 +92,7 @@ public class MigrationEngine {
   private List<MigrationResource> runMigrations(List<LocalMigrationResource> localVersions, MigrationTable table, boolean checkStateMode) throws SQLException {
     // get the migrations in version order
     if (table.isEmpty()) {
-      LocalMigrationResource initVersion = getInitVersion();
+      LocalMigrationResource initVersion = lastInitVersion();
       if (initVersion != null) {
         // run using a dbinit script
         log.log(INFO, "dbinit migration version:{0}  local migrations:{1}  checkState:{2}", initVersion, localVersions.size(), checkStateMode);
@@ -105,7 +105,7 @@ public class MigrationEngine {
   /**
    * Return the last init migration.
    */
-  private LocalMigrationResource getInitVersion() {
+  private LocalMigrationResource lastInitVersion() {
     LocalMigrationResources initResources = new LocalMigrationResources(migrationConfig);
     if (initResources.readInitResources()) {
       List<LocalMigrationResource> initVersions = initResources.versions();
