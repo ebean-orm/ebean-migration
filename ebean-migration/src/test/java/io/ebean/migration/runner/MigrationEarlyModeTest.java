@@ -47,6 +47,7 @@ class MigrationEarlyModeTest {
     config.setDbPassword(pw);
     config.setMigrationPath("dbmig_postgres_early");
     config.setRunPlaceholderMap(Map.of("my_table_name", "my_table"));
+    config.setFastMode(true);
 
     // legacy mode
     new MigrationRunner(config).run(dataSource);

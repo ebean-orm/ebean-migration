@@ -66,6 +66,7 @@ public class MigrationConfig {
   private String platform;
   private Properties properties;
   private boolean earlyChecksumMode;
+  private boolean fastMode;
 
   /**
    * Return the name of the migration table.
@@ -468,6 +469,7 @@ public class MigrationConfig {
     dbPassword = property("password", dbPassword);
     dbUrl = property("url", dbUrl);
     dbSchema = property("schema", dbSchema);
+    fastMode = property("fastMode", fastMode);
     skipMigrationRun = property("skipMigrationRun", skipMigrationRun);
     skipChecksum = property("skipChecksum", skipChecksum);
     earlyChecksumMode = property("earlyChecksumMode", earlyChecksumMode);
@@ -590,6 +592,22 @@ public class MigrationConfig {
    */
   public void setEarlyChecksumMode(boolean earlyChecksumMode) {
     this.earlyChecksumMode = earlyChecksumMode;
+  }
+
+  /**
+   * Return true if fastMode is turned on.
+   */
+  public boolean isFastMode() {
+    return fastMode;
+  }
+
+  /**
+   * Set true to enable fastMode. This will perform an initial check for the exact same number
+   * of migrations and matching checksums without any locking. If anything does not match
+   * then the normal migration is performed with appropriate locking etc.
+   */
+  public void setFastMode(boolean fastMode) {
+    this.fastMode = fastMode;
   }
 
   /**
