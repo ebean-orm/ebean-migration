@@ -464,48 +464,48 @@ public class MigrationConfig {
       return;
     }
     this.properties = props;
-    dbUsername = getProperty("username", dbUsername);
-    dbPassword = getProperty("password", dbPassword);
-    dbUrl = getProperty("url", dbUrl);
-    dbSchema = getProperty("schema", dbSchema);
-    skipMigrationRun = getBool("skipMigrationRun", skipMigrationRun);
-    skipChecksum = getBool("skipChecksum", skipChecksum);
-    earlyChecksumMode = getBool("earlyChecksumMode", earlyChecksumMode);
-    createSchemaIfNotExists = getBool("createSchemaIfNotExists", createSchemaIfNotExists);
-    setCurrentSchema = getBool("setCurrentSchema", setCurrentSchema);
-    basePlatform = getProperty("basePlatform", basePlatform);
-    platform = getProperty("platform", getProperty("platformName", platform));
-    metaTable = getProperty("metaTable", metaTable);
-    migrationPath = getProperty("migrationPath", migrationPath);
-    migrationInitPath = getProperty("migrationInitPath", migrationInitPath);
-    runPlaceholders = getProperty("placeholders", runPlaceholders);
-    minVersion = getProperty("minVersion", minVersion);
-    minVersionFailMessage = getProperty("minVersionFailMessage", minVersionFailMessage);
+    dbUsername = property("username", dbUsername);
+    dbPassword = property("password", dbPassword);
+    dbUrl = property("url", dbUrl);
+    dbSchema = property("schema", dbSchema);
+    skipMigrationRun = property("skipMigrationRun", skipMigrationRun);
+    skipChecksum = property("skipChecksum", skipChecksum);
+    earlyChecksumMode = property("earlyChecksumMode", earlyChecksumMode);
+    createSchemaIfNotExists = property("createSchemaIfNotExists", createSchemaIfNotExists);
+    setCurrentSchema = property("setCurrentSchema", setCurrentSchema);
+    basePlatform = property("basePlatform", basePlatform);
+    platform = property("platform", property("platformName", platform));
+    metaTable = property("metaTable", metaTable);
+    migrationPath = property("migrationPath", migrationPath);
+    migrationInitPath = property("migrationInitPath", migrationInitPath);
+    runPlaceholders = property("placeholders", runPlaceholders);
+    minVersion = property("minVersion", minVersion);
+    minVersionFailMessage = property("minVersionFailMessage", minVersionFailMessage);
 
-    String patchInsertOn = getProperty("patchInsertOn");
+    String patchInsertOn = property("patchInsertOn");
     if (patchInsertOn != null) {
       setPatchInsertOn(patchInsertOn);
     }
-    String patchResetChecksumOn = getProperty("patchResetChecksumOn");
+    String patchResetChecksumOn = property("patchResetChecksumOn");
     if (patchResetChecksumOn != null) {
       setPatchResetChecksumOn(patchResetChecksumOn);
     }
-    String runPlaceholders = getProperty("runPlaceholders");
+    String runPlaceholders = property("runPlaceholders");
     if (runPlaceholders != null) {
       setRunPlaceholders(runPlaceholders);
     }
   }
 
-  private boolean getBool(String key, boolean value) {
-    String val = getProperty(key);
+  private boolean property(String key, boolean value) {
+    String val = property(key);
     return val != null ? Boolean.parseBoolean(val) : value;
   }
 
-  private String getProperty(String key) {
-    return getProperty(key, null);
+  private String property(String key) {
+    return property(key, null);
   }
 
-  private String getProperty(String key, String defaultVal) {
+  private String property(String key, String defaultVal) {
     String val = properties.getProperty("ebean." + name + ".migration." + key);
     if (val != null) {
       return val;

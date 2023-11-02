@@ -34,7 +34,7 @@ public class MigrationRunner {
    * Return the migrations that would be applied if the migration is run.
    */
   public List<MigrationResource> checkState(DataSource dataSource) {
-    return checkState(getConnection(dataSource));
+    return checkState(connection(dataSource));
   }
 
   /**
@@ -55,7 +55,7 @@ public class MigrationRunner {
    * Run using the connection from the DataSource.
    */
   public void run(DataSource dataSource) {
-    run(getConnection(dataSource));
+    run(connection(dataSource));
   }
 
   /**
@@ -65,7 +65,7 @@ public class MigrationRunner {
     run(connection, false);
   }
 
-  private Connection getConnection(DataSource dataSource) {
+  private Connection connection(DataSource dataSource) {
     String username = migrationConfig.getDbUsername();
     try {
       if (username == null) {
