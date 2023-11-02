@@ -9,13 +9,13 @@ import java.sql.Timestamp;
 /**
  * Bean holding migration execution details stored in the migration table.
  */
+@SuppressWarnings("SqlSourceToSinkFlow")
 final class MigrationMetaRow {
 
   private final int id;
-  //private String status;
   private final String type;
   private final String version;
-  private final String comment;
+  private String comment;
   private int checksum;
   private Timestamp runOn;
   private String runBy;
@@ -41,18 +41,13 @@ final class MigrationMetaRow {
   MigrationMetaRow(ResultSet row) throws SQLException {
     id = row.getInt(1);
     type = row.getString(2);
-    //status = row.getString(3);
-    version = row.getString(4);
-    comment = row.getString(5);
-    checksum = row.getInt(6);
-    runOn = row.getTimestamp(7);
-    runBy = row.getString(8);
-    runTime = row.getLong(9);
+    version = row.getString(3);
+    checksum = row.getInt(4);
   }
 
   @Override
   public String toString() {
-    return "id:" + id + " type:" + type + " checksum:" + checksum + " runVersion:" + version + " comment:" + comment + " runOn:" + runOn + " runBy:" + runBy;
+    return "id:" + id + " type:" + type + " checksum:" + checksum + " version:" + version;
   }
 
   /**
@@ -111,8 +106,7 @@ final class MigrationMetaRow {
    */
   static String insertSql(String table) {
     return "insert into " + table
-      + " (id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time)"
-      + " values (?,?,?,?,?,?,?,?,?)";
+      + " (id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time) values (?,?,?,?,?,?,?,?,?)";
   }
 
   /**
@@ -120,8 +114,7 @@ final class MigrationMetaRow {
    */
   static String updateSql(String table) {
     return "update " + table
-      + " set mchecksum=?, run_on=?, run_by=?, run_time=? "
-      + " where id = ?";
+      + " set mchecksum=?, run_on=?, run_by=?, run_time=? where id = ?";
   }
 
   /**
