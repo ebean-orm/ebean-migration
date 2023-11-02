@@ -65,6 +65,7 @@ public class MigrationConfig {
   private String basePlatform;
   private String platform;
   private Properties properties;
+  private boolean earlyChecksumMode;
 
   /**
    * Return the name of the migration table.
@@ -469,6 +470,7 @@ public class MigrationConfig {
     dbSchema = getProperty("schema", dbSchema);
     skipMigrationRun = getBool("skipMigrationRun", skipMigrationRun);
     skipChecksum = getBool("skipChecksum", skipChecksum);
+    earlyChecksumMode = getBool("earlyChecksumMode", earlyChecksumMode);
     createSchemaIfNotExists = getBool("createSchemaIfNotExists", createSchemaIfNotExists);
     setCurrentSchema = getBool("setCurrentSchema", setCurrentSchema);
     basePlatform = getProperty("basePlatform", basePlatform);
@@ -573,6 +575,21 @@ public class MigrationConfig {
    */
   public void setPlatform(String platform) {
     this.platform = platform;
+  }
+
+  /**
+   * Return true if using the earlyChecksumMode which means checksums are computed
+   * before any expressions in the scripts are translated.
+   */
+  public boolean isEarlyChecksumMode() {
+    return earlyChecksumMode;
+  }
+
+  /**
+   * Set to true to turn on earlyChecksumMode.
+   */
+  public void setEarlyChecksumMode(boolean earlyChecksumMode) {
+    this.earlyChecksumMode = earlyChecksumMode;
   }
 
   /**

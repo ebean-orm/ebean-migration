@@ -49,7 +49,7 @@ public class MigrationEngine {
         connection.commit();
         if (!checkStateOnly) {
           long commitMs = System.currentTimeMillis();
-          log.log(INFO, "DB migrations completed in {0}ms - executed:{1} totalMigrations:{2}", (commitMs - startMs), table.count(), table.size());
+          log.log(INFO, "DB migrations completed in {0}ms - executed:{1} totalMigrations:{2} mode:{3}", (commitMs - startMs), table.count(), table.size(), table.mode());
           int countNonTransactional = table.runNonTransactional();
           if (countNonTransactional > 0) {
             log.log(INFO, "Non-transactional DB migrations completed in {0}ms - executed:{1}", (System.currentTimeMillis() - commitMs), countNonTransactional);

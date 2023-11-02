@@ -19,9 +19,9 @@ class MigrationTableCreateTableRaceTest {
   private final MigrationPlatform platform = new MigrationPlatform();
 
   private static PostgresContainer createPostgres() {
-    PostgresContainer.Builder builder = PostgresContainer.builder("13")
+    PostgresContainer.Builder builder = PostgresContainer.builder("15")
       .port(9823);
-    builder.containerName("test_ebean_migration_pg13");
+    builder.containerName("pg15");
     builder.user("mig_create_test");
     builder.dbName("mig_create_test");
     return builder.build();

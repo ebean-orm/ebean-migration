@@ -52,7 +52,7 @@ final class MigrationMetaRow {
 
   @Override
   public String toString() {
-    return "id:" + id + " type:" + type + " runVersion:" + version + " comment:" + comment + " runOn:" + runOn + " runBy:" + runBy;
+    return "id:" + id + " type:" + type + " checksum:" + checksum + " runVersion:" + version + " comment:" + comment + " runOn:" + runOn + " runBy:" + runBy;
   }
 
   /**

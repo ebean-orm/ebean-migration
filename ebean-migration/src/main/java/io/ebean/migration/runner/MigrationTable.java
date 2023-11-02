@@ -21,9 +21,13 @@ final class MigrationTable {
   static final System.Logger log = AppLog.getLogger("io.ebean.DDL");
 
   private static final String INIT_VER_0 = "0";
+  private static final int LEGACY_MODE_CHECKSUM = 0;
+  private static final int EARLY_MODE_CHECKSUM = 1;
+  private static final int AUTO_PATCH_CHECKSUM = -1;
 
   private final Connection connection;
   private final boolean checkStateOnly;
+  private boolean earlyChecksumMode;
   private final MigrationPlatform platform;
   private final MigrationScriptRunner scriptRunner;
   private final String catalog;
@@ -65,6 +69,8 @@ final class MigrationTable {
   private MigrationVersion dbInitVersion;
 
   private int executionCount;
+  private boolean patchLegacyChecksums;
+  private MigrationMetaRow initMetaRow;
 
   /**
    * Construct with server, configuration and jdbc connection (DB admin user).
@@ -74,6 +80,7 @@ final class MigrationTable {
     this.connection = connection;
     this.scriptRunner = new MigrationScriptRunner(connection, platform);
     this.checkStateOnly = checkStateOnly;
+    this.earlyChecksumMode = config.isEarlyChecksumMode();
     this.migrations = new LinkedHashMap<>();
     this.catalog = null;
     this.allowErrorInRepeatable = config.isAllowErrorInRepeatable();
@@ -296,12 +303,17 @@ final class MigrationTable {
   private boolean runMigration(LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
     String script = null;
     int checksum;
+    int checksum2 = 0;
     if (local instanceof LocalUriMigrationResource) {
-      script = convertScript(local.content());
       checksum = ((LocalUriMigrationResource)local).checksum();
-    } else if (local instanceof LocalDdlMigrationResource) {
+      checksum2 = patchLegacyChecksums ? AUTO_PATCH_CHECKSUM : 0;
       script = convertScript(local.content());
-      checksum = Checksum.calculate(script);
+    } else if (local instanceof LocalDdlMigrationResource) {
+      final String content = local.content();
+      script = convertScript(content);
+      // checksum on original content (NEW) or converted script content (LEGACY)
+      checksum = Checksum.calculate(earlyChecksumMode ? content : script);
+      checksum2 = patchLegacyChecksums ? Checksum.calculate(script) : 0;
     } else {
       checksum = ((LocalJdbcMigrationResource) local).checksum();
     }
@@ -309,7 +321,7 @@ final class MigrationTable {
     if (existing == null && patchInsertMigration(local, checksum)) {
       return true;
     }
-    if (existing != null && skipMigration(checksum, local, existing)) {
+    if (existing != null && skipMigration(checksum, checksum2, local, existing)) {
       return true;
     }
     executeMigration(local, script, checksum, existing);
@@ -333,10 +345,17 @@ final class MigrationTable {
   /**
    * Return true if the migration should be skipped.
    */
-  boolean skipMigration(int checksum, LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
+  boolean skipMigration(int checksum, int checksum2, LocalMigrationResource local, MigrationMetaRow existing) throws SQLException {
     boolean matchChecksum = (existing.checksum() == checksum);
     if (matchChecksum) {
       log.log(TRACE, "skip unchanged migration {0}", local.location());
+      return true;
+
+    } else if (patchLegacyChecksums && (existing.checksum() == checksum2 || checksum2 == AUTO_PATCH_CHECKSUM)) {
+      if (!checkStateOnly) {
+        log.log(INFO, "Patch migration, set early mode checksum on {0}", local.location());
+        existing.resetChecksum(checksum, connection, updateChecksumSql);
+      }
       return true;
 
     } else if (patchResetChecksum(existing, checksum)) {
@@ -424,7 +443,8 @@ final class MigrationTable {
   }
 
   private MigrationMetaRow createInitMetaRow() {
-    return new MigrationMetaRow(0, "I", INIT_VER_0, "<init>", 0, envUserName, runOn, 0);
+    final int mode = earlyChecksumMode ? EARLY_MODE_CHECKSUM : LEGACY_MODE_CHECKSUM;
+    return new MigrationMetaRow(0, "I", INIT_VER_0, "<init>", mode, envUserName, runOn, 0);
   }
 
   /**
@@ -460,7 +480,12 @@ final class MigrationTable {
    */
   private void addMigration(String key, MigrationMetaRow metaRow) {
     if (INIT_VER_0.equals(key)) {
-      // ignore the version 0 <init> row
+      if (metaRow.checksum() == EARLY_MODE_CHECKSUM && !earlyChecksumMode) {
+        log.log(DEBUG, "automatically detected earlyChecksumMode");
+        earlyChecksumMode = true;
+      }
+      initMetaRow = metaRow;
+      patchLegacyChecksums = earlyChecksumMode && metaRow.checksum() == LEGACY_MODE_CHECKSUM;
       return;
     }
     lastMigration = metaRow;
@@ -500,6 +525,10 @@ final class MigrationTable {
       } else if (!shouldRun(localVersion, priorVersion)) {
         break;
       }
+    }
+    if (patchLegacyChecksums && !checkStateOnly) {
+      // only patch the legacy checksums once
+      initMetaRow.resetChecksum(EARLY_MODE_CHECKSUM, connection, updateChecksumSql);
     }
     return checkMigrations;
   }
@@ -560,5 +589,12 @@ final class MigrationTable {
    */
   int count() {
     return executionCount;
+  }
+
+  /**
+   * Return the mode being used by this migration run.
+   */
+  String mode() {
+    return !earlyChecksumMode ? "legacy" : (patchLegacyChecksums ? "earlyChecksum with patching" : "earlyChecksum");
   }
 }

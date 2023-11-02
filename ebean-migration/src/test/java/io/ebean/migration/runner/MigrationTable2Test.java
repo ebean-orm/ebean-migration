@@ -48,9 +48,9 @@ public class MigrationTable2Test {
 
     MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
     // checksum different - no skip
-    assertFalse(mt.skipMigration(100, local, existing));
+    assertFalse(mt.skipMigration(100, 100, local, existing));
     // checksum same - skip
-    assertTrue(mt.skipMigration(42, local, existing));
+    assertTrue(mt.skipMigration(42, 42, local, existing));
   }
 
   @Test
@@ -66,19 +66,20 @@ public class MigrationTable2Test {
     MigrationMetaRow existing = new MigrationMetaRow(12, "R", "", "comment", 42, null, null, 0);
 
     // repeatable checksum mismatch
-    assertFalse(mt.skipMigration(44, local, existing));
+    assertFalse(mt.skipMigration(44, 44, local, existing));
 
     // repeatable match checksum
-    assertTrue(mt.skipMigration(42, local, existing));
+    assertTrue(mt.skipMigration(42, 42, local, existing));
+    // assertTrue(mt.skipMigration(99, 42, local, existing));
 
     LocalMigrationResource localVer = local("V1__hello");
     MigrationMetaRow localExisting = new MigrationMetaRow(12, "V", "1", "comment", 42, null, null, 0);
 
     // re-run on checksum mismatch and skipChecksum
-    assertFalse(mt.skipMigration(44, localVer, localExisting));
+    assertFalse(mt.skipMigration(44, 44, localVer, localExisting));
 
     // match checksum so skip
-    assertTrue(mt.skipMigration(42, localVer, localExisting));
+    assertTrue(mt.skipMigration(42, 42, localVer, localExisting));
   }
 
   private LocalMigrationResource local(String raw) {

@@ -48,6 +48,8 @@ final class LocalMigrationResources {
    */
   boolean readResources() {
     if (readFromIndex()) {
+      // automatically enable earlyChecksumMode when using index file with pre-computed checksums
+      migrationConfig.setEarlyChecksumMode(true);
       return true;
     }
     return readResourcesForPath(migrationConfig.getMigrationPath());
@@ -86,7 +88,7 @@ final class LocalMigrationResources {
           if (pair.length == 2) {
             final var checksum = Integer.parseInt(pair[0]);
             final var location = pair[1].trim();
-            final String substring = location.substring(0, location.length() - 4);
+            final var substring = location.substring(0, location.length() - 4);
             final var version = MigrationVersion.parse(substring);
             final var url = resource(base + location);
             versions.add(new LocalUriMigrationResource(version, location, url, checksum));
