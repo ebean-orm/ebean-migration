@@ -12,8 +12,8 @@ import java.sql.Timestamp;
 @SuppressWarnings("SqlSourceToSinkFlow")
 final class MigrationMetaRow {
 
-  private final int id;
-  private final String type;
+  private int id;
+  private String type;
   private final String version;
   private String comment;
   private int checksum;
@@ -43,6 +43,17 @@ final class MigrationMetaRow {
     type = row.getString(2);
     version = row.getString(3);
     checksum = row.getInt(4);
+  }
+
+  private MigrationMetaRow(int checksum, String version) {
+    this.checksum = checksum;
+    this.version = version;
+  }
+
+  static MigrationMetaRow fastRead(ResultSet row) throws SQLException {
+    final var checksum = row.getInt(1);
+    final var version = row.getString(2);
+    return new MigrationMetaRow(checksum, version);
   }
 
   @Override

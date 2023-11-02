@@ -16,8 +16,7 @@ public class MigrationSchemaTest {
 
     Connection connection = config.createConnection();
 
-    MigrationSchema migrationSchema = new MigrationSchema(config, connection);
-    migrationSchema.createAndSetIfNeeded();
+    MigrationSchema.createIfNeeded(config, connection);
   }
 
   private MigrationConfig createMigrationConfig() {

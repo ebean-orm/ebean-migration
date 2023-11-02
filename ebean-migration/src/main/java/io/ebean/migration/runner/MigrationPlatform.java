@@ -19,6 +19,7 @@ class MigrationPlatform {
 
   private static final String BASE_SELECT_ID = "select id from ";
   private static final String BASE_SELECT = "select id, mtype, mversion, mchecksum from ";
+  private static final String SELECT_FAST_READ = "select mchecksum, mversion from ";
 
   /**
    * Standard row locking for db migration table.
@@ -66,9 +67,8 @@ class MigrationPlatform {
 
   private int lockRows(String sqlTable, Connection connection) throws SQLException {
     int rowCount = 0;
-    final String selectSql = sqlSelectForUpdate(sqlTable);
     try (Statement query = connection.createStatement()) {
-      try (ResultSet resultSet = query.executeQuery(selectSql)) {
+      try (ResultSet resultSet = query.executeQuery(sqlSelectForUpdate(sqlTable))) {
         while (resultSet.next()) {
           resultSet.getInt(1);
           rowCount++;
@@ -76,6 +76,20 @@ class MigrationPlatform {
       }
     }
     return rowCount;
+  }
+
+  List<MigrationMetaRow> fastReadMigrations(String sqlTable, Connection connection) throws SQLException {
+    List<MigrationMetaRow> rows = new ArrayList<>();
+    try (Statement query = connection.createStatement()) {
+      try (ResultSet resultSet = query.executeQuery(sqlSelectForFastRead(sqlTable))) {
+        while (resultSet.next()) {
+          rows.add(MigrationMetaRow.fastRead(resultSet));
+        }
+      }
+    } finally {
+      connection.rollback();
+    }
+    return rows;
   }
 
   /**
@@ -106,6 +120,10 @@ class MigrationPlatform {
    */
   String sqlSelectForReading(String table) {
     return BASE_SELECT + table + forUpdateSuffix;
+  }
+
+  String sqlSelectForFastRead(String table) {
+    return SELECT_FAST_READ + table;
   }
 
   static final class LogicalLock extends MigrationPlatform {

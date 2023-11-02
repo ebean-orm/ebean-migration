@@ -26,11 +26,15 @@ final class MigrationSchema {
   /**
    * Construct with configuration and connection.
    */
-  MigrationSchema(MigrationConfig migrationConfig, Connection connection) {
+  private MigrationSchema(MigrationConfig migrationConfig, Connection connection) {
     this.dbSchema = trim(migrationConfig.getDbSchema());
     this.createSchemaIfNotExists = migrationConfig.isCreateSchemaIfNotExists();
     this.setCurrentSchema = migrationConfig.isSetCurrentSchema();
     this.connection = connection;
+  }
+
+  static void createIfNeeded(MigrationConfig config, Connection connection) throws SQLException {
+    new MigrationSchema(config, connection).createAndSetIfNeeded();
   }
 
   private String trim(String dbSchema) {
@@ -52,6 +56,7 @@ final class MigrationSchema {
     }
   }
 
+  @SuppressWarnings("SqlDialectInspection")
   private void createSchemaIfNeeded() throws SQLException {
     if (!schemaExists()) {
       log.log(INFO, "Creating schema: {0}", dbSchema);

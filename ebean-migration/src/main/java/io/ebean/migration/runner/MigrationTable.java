@@ -25,6 +25,7 @@ final class MigrationTable {
   private static final int EARLY_MODE_CHECKSUM = 1;
   private static final int AUTO_PATCH_CHECKSUM = -1;
 
+  private final MigrationConfig config;
   private final Connection connection;
   private final boolean checkStateOnly;
   private boolean earlyChecksumMode;
@@ -71,11 +72,13 @@ final class MigrationTable {
   private int executionCount;
   private boolean patchLegacyChecksums;
   private MigrationMetaRow initMetaRow;
+  private boolean tableKnownToExist;
 
   /**
    * Construct with server, configuration and jdbc connection (DB admin user).
    */
   MigrationTable(MigrationConfig config, Connection connection, boolean checkStateOnly, MigrationPlatform platform) {
+    this.config = config;
     this.platform = platform;
     this.connection = connection;
     this.scriptRunner = new MigrationScriptRunner(connection, platform);
@@ -146,16 +149,19 @@ final class MigrationTable {
    * </p>
    */
   void createIfNeededAndLock() throws SQLException, IOException {
-    SQLException sqlEx = null;
-    if (!tableExists()) {
-      try {
-        createTable();
-      } catch (SQLException e) {
-        if (tableExists()) {
-          sqlEx = e;
-          log.log(INFO, "Ignoring error during table creation, as an other process may have created the table", e);
-        } else {
-          throw e;
+    SQLException suppressedException = null;
+    if (!tableKnownToExist) {
+      MigrationSchema.createIfNeeded(config, connection);
+      if (!tableExists()) {
+        try {
+          createTable();
+        } catch (SQLException e) {
+          if (tableExists()) {
+            suppressedException = e;
+            log.log(INFO, "Ignoring error during table creation, as an other process may have created the table", e);
+          } else {
+            throw e;
+          }
         }
       }
     }
@@ -163,8 +169,8 @@ final class MigrationTable {
       obtainLockWithWait();
     } catch (RuntimeException re) {
       // catch "failed to obtain row locks"
-      if (sqlEx != null) {
-        re.addSuppressed(sqlEx);
+      if (suppressedException != null) {
+        re.addSuppressed(suppressedException);
       }
       throw re;
     }
@@ -185,6 +191,13 @@ final class MigrationTable {
    */
   void unlockMigrationTable() {
     platform.unlockMigrationTable(sqlTable, connection);
+  }
+
+  List<MigrationMetaRow> fastRead() throws SQLException {
+    final var result = platform.fastReadMigrations(sqlTable, connection);
+    // if we know the migration table exists we can skip those checks
+    tableKnownToExist = !result.isEmpty();
+    return result;
   }
 
   /**
