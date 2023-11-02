@@ -18,7 +18,7 @@ class MigrationPlatform {
   private static final System.Logger log = MigrationTable.log;
 
   private static final String BASE_SELECT_ID = "select id from ";
-  private static final String BASE_SELECT_ALL = "select id, mtype, mstatus, mversion, mcomment, mchecksum, run_on, run_by, run_time from ";
+  private static final String BASE_SELECT = "select id, mtype, mversion, mchecksum from ";
 
   /**
    * Standard row locking for db migration table.
@@ -105,7 +105,7 @@ class MigrationPlatform {
    * Return the SQL to read the db migration table.
    */
   String sqlSelectForReading(String table) {
-    return BASE_SELECT_ALL + table + forUpdateSuffix;
+    return BASE_SELECT + table + forUpdateSuffix;
   }
 
   static final class LogicalLock extends MigrationPlatform {
