@@ -185,7 +185,7 @@ public class MigrationTableAsyncTest {
 
         config.setPlatform(derivedPlatformName);
         MigrationPlatform platform = DbNameUtil.platform(derivedPlatformName);
-        MigrationTable table = migrationTable(platform);
+        MigrationTable table = migrationTable(platform, conn);
         table.createIfNeededAndLock();
         table.unlockMigrationTable();
         conn.commit();
@@ -203,8 +203,8 @@ public class MigrationTableAsyncTest {
     }
   }
 
-  private static MigrationTable migrationTable(MigrationPlatform platform) {
-    var fc = new FirstCheck(config, null, platform);
+  private static MigrationTable migrationTable(MigrationPlatform platform, Connection connection) {
+    var fc = new FirstCheck(config, connection, platform);
     return new MigrationTable(fc, false);
   }
 
