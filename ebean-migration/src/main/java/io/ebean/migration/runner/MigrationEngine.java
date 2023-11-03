@@ -44,11 +44,12 @@ public class MigrationEngine {
         log.log(DEBUG, "no migrations to check");
         return emptyList();
       }
+      long splitMs = System.currentTimeMillis() - startMs;
       final var platform = derivePlatform(migrationConfig, connection);
       final var firstCheck = new FirstCheck(migrationConfig, connection, platform);
       if (fastMode && firstCheck.fastModeCheck(resources.versions())) {
         long checkMs = System.currentTimeMillis() - startMs;
-        log.log(INFO, "DB migrations completed in {0}ms - totalMigrations:{1}", checkMs, firstCheck.count());
+        log.log(INFO, "DB migrations completed in {0}ms - totalMigrations:{1} readResources:{2}ms", checkMs, firstCheck.count(), splitMs);
         return emptyList();
       }
       // ensure running with autoCommit false
