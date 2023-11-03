@@ -51,7 +51,8 @@ class MigrationTableCreateTableRaceTest {
     try (Connection conn = dataSource.getConnection()) {
       dropTable(conn);
 
-      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      var fc = new FirstCheck(config, conn, platform);
+      MigrationTable table = new MigrationTable(fc, false);
       table.createTable();
       try {
         // simulate losing the race, this createTable() will fail as the table exists

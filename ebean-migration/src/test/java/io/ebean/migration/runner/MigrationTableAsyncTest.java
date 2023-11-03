@@ -185,7 +185,7 @@ public class MigrationTableAsyncTest {
 
         config.setPlatform(derivedPlatformName);
         MigrationPlatform platform = DbNameUtil.platform(derivedPlatformName);
-        MigrationTable table = new MigrationTable(config, conn, false, platform);
+        MigrationTable table = migrationTable(platform);
         table.createIfNeededAndLock();
         table.unlockMigrationTable();
         conn.commit();
@@ -201,6 +201,11 @@ public class MigrationTableAsyncTest {
     for (Future<String> future : futures) {
       assertThat(future.get()).isEqualTo("OK");
     }
+  }
+
+  private static MigrationTable migrationTable(MigrationPlatform platform) {
+    var fc = new FirstCheck(config, null, platform);
+    return new MigrationTable(fc, false);
   }
 
   private void dropTable(String tableName) throws SQLException {

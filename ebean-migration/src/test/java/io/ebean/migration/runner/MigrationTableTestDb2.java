@@ -15,7 +15,7 @@ public class MigrationTableTestDb2 {
 
   private static MigrationConfig config;
   private static DataSourcePool dataSource;
-  private MigrationPlatform platform = new MigrationPlatform();
+  private final MigrationPlatform platform = new MigrationPlatform();
 
   @BeforeEach
   public void setUp() {
@@ -44,7 +44,8 @@ public class MigrationTableTestDb2 {
     config.setMigrationPath("dbmig");
 
     try (Connection conn = dataSource.getConnection()) {
-      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      var fc = new FirstCheck(config, conn, platform);
+      MigrationTable table = new MigrationTable(fc, false);
       table.createIfNeededAndLock();
       table.unlockMigrationTable();
       table.createIfNeededAndLock();

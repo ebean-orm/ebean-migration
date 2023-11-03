@@ -10,13 +10,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MigrationTable2Test {
 
+
+  private static MigrationTable migrationTable(MigrationConfig config) {
+    var fc = new FirstCheck(config, null, new MigrationPlatform());
+    return new MigrationTable(fc, false);
+  }
+
   @Test
   void testCreateTableDdl() throws Exception {
 
     MigrationConfig config = new MigrationConfig();
     config.setDbSchema("foo");
 
-    MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
+    MigrationTable mt = migrationTable(config);
     String tableSql = mt.createTableDdl();
 
     assertThat(tableSql).contains("create table foo.db_migration ");
@@ -30,7 +36,7 @@ public class MigrationTable2Test {
     config.setDbSchema("bar");
     config.setPlatform(DbPlatformNames.SQLSERVER);
 
-    MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
+    MigrationTable mt = migrationTable(config);
     String tableSql = mt.createTableDdl();
 
     assertThat(tableSql).contains("datetime2 ");
@@ -46,7 +52,7 @@ public class MigrationTable2Test {
     LocalMigrationResource local = local("R__hello");
     MigrationMetaRow existing = new MigrationMetaRow(12, "R", "", "comment", 42, null, null, 0);
 
-    MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
+    MigrationTable mt = migrationTable(config);
     // checksum different - no skip
     assertFalse(mt.skipMigration(100, 100, local, existing));
     // checksum same - skip
@@ -59,7 +65,7 @@ public class MigrationTable2Test {
     MigrationConfig config = new MigrationConfig();
     config.setSkipChecksum(true);
 
-    MigrationTable mt = new MigrationTable(config, null, false, new MigrationPlatform());
+    MigrationTable mt = migrationTable(config);
 
     // skip regardless of checksum difference
     LocalMigrationResource local = local("R__hello");

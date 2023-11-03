@@ -7,13 +7,11 @@ import io.ebean.migration.MigrationResource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.lang.System.Logger.Level.*;
 import static java.lang.System.Logger.Level.WARNING;
+import static java.util.Collections.emptyList;
 
 /**
  * Actually runs the migrations.
@@ -25,8 +23,6 @@ public class MigrationEngine {
   private final MigrationConfig migrationConfig;
   private final boolean checkStateOnly;
   private final boolean fastMode;
-  private int fastModeCount;
-  private MigrationTable table;
 
   /**
    * Create with the MigrationConfig.
@@ -42,23 +38,25 @@ public class MigrationEngine {
    */
   public List<MigrationResource> run(Connection connection) {
     try {
+      long startMs = System.currentTimeMillis();
       LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
       if (!resources.readResources() && !resources.readInitResources()) {
         log.log(DEBUG, "no migrations to check");
-        return Collections.emptyList();
+        return emptyList();
       }
-      long startMs = System.currentTimeMillis();
-      setAutoCommitFalse(connection);
-      table = initMigrationTable(connection);
-      if (fastMode && fastModeCheck(resources.versions())) {
+      final var platform = derivePlatform(migrationConfig, connection);
+      final var firstCheck = new FirstCheck(migrationConfig, connection, platform);
+      if (fastMode && firstCheck.fastModeCheck(resources.versions())) {
         long checkMs = System.currentTimeMillis() - startMs;
-        log.log(INFO, "DB migrations completed in {0}ms - totalMigrations:{1}", checkMs, fastModeCount);
-        return Collections.emptyList();
+        log.log(INFO, "DB migrations completed in {0}ms - totalMigrations:{1}", checkMs, firstCheck.count());
+        return emptyList();
       }
+      // ensure running with autoCommit false
+      setAutoCommitFalse(connection);
 
-      initialiseMigrationTable(connection);
+      final MigrationTable table = initialiseMigrationTable(firstCheck, connection);
       try {
-        List<MigrationResource> result = runMigrations(resources.versions());
+        List<MigrationResource> result = runMigrations(table, resources.versions());
         connection.commit();
         if (!checkStateOnly) {
           long commitMs = System.currentTimeMillis();
@@ -92,57 +90,11 @@ public class MigrationEngine {
     }
   }
 
-  private MigrationTable initMigrationTable(Connection connection) {
-    final MigrationPlatform platform = derivePlatformName(migrationConfig, connection);
-    return new MigrationTable(migrationConfig, connection, checkStateOnly, platform);
-  }
-
-  private boolean fastModeCheck(List<LocalMigrationResource> versions) {
+  private MigrationTable initialiseMigrationTable(FirstCheck firstCheck, Connection connection) {
     try {
-      final List<MigrationMetaRow> rows = table.fastRead();
-      if (rows.size() != versions.size() + 1) {
-        // difference in count of migrations
-        return false;
-      }
-      final Map<String, Integer> dbChecksums = dbChecksumMap(rows);
-      for (LocalMigrationResource local : versions) {
-        Integer dbChecksum = dbChecksums.get(local.key());
-        if (dbChecksum == null) {
-          // no match, unexpected missing migration
-          return false;
-        }
-        int localChecksum = checksumFor(local);
-        if (localChecksum != dbChecksum) {
-          // no match, perhaps repeatable migration change
-          return false;
-        }
-      }
-      // successful fast check
-      fastModeCount = versions.size();
-      return true;
-    } catch (SQLException e) {
-      // probably migration table does not exist
-      return false;
-    }
-  }
-
-  private static Map<String, Integer> dbChecksumMap(List<MigrationMetaRow> rows) {
-    return rows.stream().collect(Collectors.toMap(MigrationMetaRow::version, MigrationMetaRow::checksum));
-  }
-
-  private int checksumFor(LocalMigrationResource local) {
-    if (local instanceof LocalUriMigrationResource) {
-      return ((LocalUriMigrationResource)local).checksum();
-    } else if (local instanceof LocalDdlMigrationResource) {
-      return Checksum.calculate(local.content());
-    } else {
-      return ((LocalJdbcMigrationResource) local).checksum();
-    }
-  }
-
-  private void initialiseMigrationTable(Connection connection) {
-    try {
+      final MigrationTable table = firstCheck.initTable(checkStateOnly);
       table.createIfNeededAndLock();
+      return table;
     } catch (Throwable e) {
       rollback(connection);
       throw new MigrationException("Error initialising db migrations table", e);
@@ -152,7 +104,7 @@ public class MigrationEngine {
   /**
    * Run all the migrations as needed.
    */
-  private List<MigrationResource> runMigrations(List<LocalMigrationResource> localVersions) throws SQLException {
+  private List<MigrationResource> runMigrations(MigrationTable table, List<LocalMigrationResource> localVersions) throws SQLException {
     // get the migrations in version order
     if (table.isEmpty()) {
       LocalMigrationResource initVersion = lastInitVersion();
@@ -182,7 +134,7 @@ public class MigrationEngine {
   /**
    * Return the platform deriving from connection if required.
    */
-  private MigrationPlatform derivePlatformName(MigrationConfig migrationConfig, Connection connection) {
+  private MigrationPlatform derivePlatform(MigrationConfig migrationConfig, Connection connection) {
     final String platform = migrationConfig.getPlatform();
     if (platform != null) {
       return DbNameUtil.platform(platform);
