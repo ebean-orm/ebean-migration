@@ -74,13 +74,15 @@ final class MigrationTable {
   private MigrationMetaRow initMetaRow;
   private boolean tableKnownToExist;
 
-  /**
-   * Construct with server, configuration and jdbc connection (DB admin user).
-   */
-  MigrationTable(MigrationConfig config, Connection connection, boolean checkStateOnly, MigrationPlatform platform) {
-    this.config = config;
-    this.platform = platform;
-    this.connection = connection;
+  public MigrationTable(FirstCheck firstCheck, boolean checkStateOnly) {
+    this.config = firstCheck.config;
+    this.platform = firstCheck.platform;
+    this.connection = firstCheck.connection;
+    this.schema = firstCheck.schema;
+    this.table = firstCheck.table;
+    this.sqlTable = firstCheck.sqlTable;
+    this.tableKnownToExist = firstCheck.tableKnownToExist;
+
     this.scriptRunner = new MigrationScriptRunner(connection, platform);
     this.checkStateOnly = checkStateOnly;
     this.earlyChecksumMode = config.isEarlyChecksumMode();
@@ -93,11 +95,8 @@ final class MigrationTable {
     this.minVersionFailMessage = config.getMinVersionFailMessage();
     this.skipMigrationRun = config.isSkipMigrationRun();
     this.skipChecksum = config.isSkipChecksum();
-    this.schema = config.getDbSchema();
-    this.table = config.getMetaTable();
     this.basePlatformName = config.getBasePlatform();
     this.platformName = config.getPlatform();
-    this.sqlTable = initSqlTable();
     this.insertSql = MigrationMetaRow.insertSql(sqlTable);
     this.updateSql = MigrationMetaRow.updateSql(sqlTable);
     this.updateChecksumSql = MigrationMetaRow.updateChecksumSql(sqlTable);
@@ -107,14 +106,6 @@ final class MigrationTable {
 
   private MigrationVersion initMinVersion(String minVersion) {
     return (minVersion == null || minVersion.isEmpty()) ? null : MigrationVersion.parse(minVersion);
-  }
-
-  private String initSqlTable() {
-    if (schema != null) {
-      return schema + "." + table;
-    } else {
-      return table;
-    }
   }
 
   private String sqlPrimaryKey() {
@@ -191,13 +182,6 @@ final class MigrationTable {
    */
   void unlockMigrationTable() {
     platform.unlockMigrationTable(sqlTable, connection);
-  }
-
-  List<MigrationMetaRow> fastRead() throws SQLException {
-    final var result = platform.fastReadMigrations(sqlTable, connection);
-    // if we know the migration table exists we can skip those checks
-    tableKnownToExist = !result.isEmpty();
-    return result;
   }
 
   /**

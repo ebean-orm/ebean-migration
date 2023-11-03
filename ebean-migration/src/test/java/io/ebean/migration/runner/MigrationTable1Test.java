@@ -42,6 +42,12 @@ public class MigrationTable1Test {
     dataSource.shutdown();
   }
 
+
+  private MigrationTable migrationTable(Connection conn) {
+    var fc = new FirstCheck(config, conn, platform);
+    return new MigrationTable(fc, false);
+  }
+
   @Test
   public void testMigrationTableBase() throws Exception {
 
@@ -50,7 +56,7 @@ public class MigrationTable1Test {
     MigrationRunner runner = new MigrationRunner(config);
     runner.run(dataSource);
     try (Connection conn = dataSource.getConnection()) {
-      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      MigrationTable table = migrationTable(conn);
       table.createIfNeededAndLock();
       assertThat(table.versions()).containsExactly("hello", "1.1", "1.2", "1.2.1", "m2_view");
 
@@ -68,6 +74,7 @@ public class MigrationTable1Test {
     }
   }
 
+
   @Test
   public void testMigrationTableRepeatableOk() throws Exception {
 
@@ -77,7 +84,7 @@ public class MigrationTable1Test {
     runner.run(dataSource);
 
     try (Connection conn = dataSource.getConnection()) {
-      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      MigrationTable table = migrationTable(conn);
       table.createIfNeededAndLock();
       assertThat(table.versions()).containsExactly("1.1");
       table.unlockMigrationTable();
@@ -90,7 +97,7 @@ public class MigrationTable1Test {
     runner.run(dataSource);
 
     try (Connection conn = dataSource.getConnection()) {
-      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      MigrationTable table = migrationTable(conn);
       table.createIfNeededAndLock();
       assertThat(table.versions()).containsExactly("1.1", "1.2", "m2_view");
       table.unlockMigrationTable();
@@ -108,7 +115,7 @@ public class MigrationTable1Test {
     runner.run(dataSource);
 
     try (Connection conn = dataSource.getConnection()) {
-      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      MigrationTable table = migrationTable(conn);
       table.createIfNeededAndLock();
       assertThat(table.versions()).containsExactly("1.1");
       table.unlockMigrationTable();
@@ -141,7 +148,7 @@ public class MigrationTable1Test {
       assertThat(m3Content).contains("text with ; sign");
 
       // we expect, that 1.1 and 1.2 is executed (but not the R__ script)
-      MigrationTable table = new MigrationTable(config, conn, false, platform);
+      MigrationTable table = migrationTable(conn);
       table.createIfNeededAndLock();
       assertThat(table.versions()).containsExactly("1.1", "1.2");
       conn.rollback();
