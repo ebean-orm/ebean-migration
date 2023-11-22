@@ -44,7 +44,7 @@ public class MigrationRunnerTest {
     assertThat(check.get(0).content()).contains("-- do nothing");
     assertThat(check.get(1).content()).contains("create table m1");
     assertThat(check.get(2).content()).contains("create table m3");
-    assertThat(check.get(3).location()).isEqualTo("dbmig_idx/V1_2_1__test.class");
+    assertThat(check.get(3).location()).isEqualTo("dbmig/V1_2_1__test.class");
     assertThat(javaMigrationExecuted).isFalse();
     runner.run();
     assertThat(javaMigrationExecuted).isTrue();
