@@ -302,7 +302,7 @@ final class MigrationTable {
     int checksum;
     int checksum2 = 0;
     if (local instanceof LocalUriMigrationResource) {
-      checksum = ((LocalUriMigrationResource)local).checksum();
+      checksum = local.checksum();
       checksum2 = patchLegacyChecksums ? AUTO_PATCH_CHECKSUM : 0;
       script = convertScript(local.content());
     } else if (local instanceof LocalDdlMigrationResource) {
@@ -312,7 +312,7 @@ final class MigrationTable {
       checksum = Checksum.calculate(earlyChecksumMode ? content : script);
       checksum2 = patchLegacyChecksums ? Checksum.calculate(script) : 0;
     } else {
-      checksum = ((LocalJdbcMigrationResource) local).checksum();
+      checksum = local.checksum();
     }
 
     if (existing == null && patchInsertMigration(local, checksum)) {

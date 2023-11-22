@@ -12,7 +12,6 @@ import java.util.Set;
  * Configuration used to run the migration.
  */
 public class MigrationConfig {
-
   private String migrationPath = "dbmigration";
   private String migrationInitPath = "dbinit";
   private String metaTable = "db_migration";
@@ -67,6 +66,8 @@ public class MigrationConfig {
   private Properties properties;
   private boolean earlyChecksumMode;
   private boolean fastMode;
+  private boolean forceLocal = false;
+  private boolean forceLocalCheck = false;
 
   /**
    * Return the name of the migration table.
@@ -458,6 +459,38 @@ public class MigrationConfig {
   }
 
   /**
+   * Determines, if the local files should be used, although if there is an index file present.
+   */
+  public boolean isForceLocal() {
+    return forceLocal;
+  }
+
+  /**
+   * If this option is set, migrations are read from local resources and validated against the idx file.
+   */
+  public void setForceLocal(boolean forceLocal) {
+    this.forceLocal = forceLocal;
+  }
+
+  /**
+   * Determines, if the local files should be checked against the index.
+   */
+  public boolean isForceLocalCheck() {
+    return forceLocalCheck;
+  }
+
+  /**
+   * Determines, if local files should be checked. This means, the checksums of local files are validated against
+   * the ones in the index file. If this option is set, a MigrationException is thrown, when the index file does not
+   * match to local resources. (Note: Setting this option implies <code>forceLocal</code>. If this option is set to false,
+   * and <code>forceLocal = true</code>, then index mismatches will be logged as warning only)
+   */
+  public void setForceLocalCheck(boolean forceLocalCheck) {
+    this.forceLocalCheck = forceLocalCheck;
+  }
+
+
+  /**
    * Load configuration from standard properties.
    */
   public void load(Properties props) {
@@ -483,6 +516,8 @@ public class MigrationConfig {
     runPlaceholders = property("placeholders", runPlaceholders);
     minVersion = property("minVersion", minVersion);
     minVersionFailMessage = property("minVersionFailMessage", minVersionFailMessage);
+    forceLocal = property("forceLocal", forceLocal);
+    forceLocalCheck = property("forceLocalCheck", forceLocalCheck);
 
     String patchInsertOn = property("patchInsertOn");
     if (patchInsertOn != null) {
