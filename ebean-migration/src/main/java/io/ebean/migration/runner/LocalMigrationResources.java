@@ -4,16 +4,21 @@ import io.avaje.classpath.scanner.Resource;
 import io.avaje.classpath.scanner.core.Scanner;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
+import io.ebean.migration.MigrationException;
 import io.ebean.migration.MigrationVersion;
 
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.function.Predicate;
 
 import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.WARNING;
 
 /**
  * Loads the DB migration resources and sorts them into execution order.
@@ -47,12 +52,55 @@ final class LocalMigrationResources {
    * Read all the migration resources (SQL scripts) returning true if there are versions.
    */
   boolean readResources() {
+
     if (readFromIndex()) {
       // automatically enable earlyChecksumMode when using index file with pre-computed checksums
       migrationConfig.setEarlyChecksumMode(true);
+      if (migrationConfig.isForceLocal() || migrationConfig.isForceLocalCheck()) {
+        return useLocalAndCheck(migrationConfig.isForceLocalCheck());
+      }
       return true;
     }
     return readResourcesForPath(migrationConfig.getMigrationPath());
+  }
+
+  private boolean useLocalAndCheck(boolean fail) {
+    // throw away, what we have read from index.
+    Map<MigrationVersion, LocalMigrationResource> index = new LinkedHashMap<>();
+    for (LocalMigrationResource version : versions) {
+      index.put(version.version(), version);
+    }
+    versions.clear();
+    // and re-read the local resources
+    if (!readResourcesForPath(migrationConfig.getMigrationPath())) {
+      if (fail) {
+        throw new MigrationException("Could not read local resources");
+      } else {
+        log.log(WARNING, "Could not read local resources");
+        return false;
+      }
+    }
+
+    StringJoiner errors = new StringJoiner("; ");
+    for (LocalMigrationResource version : versions) {
+      LocalMigrationResource refVersion = index.remove(version.version);
+      if (refVersion == null) {
+        errors.add("'" + version + "' not in index file");
+      } else if (refVersion.checksum() != version.checksum()) {
+        errors.add("'" + version + "' checksum mismatch (index " + refVersion.checksum() + ", local " + version.checksum() + ")");
+      }
+    }
+    for (LocalMigrationResource refVersion : index.values()) {
+      errors.add("'" + refVersion + "' not in local migrations");
+    }
+    if (errors.length() != 0) {
+      if (fail) {
+        throw new MigrationException("Index validation failed: " + errors);
+      } else {
+        log.log(WARNING, "Index validation failed: {0}", errors);
+      }
+    }
+    return true;
   }
 
   private boolean readFromIndex() {

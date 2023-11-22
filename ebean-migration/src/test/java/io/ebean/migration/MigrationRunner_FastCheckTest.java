@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class MigrationRunner_FastCheckTest {
 
@@ -97,4 +98,47 @@ public class MigrationRunner_FastCheckTest {
     assertThat(config.isEarlyChecksumMode()).isTrue();
   }
 
+  @Test
+  public void checkIndex_valid() {
+
+    MigrationConfig config = createMigrationConfig();
+
+    config.setPlatform("h2");
+    config.setMigrationPath("indexB_check_valid");
+    config.setForceLocalCheck(true);
+    config.setDbUrl("jdbc:h2:mem:checkindex_valid");
+    config.setRunPlaceholderMap(Map.of("my_table_name", "bar"));
+
+    MigrationRunner runner = new MigrationRunner(config);
+    runner.run();
+
+  }
+
+  @Test
+  public void checkIndex_invalid() {
+
+    MigrationConfig config = createMigrationConfig();
+
+    config.setPlatform("h2");
+    config.setMigrationPath("indexB_check_invalid");
+    config.setForceLocalCheck(true);
+    config.setDbUrl("jdbc:h2:mem:checkindex_invalid");
+    config.setRunPlaceholderMap(Map.of("my_table_name", "bar"));
+
+    MigrationRunner runner = new MigrationRunner(config);
+    assertThatThrownBy(runner::checkState)
+      .isInstanceOf(MigrationException.class)
+      .hasMessageContaining("'1.2' checksum mismatch (index -123456, local -212580746)")
+      .hasMessageContaining("'1.3' not in index file");
+
+    // switch to forceLocal only. This means, we get a warning about index validations on the console,
+    // but the local files are used
+    config.setForceLocalCheck(false);
+    config.setForceLocal(true);
+
+    List<MigrationResource> state = runner.checkState();
+    assertThat(state).hasSize(4);
+    // 1.3 not mentioned in the idx.
+    assertThat(state.get(3).location()).isEqualTo("indexB_check_invalid/1.3.sql");
+  }
 }
