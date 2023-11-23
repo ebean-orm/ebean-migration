@@ -25,4 +25,23 @@ public interface JdbcMigration extends MigrationChecksumProvider {
   default int getChecksum() {
     return 0;
   }
+
+  /**
+   * Returns the name of the JdbcMigration. Note, the value must follow the naming conventions, for MigrationVersions.
+   * (example: <code>V1_2_1__comment</code>)
+   * <p>
+   * By default, the simple classname will be returned.
+   */
+  default String getName() {
+    return getClass().getSimpleName();
+  }
+
+  /**
+   * Determines, if this migration can be used for that platform.
+   * <p>
+   * By default, <code>true</code> is returned.
+   */
+  default boolean isForPlatform(String platform) {
+    return true;
+  }
 }

@@ -3,9 +3,12 @@ package io.ebean.migration;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 /**
@@ -32,7 +35,7 @@ public class MigrationConfig {
   private boolean setCurrentSchema = true;
   private boolean allowErrorInRepeatable;
 
-  private JdbcMigrationFactory jdbcMigrationFactory = new DefaultMigrationFactory();
+  private Iterable<JdbcMigration> jdbcMigrationFactory = ServiceLoader.load(JdbcMigration.class);
 
   /**
    * Versions that we want to insert into migration history without actually running.
@@ -418,15 +421,30 @@ public class MigrationConfig {
   /**
    * Return the jdbcMigrationFactory.
    */
-  public JdbcMigrationFactory getJdbcMigrationFactory() {
+  public Iterable<JdbcMigration> getJdbcMigrationFactory() {
     return jdbcMigrationFactory;
   }
 
   /**
-   * Set the jdbcMigrationFactory.
+   * Set the jdbcMigrationFactory. If not set, the ServiceLoader is used.
+   * JdbcMigrationFactory can be either defined with the property <code>jdbcMigrationFactory</code>
+   * to a fully qualified class name implementing <code>Iterable&lt;JdbcMigration&gt;</code> or by
+   * specifying a comma separated list of JdbcMigrations in the <code>jdbcMigrations</code> property.
+   *
    */
-  public void setJdbcMigrationFactory(JdbcMigrationFactory jdbcMigrationFactory) {
+  public void setJdbcMigrationFactory(Iterable<JdbcMigration> jdbcMigrationFactory) {
     this.jdbcMigrationFactory = jdbcMigrationFactory;
+  }
+
+  /**
+   * Helper method to set migrations with the <code>jdbcMigrations</code> property.
+   */
+  public void setJdbcMigrations(String ... classNames) {
+    List<JdbcMigration> migrations = new ArrayList<>(classNames.length);
+    for (String className : classNames) {
+      migrations.add(newInstance(className.trim()));
+    }
+    setJdbcMigrationFactory(migrations);
   }
 
   /**
@@ -484,6 +502,16 @@ public class MigrationConfig {
     minVersion = property("minVersion", minVersion);
     minVersionFailMessage = property("minVersionFailMessage", minVersionFailMessage);
 
+    String jdbcMigrationFactory = property("jdbcMigrationFactory");
+    if (jdbcMigrationFactory != null) {
+      setJdbcMigrationFactory(newInstance(jdbcMigrationFactory));
+    }
+
+    String jdbcMigrations = property("jdbcMigrations");
+    if (jdbcMigrations != null) {
+      setJdbcMigrations(jdbcMigrations.split(","));
+    }
+
     String patchInsertOn = property("patchInsertOn");
     if (patchInsertOn != null) {
       setPatchInsertOn(patchInsertOn);
@@ -495,6 +523,15 @@ public class MigrationConfig {
     String runPlaceholders = property("runPlaceholders");
     if (runPlaceholders != null) {
       setRunPlaceholders(runPlaceholders);
+    }
+  }
+
+  public <T> T newInstance(String className) {
+    try {
+      Class<?> cls = Class.forName(name, true, classLoader);
+      return (T) cls.getDeclaredConstructor().newInstance();
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error constructing " + className, e);
     }
   }
 
@@ -608,15 +645,6 @@ public class MigrationConfig {
    */
   public void setFastMode(boolean fastMode) {
     this.fastMode = fastMode;
-  }
-
-  /**
-   * Default factory. TBD
-   *
-   * @author Roland Praml, FOCONIS AG
-   */
-  public class DefaultMigrationFactory implements JdbcMigrationFactory {
-
   }
 
 }

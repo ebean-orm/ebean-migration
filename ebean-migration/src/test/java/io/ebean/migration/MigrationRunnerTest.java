@@ -1,5 +1,6 @@
 package io.ebean.migration;
 
+import dbmig.V1_2_1__test;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourceFactory;
 import io.ebean.datasource.DataSourcePool;
@@ -34,6 +35,7 @@ public class MigrationRunnerTest {
     MigrationConfig config = createMigrationConfig();
 
     config.setMigrationPath("dbmig");
+    config.setJdbcMigrationFactory(List.of(new V1_2_1__test()));
     MigrationRunner runner = new MigrationRunner(config);
 
     List<MigrationResource> check = runner.checkState();
@@ -211,6 +213,8 @@ public class MigrationRunnerTest {
 
     MigrationConfig config = createMigrationConfig();
     config.setMigrationPath("dbmig");
+    config.setJdbcMigrationFactory(List.of(new V1_2_1__test()));
+
     config.setMinVersion("1.3"); // dbmig must run, if DB is empty!
     new MigrationRunner(config).run(dataSource);
 
@@ -276,6 +280,7 @@ public class MigrationRunnerTest {
     // not actually run the migrations but populate the migration table
     config.setSkipMigrationRun(true);
     config.setMigrationPath("dbmig");
+    config.setJdbcMigrationFactory(List.of(new V1_2_1__test()));
 
     DataSourcePool dataSource = DataSourceFactory.create("skipMigration", dataSourceConfig);
     new MigrationRunner(config).run(dataSource);

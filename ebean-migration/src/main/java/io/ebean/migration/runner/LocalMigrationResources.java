@@ -2,6 +2,7 @@ package io.ebean.migration.runner;
 
 import io.avaje.classpath.scanner.Resource;
 import io.avaje.classpath.scanner.core.Scanner;
+import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationVersion;
 
@@ -9,6 +10,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import static java.lang.System.Logger.Level.DEBUG;
@@ -23,6 +25,7 @@ final class LocalMigrationResources {
   private final List<LocalMigrationResource> versions = new ArrayList<>();
   private final MigrationConfig migrationConfig;
   private final ClassLoader classLoader;
+  private final Iterable<JdbcMigration> jdbcMigrationFactory;
 
   /**
    * Construct with configuration options.
@@ -30,6 +33,7 @@ final class LocalMigrationResources {
   LocalMigrationResources(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
     this.classLoader = migrationConfig.getClassLoader();
+    this.jdbcMigrationFactory = migrationConfig.getJdbcMigrationFactory();
   }
 
   /**
@@ -46,36 +50,63 @@ final class LocalMigrationResources {
     if (readFromIndex()) {
       // automatically enable earlyChecksumMode when using index file with pre-computed checksums
       migrationConfig.setEarlyChecksumMode(true);
-      return true;
+    } else {
+      readResourcesForPath(migrationConfig.getMigrationPath());
     }
-    return readResourcesForPath(migrationConfig.getMigrationPath());
+    readJdbcMigrations();
+    Collections.sort(versions);
+    return versions.isEmpty();
   }
 
+  /**
+   * Returns true, if an index file was found. Although, if file was empty, so we do not fall back
+   * to classpath scan!
+   */
   private boolean readFromIndex() {
     final var base = "/" + migrationConfig.getMigrationPath() + "/";
     final var basePlatform = migrationConfig.getBasePlatform();
     final var indexName = "idx_" + basePlatform + ".migrations";
     URL idx = resource(base + indexName);
     if (idx != null) {
-      return loadFromIndexFile(idx, base);
+      loadFromIndexFile(idx, base);
+      return true;
     }
     idx = resource(base + basePlatform + '/' + indexName);
     if (idx != null) {
-      return loadFromIndexFile(idx, base + basePlatform + '/');
+      loadFromIndexFile(idx, base + basePlatform + '/');
+      return true;
     }
     final var platform = migrationConfig.getPlatform();
     idx = resource(base + platform + indexName);
     if (idx != null) {
-      return loadFromIndexFile(idx, base + platform + '/');
+      loadFromIndexFile(idx, base + platform + '/');
+      return true;
     }
     return false;
   }
+
+
+  private void readJdbcMigrations() {
+    if (jdbcMigrationFactory != null) {
+      Iterator<JdbcMigration> iterator = jdbcMigrationFactory.iterator();
+      while (iterator.hasNext()) {
+        JdbcMigration jdbcMigration = iterator.next();
+        if (jdbcMigration.isForPlatform(migrationConfig.getBasePlatform())
+          || (jdbcMigration.isForPlatform(migrationConfig.getPlatform()))) {
+          final var version = MigrationVersion.parse(jdbcMigration.getName());
+          versions.add(new LocalJdbcMigrationResource(version, jdbcMigration));
+        }
+      }
+    }
+  }
+
 
   private URL resource(String base) {
     return LocalMigrationResources.class.getResource(base);
   }
 
-  private boolean loadFromIndexFile(URL idx, String base) {
+  private void loadFromIndexFile(URL idx, String base) {
+    log.log(DEBUG, "Loading index from {0}", idx);
     try (var reader = new LineNumberReader(new InputStreamReader(idx.openStream()))) {
       String line;
       while ((line = reader.readLine()) != null) {
@@ -91,9 +122,6 @@ final class LocalMigrationResources {
           }
         }
       }
-
-      return !versions.isEmpty();
-
     } catch (IOException e) {
       throw new UncheckedIOException("Error reading idx file", e);
     }
@@ -111,7 +139,6 @@ final class LocalMigrationResources {
       return true;
     }
     addResources(scanForMigrations(path));
-    Collections.sort(versions);
     return !versions.isEmpty();
   }
 
