@@ -5,12 +5,21 @@ import java.sql.Connection;
 /**
  * Interface to be implemented by Jdbc Java Migrations. By default the migration
  * version and description will be extracted from the class name. The checksum of this migration
- * (for validation) will also be null, unless the migration also implements the
- * MigrationChecksumProvider, in which case it can be returned programmatically.
+ * will be 0 by default
  * <p>
- * When the JdbcMigration implements ConfigurationAware, the master
- * {@link MigrationConfig} is automatically injected upon creation, which is
- * useful for getting placeholder and schema information.
+ * Note: Instances of JdbcMigration should be stateless, as the <code>migrate</code> method may
+ * run multiple times in multi-tenant setups.
+ * <p>
+ * There are several ways, how the JdbcMigrations are found.
+ * <ul>
+ *   <li><b>ServiceLoader</b> this is the default behaviour<br>
+ *   in this case add all your migration class names in META-INF/services/io.ebean.migration.JdbcMigration and/or in your
+ *   module info.</li>
+ *   <li>Using <b>jdbcMigrations</b> property<br>
+ *   you can specify all migrations in the jdbcMigrations property</li>
+ *   <li>Using own <b>jdbcMigrationFactory</b<br>
+ *   you can write your own jdbcMigrationFactory that provides JdbcMigrations</li>
+ * </ul>
  *
  * @author Roland Praml, FOCONIS AG
  */
@@ -18,8 +27,11 @@ public interface JdbcMigration extends MigrationChecksumProvider {
 
   /**
    * Execute the migration using the connection.
+   * <p>
+   * Note: This API has changed with ebean-migration 13.12, as the initialization has changed.
+   * See https://github.com/ebean-orm/ebean-migration/issues/90 for migration advice.
    */
-  void migrate(Connection connection);
+  void migrate(Connection connection, MigrationConfig config);
 
   @Override
   default int getChecksum() {
@@ -37,11 +49,12 @@ public interface JdbcMigration extends MigrationChecksumProvider {
   }
 
   /**
-   * Determines, if this migration can be used for that platform.
+   * Determines, if this migration can be used for that migrationConfig.
+   * Here, platform checks or other things can be implemented.
    * <p>
    * By default, <code>true</code> is returned.
    */
-  default boolean isForPlatform(String platform) {
+  default boolean matches(MigrationConfig config) {
     return true;
   }
 }

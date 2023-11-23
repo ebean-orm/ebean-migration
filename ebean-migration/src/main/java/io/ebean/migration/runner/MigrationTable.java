@@ -424,7 +424,7 @@ final class MigrationTable {
     if (local instanceof LocalJdbcMigrationResource) {
       JdbcMigration migration = ((LocalJdbcMigrationResource) local).migration();
       log.log(INFO, "Executing jdbc migration version: {0} - {1}", local.version(), migration);
-      migration.migrate(connection);
+      migration.migrate(connection, config);
     } else {
       log.log(DEBUG, "run migration {0}", local.location());
       scriptRunner.runScript(script, "run migration version: " + local.version());

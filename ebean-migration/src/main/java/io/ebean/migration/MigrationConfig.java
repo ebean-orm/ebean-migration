@@ -1,10 +1,12 @@
 package io.ebean.migration;
 
+import java.lang.reflect.Constructor;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -35,7 +37,7 @@ public class MigrationConfig {
   private boolean setCurrentSchema = true;
   private boolean allowErrorInRepeatable;
 
-  private Iterable<JdbcMigration> jdbcMigrationFactory = ServiceLoader.load(JdbcMigration.class);
+  private Iterable<JdbcMigration> jdbcMigrationFactory = new DefaultMigrationFactory();
 
   /**
    * Versions that we want to insert into migration history without actually running.
@@ -430,7 +432,9 @@ public class MigrationConfig {
    * JdbcMigrationFactory can be either defined with the property <code>jdbcMigrationFactory</code>
    * to a fully qualified class name implementing <code>Iterable&lt;JdbcMigration&gt;</code> or by
    * specifying a comma separated list of JdbcMigrations in the <code>jdbcMigrations</code> property.
-   *
+   * <p>
+   * Note: If you plan to run migrations in multi-tenant env in multiple threads, the provided factory
+   * must be thread safe!
    */
   public void setJdbcMigrationFactory(Iterable<JdbcMigration> jdbcMigrationFactory) {
     this.jdbcMigrationFactory = jdbcMigrationFactory;
@@ -439,7 +443,7 @@ public class MigrationConfig {
   /**
    * Helper method to set migrations with the <code>jdbcMigrations</code> property.
    */
-  public void setJdbcMigrations(String ... classNames) {
+  public void setJdbcMigrations(String... classNames) {
     List<JdbcMigration> migrations = new ArrayList<>(classNames.length);
     for (String className : classNames) {
       migrations.add(newInstance(className.trim()));
@@ -528,7 +532,7 @@ public class MigrationConfig {
 
   public <T> T newInstance(String className) {
     try {
-      Class<?> cls = Class.forName(name, true, classLoader);
+      Class<?> cls = Class.forName(className, true, getClassLoader());
       return (T) cls.getDeclaredConstructor().newInstance();
     } catch (Exception e) {
       throw new IllegalArgumentException("Error constructing " + className, e);
@@ -647,4 +651,15 @@ public class MigrationConfig {
     this.fastMode = fastMode;
   }
 
+  /**
+   * Default implementation for service-loader. Note: ServiceLoader is not thread safe,
+   * so it is better to retrun a new iterator each time.
+   */
+  private class DefaultMigrationFactory implements Iterable<JdbcMigration> {
+
+    @Override
+    public Iterator<JdbcMigration> iterator() {
+      return ServiceLoader.load(JdbcMigration.class, getClassLoader()).iterator();
+    }
+  }
 }

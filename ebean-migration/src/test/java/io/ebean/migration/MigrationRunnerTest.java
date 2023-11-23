@@ -35,7 +35,6 @@ public class MigrationRunnerTest {
     MigrationConfig config = createMigrationConfig();
 
     config.setMigrationPath("dbmig");
-    config.setJdbcMigrationFactory(List.of(new V1_2_1__test()));
     MigrationRunner runner = new MigrationRunner(config);
 
     List<MigrationResource> check = runner.checkState();
@@ -280,7 +279,6 @@ public class MigrationRunnerTest {
     // not actually run the migrations but populate the migration table
     config.setSkipMigrationRun(true);
     config.setMigrationPath("dbmig");
-    config.setJdbcMigrationFactory(List.of(new V1_2_1__test()));
 
     DataSourcePool dataSource = DataSourceFactory.create("skipMigration", dataSourceConfig);
     new MigrationRunner(config).run(dataSource);
@@ -288,7 +286,7 @@ public class MigrationRunnerTest {
     // assert migrations are in the migration table
     try (final Connection connection = dataSource.getConnection()) {
       final List<String> names = migrationNames(connection);
-      assertThat(names).contains("<init>", "hello", "initial", "add_m3", "test", "m2_view");
+      assertThat(names).containsExactly("<init>", "hello", "initial", "add_m3", "serviceLoaded", "m2_view");
     }
 
     // assert the migrations didn't actually run (create the tables etc)

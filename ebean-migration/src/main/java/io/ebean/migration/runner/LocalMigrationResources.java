@@ -91,8 +91,7 @@ final class LocalMigrationResources {
       Iterator<JdbcMigration> iterator = jdbcMigrationFactory.iterator();
       while (iterator.hasNext()) {
         JdbcMigration jdbcMigration = iterator.next();
-        if (jdbcMigration.isForPlatform(migrationConfig.getBasePlatform())
-          || (jdbcMigration.isForPlatform(migrationConfig.getPlatform()))) {
+        if (jdbcMigration.matches(migrationConfig)) {
           final var version = MigrationVersion.parse(jdbcMigration.getName());
           versions.add(new LocalJdbcMigrationResource(version, jdbcMigration));
         }
