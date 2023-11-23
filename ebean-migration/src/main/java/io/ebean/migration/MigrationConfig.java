@@ -611,25 +611,12 @@ public class MigrationConfig {
   }
 
   /**
-   * Default factory. Uses the migration's class loader and injects the config if necessary.
+   * Default factory. TBD
    *
    * @author Roland Praml, FOCONIS AG
    */
   public class DefaultMigrationFactory implements JdbcMigrationFactory {
 
-    @Override
-    public JdbcMigration createInstance(String className) {
-      try {
-        Class<?> clazz = Class.forName(className, true, MigrationConfig.this.getClassLoader());
-        JdbcMigration migration = (JdbcMigration) clazz.getDeclaredConstructor().newInstance();
-        if (migration instanceof ConfigurationAware) {
-          ((ConfigurationAware) migration).setMigrationConfig(MigrationConfig.this);
-        }
-        return migration;
-      } catch (Exception e) {
-        throw new IllegalArgumentException(className + " is not a valid JdbcMigration", e);
-      }
-    }
   }
 
 }

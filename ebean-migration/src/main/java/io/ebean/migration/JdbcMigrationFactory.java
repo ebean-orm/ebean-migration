@@ -7,8 +7,5 @@ package io.ebean.migration;
  */
 public interface JdbcMigrationFactory {
 
-  /**
-   * Create a JDBC based migration given the class name.
-   */
-  JdbcMigration createInstance(String className);
+  // will be reused later
 }
