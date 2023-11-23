@@ -44,7 +44,7 @@ final class LocalMigrationResources {
   }
 
   /**
-   * Read all the migration resources (SQL scripts) returning true if there are versions.
+   * Read all the migration resources (SQL scripts and JDBC migrations) returning true if there are versions.
    */
   boolean readResources() {
     if (readFromIndex()) {
@@ -55,7 +55,7 @@ final class LocalMigrationResources {
     }
     readJdbcMigrations();
     Collections.sort(versions);
-    return versions.isEmpty();
+    return !versions.isEmpty();
   }
 
   /**
