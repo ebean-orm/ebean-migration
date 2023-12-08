@@ -45,7 +45,7 @@ public class MigrationTable1Test {
 
 
   private MigrationTable migrationTable(Connection conn) {
-    var fc = new FirstCheck(config, conn, platform);
+    var fc = new FirstCheck(config, new DefaultMigrationContext(config, conn), platform);
     return new MigrationTable(fc, false);
   }
 
@@ -53,7 +53,7 @@ public class MigrationTable1Test {
   public void testMigrationTableBase() throws Exception {
 
     config.setMigrationPath("dbmig");
-    config.setJdbcMigrationFactory(List.of(new V1_2_1__test()));
+    config.setJdbcMigrations(List.of(new V1_2_1__test()));
 
     MigrationRunner runner = new MigrationRunner(config);
     runner.run(dataSource);

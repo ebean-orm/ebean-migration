@@ -26,6 +26,7 @@ final class MigrationTable {
   private static final int AUTO_PATCH_CHECKSUM = -1;
 
   private final MigrationConfig config;
+  private final MigrationContext context;
   private final Connection connection;
   private final boolean checkStateOnly;
   private boolean earlyChecksumMode;
@@ -77,7 +78,8 @@ final class MigrationTable {
   public MigrationTable(FirstCheck firstCheck, boolean checkStateOnly) {
     this.config = firstCheck.config;
     this.platform = firstCheck.platform;
-    this.connection = firstCheck.connection;
+    this.context = firstCheck.context;
+    this.connection = this.context.connection();
     this.schema = firstCheck.schema;
     this.table = firstCheck.table;
     this.sqlTable = firstCheck.sqlTable;
@@ -424,7 +426,7 @@ final class MigrationTable {
     if (local instanceof LocalJdbcMigrationResource) {
       JdbcMigration migration = ((LocalJdbcMigrationResource) local).migration();
       log.log(INFO, "Executing jdbc migration version: {0} - {1}", local.version(), migration);
-      migration.migrate(connection, config);
+      migration.migrate(context);
     } else {
       log.log(DEBUG, "run migration {0}", local.location());
       scriptRunner.runScript(script, "run migration version: " + local.version());

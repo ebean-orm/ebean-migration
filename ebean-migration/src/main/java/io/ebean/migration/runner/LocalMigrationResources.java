@@ -4,6 +4,7 @@ import io.avaje.classpath.scanner.Resource;
 import io.avaje.classpath.scanner.core.Scanner;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
+import io.ebean.migration.MigrationContext;
 import io.ebean.migration.MigrationVersion;
 
 import java.io.*;
@@ -25,7 +26,7 @@ final class LocalMigrationResources {
   private final List<LocalMigrationResource> versions = new ArrayList<>();
   private final MigrationConfig migrationConfig;
   private final ClassLoader classLoader;
-  private final Iterable<JdbcMigration> jdbcMigrationFactory;
+  private final Iterable<JdbcMigration> jdbcMigrations;
 
   /**
    * Construct with configuration options.
@@ -33,27 +34,29 @@ final class LocalMigrationResources {
   LocalMigrationResources(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
     this.classLoader = migrationConfig.getClassLoader();
-    this.jdbcMigrationFactory = migrationConfig.getJdbcMigrationFactory();
+    this.jdbcMigrations = migrationConfig.getJdbcMigrations();
   }
 
   /**
    * Read the init migration resources (usually only 1) returning true if there are versions.
    */
   boolean readInitResources() {
-    return readResourcesForPath(migrationConfig.getMigrationInitPath());
+    readResourcesForPath(migrationConfig.getMigrationInitPath());
+    Collections.sort(versions);
+    return !versions.isEmpty();
   }
 
   /**
    * Read all the migration resources (SQL scripts and JDBC migrations) returning true if there are versions.
    */
-  boolean readResources() {
+  boolean readResources(MigrationContext context) {
     if (readFromIndex()) {
       // automatically enable earlyChecksumMode when using index file with pre-computed checksums
       migrationConfig.setEarlyChecksumMode(true);
     } else {
       readResourcesForPath(migrationConfig.getMigrationPath());
     }
-    readJdbcMigrations();
+    readJdbcMigrations(context);
     Collections.sort(versions);
     return !versions.isEmpty();
   }
@@ -85,20 +88,16 @@ final class LocalMigrationResources {
     return false;
   }
 
-
-  private void readJdbcMigrations() {
-    if (jdbcMigrationFactory != null) {
-      Iterator<JdbcMigration> iterator = jdbcMigrationFactory.iterator();
-      while (iterator.hasNext()) {
-        JdbcMigration jdbcMigration = iterator.next();
-        if (jdbcMigration.matches(migrationConfig)) {
+  void readJdbcMigrations(MigrationContext context) {
+    if (jdbcMigrations != null) {
+      for (JdbcMigration jdbcMigration : jdbcMigrations) {
+        if (jdbcMigration.matches(context)) {
           final var version = MigrationVersion.parse(jdbcMigration.getName());
           versions.add(new LocalJdbcMigrationResource(version, jdbcMigration));
         }
       }
     }
   }
-
 
   private URL resource(String base) {
     return LocalMigrationResources.class.getResource(base);
@@ -126,19 +125,18 @@ final class LocalMigrationResources {
     }
   }
 
-  private boolean readResourcesForPath(String path) {
+  private void readResourcesForPath(String path) {
     // try to load from base platform first
     final String basePlatform = migrationConfig.getBasePlatform();
     if (basePlatform != null && loadedFrom(path, basePlatform)) {
-      return true;
+      return;
     }
     // try to load from specific platform
     final String platform = migrationConfig.getPlatform();
     if (platform != null && loadedFrom(path, platform)) {
-      return true;
+      return;
     }
     addResources(scanForMigrations(path));
-    return !versions.isEmpty();
   }
 
   /**
@@ -150,7 +148,6 @@ final class LocalMigrationResources {
       return false;
     }
     log.log(DEBUG, "platform migrations for {0}", platform);
-    Collections.sort(versions);
     return true;
   }
 

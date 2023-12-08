@@ -13,12 +13,12 @@ public class ServiceLoaderMigration implements JdbcMigration {
   }
 
   @Override
-  public void migrate(Connection connection, MigrationConfig config) {
+  public void migrate(MigrationContext context) {
 
   }
 
   @Override
-  public boolean matches(MigrationConfig config) {
-    return "dbmig".equals(config.getMigrationPath());
+  public boolean matches(MigrationContext context) {
+    return "dbmig".equals(context.migrationPath());
   }
 }

@@ -31,7 +31,7 @@ public interface JdbcMigration extends MigrationChecksumProvider {
    * Note: This API has changed with ebean-migration 13.12, as the initialization has changed.
    * See https://github.com/ebean-orm/ebean-migration/issues/90 for migration advice.
    */
-  void migrate(Connection connection, MigrationConfig config);
+  void migrate(MigrationContext context);
 
   @Override
   default int getChecksum() {
@@ -39,22 +39,24 @@ public interface JdbcMigration extends MigrationChecksumProvider {
   }
 
   /**
-   * Returns the name of the JdbcMigration. Note, the value must follow the naming conventions, for MigrationVersions.
+   * Returns the name of the JdbcMigration. Note, the name is used to determine the version and comment,
+   * that is written to the migration table, so the returned value must be a parseable {@link MigrationVersion}
    * (example: <code>V1_2_1__comment</code>)
    * <p>
-   * By default, the simple classname will be returned.
+   * By default, the simple classname will be returned, so the file name can be used.
    */
   default String getName() {
     return getClass().getSimpleName();
   }
 
   /**
-   * Determines, if this migration can be used for that migrationConfig.
+   * Determines, if this migration can be used for that migrationContext.
    * Here, platform checks or other things can be implemented.
+   * You should not write to database at this stage.
    * <p>
    * By default, <code>true</code> is returned.
    */
-  default boolean matches(MigrationConfig config) {
+  default boolean matches(MigrationContext context) {
     return true;
   }
 }

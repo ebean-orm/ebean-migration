@@ -4,6 +4,7 @@ import java.sql.Connection;
 
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
+import io.ebean.migration.MigrationContext;
 
 /**
  * Sample migration.
@@ -17,8 +18,8 @@ public class V1_2_1__test implements JdbcMigration {
   }
 
   @Override
-  public void migrate(Connection connection, MigrationConfig config) {
-    System.out.println("Executing migration on " + connection);
+  public void migrate(MigrationContext context) {
+    System.out.println("Executing migration on " + context);
   }
 
   @Override

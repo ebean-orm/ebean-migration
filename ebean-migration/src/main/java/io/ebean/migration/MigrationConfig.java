@@ -37,7 +37,12 @@ public class MigrationConfig {
   private boolean setCurrentSchema = true;
   private boolean allowErrorInRepeatable;
 
-  private Iterable<JdbcMigration> jdbcMigrationFactory = new DefaultMigrationFactory();
+  /**
+   * Holds a Collection/Iterable of JdbcMigrations. All migrations (JDBC and SQL) are
+   * extecuted in the order defined by their version numbers.
+   * By default, JdbcMigrations are loaded via ServiceLoader.
+   */
+  private Iterable<JdbcMigration> jdbcMigrations = new DefaultJdbcMigrations();
 
   /**
    * Versions that we want to insert into migration history without actually running.
@@ -421,34 +426,45 @@ public class MigrationConfig {
   }
 
   /**
-   * Return the jdbcMigrationFactory.
+   * Return the jdbcMigrations.
    */
-  public Iterable<JdbcMigration> getJdbcMigrationFactory() {
-    return jdbcMigrationFactory;
+  public Iterable<JdbcMigration> getJdbcMigrations() {
+    return jdbcMigrations;
   }
 
   /**
-   * Set the jdbcMigrationFactory. If not set, the ServiceLoader is used.
-   * JdbcMigrationFactory can be either defined with the property <code>jdbcMigrationFactory</code>
+   * Set the jdbcMigrations. If not set, the ServiceLoader is used.
+   * JdbcMigrations can be either defined with the property <code>jdbcMigrations</code>
    * to a fully qualified class name implementing <code>Iterable&lt;JdbcMigration&gt;</code> or by
-   * specifying a comma separated list of JdbcMigrations in the <code>jdbcMigrations</code> property.
+   * specifying a comma separated list of {@link JdbcMigration}s in the <code>jdbcMigrations</code> property.
    * <p>
    * Note: If you plan to run migrations in multi-tenant env in multiple threads, the provided factory
    * must be thread safe!
    */
-  public void setJdbcMigrationFactory(Iterable<JdbcMigration> jdbcMigrationFactory) {
-    this.jdbcMigrationFactory = jdbcMigrationFactory;
+  public void setJdbcMigrations(Iterable<JdbcMigration> jdbcMigrationFactory) {
+    this.jdbcMigrations = jdbcMigrationFactory;
   }
 
   /**
    * Helper method to set migrations with the <code>jdbcMigrations</code> property.
+   * You can either pass ONE MigrationCollection or a list of JdbcMigrations.
    */
+  @SuppressWarnings("unchecked")
   public void setJdbcMigrations(String... classNames) {
-    List<JdbcMigration> migrations = new ArrayList<>(classNames.length);
-    for (String className : classNames) {
-      migrations.add(newInstance(className.trim()));
+    if (classNames.length == 1) {
+      Object candidate = newInstance(classNames[0].trim());
+      if (candidate instanceof JdbcMigration) {
+        setJdbcMigrations(List.of((JdbcMigration) candidate));
+      } else {
+        setJdbcMigrations((Iterable<JdbcMigration>) candidate);
+      }
+    } else {
+      List<JdbcMigration> migrations = new ArrayList<>(classNames.length);
+      for (String className : classNames) {
+        migrations.add(newInstance(className.trim()));
+      }
+      setJdbcMigrations(migrations);
     }
-    setJdbcMigrationFactory(migrations);
   }
 
   /**
@@ -506,11 +522,6 @@ public class MigrationConfig {
     minVersion = property("minVersion", minVersion);
     minVersionFailMessage = property("minVersionFailMessage", minVersionFailMessage);
 
-    String jdbcMigrationFactory = property("jdbcMigrationFactory");
-    if (jdbcMigrationFactory != null) {
-      setJdbcMigrationFactory(newInstance(jdbcMigrationFactory));
-    }
-
     String jdbcMigrations = property("jdbcMigrations");
     if (jdbcMigrations != null) {
       setJdbcMigrations(jdbcMigrations.split(","));
@@ -530,6 +541,7 @@ public class MigrationConfig {
     }
   }
 
+  @SuppressWarnings("unchecked")
   public <T> T newInstance(String className) {
     try {
       Class<?> cls = Class.forName(className, true, getClassLoader());
@@ -652,10 +664,10 @@ public class MigrationConfig {
   }
 
   /**
-   * Default implementation for service-loader. Note: ServiceLoader is not thread safe,
-   * so it is better to retrun a new iterator each time.
+   * Default implementation for service-loader. Note: As ServiceLoader is not thread safe,
+   * it is better to return a new iterator each time.
    */
-  private class DefaultMigrationFactory implements Iterable<JdbcMigration> {
+  private class DefaultJdbcMigrations implements Iterable<JdbcMigration> {
 
     @Override
     public Iterator<JdbcMigration> iterator() {

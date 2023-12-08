@@ -212,7 +212,7 @@ public class MigrationRunnerTest {
 
     MigrationConfig config = createMigrationConfig();
     config.setMigrationPath("dbmig");
-    config.setJdbcMigrationFactory(List.of(new V1_2_1__test()));
+    config.setJdbcMigrations(List.of(new V1_2_1__test()));
 
     config.setMinVersion("1.3"); // dbmig must run, if DB is empty!
     new MigrationRunner(config).run(dataSource);
