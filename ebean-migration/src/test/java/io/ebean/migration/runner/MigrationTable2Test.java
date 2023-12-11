@@ -12,7 +12,7 @@ public class MigrationTable2Test {
 
 
   private static MigrationTable migrationTable(MigrationConfig config) {
-    var fc = new FirstCheck(config, null, new MigrationPlatform());
+    var fc = new FirstCheck(config, new DefaultMigrationContext(config, null), new MigrationPlatform());
     return new MigrationTable(fc, false);
   }
 

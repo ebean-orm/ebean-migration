@@ -26,7 +26,7 @@ final class MigrationTable {
   private static final int AUTO_PATCH_CHECKSUM = -1;
 
   private final MigrationConfig config;
-  private final Connection connection;
+  private final MigrationContext context;
   private final boolean checkStateOnly;
   private boolean earlyChecksumMode;
   private final MigrationPlatform platform;
@@ -72,18 +72,18 @@ final class MigrationTable {
   private int executionCount;
   private boolean patchLegacyChecksums;
   private MigrationMetaRow initMetaRow;
-  private boolean tableKnownToExist;
+  private final boolean tableKnownToExist;
 
   public MigrationTable(FirstCheck firstCheck, boolean checkStateOnly) {
     this.config = firstCheck.config;
     this.platform = firstCheck.platform;
-    this.connection = firstCheck.connection;
+    this.context = firstCheck.context;
     this.schema = firstCheck.schema;
     this.table = firstCheck.table;
     this.sqlTable = firstCheck.sqlTable;
     this.tableKnownToExist = firstCheck.tableKnownToExist;
 
-    this.scriptRunner = new MigrationScriptRunner(connection, platform);
+    this.scriptRunner = new MigrationScriptRunner(context.connection(), platform);
     this.checkStateOnly = checkStateOnly;
     this.earlyChecksumMode = config.isEarlyChecksumMode();
     this.migrations = new LinkedHashMap<>();
@@ -142,7 +142,7 @@ final class MigrationTable {
   void createIfNeededAndLock() throws SQLException, IOException {
     SQLException suppressedException = null;
     if (!tableKnownToExist) {
-      MigrationSchema.createIfNeeded(config, connection);
+      MigrationSchema.createIfNeeded(config, context.connection());
       if (!tableExists()) {
         try {
           createTable();
@@ -174,14 +174,14 @@ final class MigrationTable {
    * contain all the executed migrations in that case.
    */
   private void obtainLockWithWait() throws SQLException {
-    platform.lockMigrationTable(sqlTable, connection);
+    platform.lockMigrationTable(sqlTable, context.connection());
   }
 
   /**
    * Release a lock on the migration table (MySql, MariaDB only).
    */
   void unlockMigrationTable() {
-    platform.unlockMigrationTable(sqlTable, connection);
+    platform.unlockMigrationTable(sqlTable, context.connection());
   }
 
   /**
@@ -191,12 +191,13 @@ final class MigrationTable {
    * executed during the wait for the lock.
    */
   private void readExistingMigrations() throws SQLException {
-    for (MigrationMetaRow metaRow : platform.readExistingMigrations(sqlTable, connection)) {
+    for (MigrationMetaRow metaRow : platform.readExistingMigrations(sqlTable, context.connection())) {
       addMigration(metaRow.version(), metaRow);
     }
   }
 
   void createTable() throws IOException, SQLException {
+    Connection connection = context.connection();
     try {
       scriptRunner.runScript(createTableDdl(), "create migration table");
       createInitMetaRow().executeInsert(connection, insertSql);
@@ -253,6 +254,7 @@ final class MigrationTable {
    * Return true if the table exists.
    */
   boolean tableExists() throws SQLException {
+    Connection connection = context.connection();
     String migTable = table;
     DatabaseMetaData metaData = connection.getMetaData();
     if (metaData.storesUpperCaseIdentifiers()) {
@@ -351,7 +353,7 @@ final class MigrationTable {
     } else if (patchLegacyChecksums && (existing.checksum() == checksum2 || checksum2 == AUTO_PATCH_CHECKSUM)) {
       if (!checkStateOnly) {
         log.log(INFO, "Auto patch migration, set early mode checksum on {0} to {1,number} from {2,number}", local.location(), checksum, existing.checksum());
-        existing.resetChecksum(checksum, connection, updateChecksumSql);
+        existing.resetChecksum(checksum, context.connection(), updateChecksumSql);
       }
       return true;
 
@@ -373,7 +375,7 @@ final class MigrationTable {
   private boolean patchResetChecksum(MigrationMetaRow existing, int newChecksum) throws SQLException {
     if (isResetOnVersion(existing.version())) {
       if (!checkStateOnly) {
-        existing.resetChecksum(newChecksum, connection, updateChecksumSql);
+        existing.resetChecksum(newChecksum, context.connection(), updateChecksumSql);
       }
       return true;
     } else {
@@ -405,7 +407,7 @@ final class MigrationTable {
       }
       if (existing != null) {
         existing.rerun(checksum, exeMillis, envUserName, runOn);
-        existing.executeUpdate(connection, updateSql);
+        existing.executeUpdate(context.connection(), updateSql);
       } else {
         insertIntoHistory(local, checksum, exeMillis);
       }
@@ -424,7 +426,7 @@ final class MigrationTable {
     if (local instanceof LocalJdbcMigrationResource) {
       JdbcMigration migration = ((LocalJdbcMigrationResource) local).migration();
       log.log(INFO, "Executing jdbc migration version: {0} - {1}", local.version(), migration);
-      migration.migrate(connection);
+      migration.migrate(context.connection());
     } else {
       log.log(DEBUG, "run migration {0}", local.location());
       scriptRunner.runScript(script, "run migration version: " + local.version());
@@ -435,7 +437,7 @@ final class MigrationTable {
 
   private void insertIntoHistory(LocalMigrationResource local, int checksum, long exeMillis) throws SQLException {
     MigrationMetaRow metaRow = createMetaRow(local, checksum, exeMillis);
-    metaRow.executeInsert(connection, insertSql);
+    metaRow.executeInsert(context.connection(), insertSql);
     addMigration(local.key(), metaRow);
   }
 
@@ -525,7 +527,7 @@ final class MigrationTable {
     }
     if (patchLegacyChecksums && !checkStateOnly) {
       // only patch the legacy checksums once
-      initMetaRow.resetChecksum(EARLY_MODE_CHECKSUM, connection, updateChecksumSql);
+      initMetaRow.resetChecksum(EARLY_MODE_CHECKSUM, context.connection(), updateChecksumSql);
     }
     return checkMigrations;
   }
