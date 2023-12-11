@@ -56,6 +56,8 @@ final class LocalMigrationResources {
     } else {
       readResourcesForPath(migrationConfig.getMigrationPath());
     }
+    // after we read the SQL migrations from index or classpath scan, we
+    // read jdbcMigrations and sort them.
     readJdbcMigrations(context);
     Collections.sort(versions);
     return !versions.isEmpty();
@@ -88,7 +90,7 @@ final class LocalMigrationResources {
     return false;
   }
 
-  void readJdbcMigrations(MigrationContext context) {
+  private void readJdbcMigrations(MigrationContext context) {
     if (jdbcMigrations != null) {
       for (JdbcMigration jdbcMigration : jdbcMigrations) {
         if (jdbcMigration.matches(context)) {

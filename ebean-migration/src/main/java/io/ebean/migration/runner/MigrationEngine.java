@@ -54,8 +54,7 @@ public class MigrationEngine {
 
     long startMs = System.currentTimeMillis();
     LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
-    resources.readJdbcMigrations(context);
-    if (!resources.readResources() && !resources.readInitResources()) {
+    if (!resources.readResources(context) && !resources.readInitResources()) {
       log.log(DEBUG, "no migrations to check");
       return emptyList();
     }
