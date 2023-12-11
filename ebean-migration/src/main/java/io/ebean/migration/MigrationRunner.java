@@ -45,6 +45,13 @@ public class MigrationRunner {
   }
 
   /**
+   * Return the migrations that would be applied if the migration is run.
+   */
+  public List<MigrationResource> checkState(MigrationContext context) {
+    return run(context, true);
+  }
+
+  /**
    * Run by creating a DB connection from driver, url, username defined in MigrationConfig.
    */
   public void run() {
@@ -63,6 +70,13 @@ public class MigrationRunner {
    */
   public void run(Connection connection) {
     run(connection, false);
+  }
+
+  /**
+   * Run the migrations if there are any that need running.
+   */
+  public void run(MigrationContext context) {
+    run(context, false);
   }
 
   private Connection connection(DataSource dataSource) {
@@ -86,4 +100,10 @@ public class MigrationRunner {
     return new MigrationEngine(migrationConfig, checkStateOnly).run(connection);
   }
 
+  /**
+   * Run the migrations if there are any that need running.
+   */
+  private List<MigrationResource> run(MigrationContext context, boolean checkStateOnly) {
+    return new MigrationEngine(migrationConfig, checkStateOnly).run(context);
+  }
 }
