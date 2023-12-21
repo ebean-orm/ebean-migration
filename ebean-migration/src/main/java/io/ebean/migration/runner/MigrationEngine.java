@@ -2,6 +2,7 @@ package io.ebean.migration.runner;
 
 import io.avaje.applog.AppLog;
 import io.ebean.migration.MigrationConfig;
+import io.ebean.migration.MigrationContext;
 import io.ebean.migration.MigrationException;
 import io.ebean.migration.MigrationResource;
 
@@ -35,51 +36,63 @@ public class MigrationEngine {
 
   /**
    * Run the migrations if there are any that need running.
+   *
+   * @param connection the connection to run on. Note the connection will be closed.
    */
   public List<MigrationResource> run(Connection connection) {
     try {
-      long startMs = System.currentTimeMillis();
-      LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
-      if (!resources.readResources() && !resources.readInitResources()) {
-        log.log(DEBUG, "no migrations to check");
-        return emptyList();
-      }
-      long splitMs = System.currentTimeMillis() - startMs;
-      final var platform = derivePlatform(migrationConfig, connection);
-      final var firstCheck = new FirstCheck(migrationConfig, connection, platform);
-      if (fastMode && firstCheck.fastModeCheck(resources.versions())) {
-        long checkMs = System.currentTimeMillis() - startMs;
-        log.log(INFO, "DB migrations completed in {0}ms - totalMigrations:{1} readResources:{2}ms", checkMs, firstCheck.count(), splitMs);
-        return emptyList();
-      }
-      // ensure running with autoCommit false
-      setAutoCommitFalse(connection);
-
-      final MigrationTable table = initialiseMigrationTable(firstCheck, connection);
-      try {
-        List<MigrationResource> result = runMigrations(table, resources.versions());
-        connection.commit();
-        if (!checkStateOnly) {
-          long commitMs = System.currentTimeMillis();
-          log.log(INFO, "DB migrations completed in {0}ms - executed:{1} totalMigrations:{2} mode:{3}", (commitMs - startMs), table.count(), table.size(), table.mode());
-          int countNonTransactional = table.runNonTransactional();
-          if (countNonTransactional > 0) {
-            log.log(INFO, "Non-transactional DB migrations completed in {0}ms - executed:{1}", (System.currentTimeMillis() - commitMs), countNonTransactional);
-          }
-        }
-        return result;
-      } catch (MigrationException e) {
-        rollback(connection);
-        throw e;
-      } catch (Throwable e) {
-        log.log(ERROR, "Perform rollback due to DB migration error", e);
-        rollback(connection);
-        throw new MigrationException("Error running DB migrations", e);
-      } finally {
-        table.unlockMigrationTable();
-      }
+      return run(new DefaultMigrationContext(migrationConfig, connection));
     } finally {
       close(connection);
+    }
+  }
+
+  /**
+   * Run the migrations if there are any that need running. (Does not close connection)
+   */
+  public List<MigrationResource> run(MigrationContext context) {
+
+    long startMs = System.currentTimeMillis();
+    LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
+    if (!resources.readResources() && !resources.readInitResources()) {
+      log.log(DEBUG, "no migrations to check");
+      return emptyList();
+    }
+
+    var connection = context.connection();
+    long splitMs = System.currentTimeMillis() - startMs;
+    final var platform = derivePlatform(migrationConfig, connection);
+    final var firstCheck = new FirstCheck(migrationConfig, context, platform);
+    if (fastMode && firstCheck.fastModeCheck(resources.versions())) {
+      long checkMs = System.currentTimeMillis() - startMs;
+      log.log(INFO, "DB migrations completed in {0}ms - totalMigrations:{1} readResources:{2}ms", checkMs, firstCheck.count(), splitMs);
+      return emptyList();
+    }
+    // ensure running with autoCommit false
+    setAutoCommitFalse(connection);
+
+    final MigrationTable table = initialiseMigrationTable(firstCheck, connection);
+    try {
+      List<MigrationResource> result = runMigrations(table, resources.versions());
+      connection.commit();
+      if (!checkStateOnly) {
+        long commitMs = System.currentTimeMillis();
+        log.log(INFO, "DB migrations completed in {0}ms - executed:{1} totalMigrations:{2} mode:{3}", (commitMs - startMs), table.count(), table.size(), table.mode());
+        int countNonTransactional = table.runNonTransactional();
+        if (countNonTransactional > 0) {
+          log.log(INFO, "Non-transactional DB migrations completed in {0}ms - executed:{1}", (System.currentTimeMillis() - commitMs), countNonTransactional);
+        }
+      }
+      return result;
+    } catch (MigrationException e) {
+      rollback(connection);
+      throw e;
+    } catch (Throwable e) {
+      log.log(ERROR, "Perform rollback due to DB migration error", e);
+      rollback(connection);
+      throw new MigrationException("Error running DB migrations", e);
+    } finally {
+      table.unlockMigrationTable();
     }
   }
 

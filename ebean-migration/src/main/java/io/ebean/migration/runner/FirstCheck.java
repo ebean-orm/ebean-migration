@@ -1,6 +1,7 @@
 package io.ebean.migration.runner;
 
 import io.ebean.migration.MigrationConfig;
+import io.ebean.migration.MigrationContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -15,17 +16,17 @@ final class FirstCheck {
 
   final MigrationConfig config;
   final MigrationPlatform platform;
-  final Connection connection;
+  final MigrationContext context;
   final String schema;
   final String table;
   final String sqlTable;
   boolean tableKnownToExist;
   private int count;
 
-  FirstCheck(MigrationConfig config, Connection connection, MigrationPlatform platform) {
+  FirstCheck(MigrationConfig config, MigrationContext context, MigrationPlatform platform) {
     this.config = config;
     this.platform = platform;
-    this.connection = connection;
+    this.context = context;
     this.schema = config.getDbSchema();
     this.table = config.getMetaTable();
     this.sqlTable = schema != null ? schema + '.' + table : table;
@@ -80,7 +81,7 @@ final class FirstCheck {
   }
 
   List<MigrationMetaRow> fastRead() throws SQLException {
-    return platform.fastReadMigrations(sqlTable, connection);
+    return platform.fastReadMigrations(sqlTable, context.connection());
   }
 
   int count() {
