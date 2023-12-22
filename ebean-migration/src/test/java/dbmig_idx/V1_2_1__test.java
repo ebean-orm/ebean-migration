@@ -1,11 +1,11 @@
-package dbmig;
-
-import java.sql.Connection;
+package dbmig_idx;
 
 import io.ebean.migration.ConfigurationAware;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationRunnerTest;
+
+import java.sql.Connection;
 
 /**
  * Sample migration.
@@ -20,7 +20,7 @@ public class V1_2_1__test implements JdbcMigration, ConfigurationAware{
   public static class MyDto {
     String id;
   }
-  
+
   @Override
   public void setMigrationConfig(MigrationConfig config) {
     this.config = config;
