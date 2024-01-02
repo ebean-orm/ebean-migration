@@ -28,6 +28,7 @@
   <modules>
     <module>ebean-migration-auto</module>
     <module>ebean-migration</module>
+    <module>ebean-migration-it</module>
   </modules>
 
 </project>
