@@ -24,17 +24,20 @@ class AutoRunnerTest {
     dataSourceConfig.setPassword("");
 
     DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
+    try {
+      Properties properties = new Properties();
+      properties.setProperty("dbmigration.migrationPath", "dbmig_autorun");
 
-    Properties properties = new Properties();
-    properties.setProperty("dbmigration.migrationPath","dbmig_autorun");
-
-    AutoRunner autoRunner = new AutoRunner();
-    autoRunner.setDefaultDbSchema("other");
-    autoRunner.loadProperties(properties);
-    autoRunner.run(dataSource);
+      AutoRunner autoRunner = new AutoRunner();
+      autoRunner.setDefaultDbSchema("other");
+      autoRunner.loadProperties(properties);
+      autoRunner.run(dataSource);
 
 
-    assertTrue(executeQuery(dataSource));
+      assertTrue(executeQuery(dataSource));
+    } finally {
+      dataSource.shutdown();
+    }
   }
 
   private boolean executeQuery(DataSourcePool dataSource) throws SQLException {

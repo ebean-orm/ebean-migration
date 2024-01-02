@@ -85,6 +85,8 @@ public class MigrationRunnerTest {
           fail(ex);
         }
       }
+    } finally {
+      dataSource.shutdown();
     }
   }
 
@@ -109,39 +111,41 @@ public class MigrationRunnerTest {
     dataSourceConfig.setPassword("");
 
     DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
+    try {
+      MigrationConfig config = createMigrationConfig();
+      config.setMigrationPath("dbmig");
 
-    MigrationConfig config = createMigrationConfig();
-    config.setMigrationPath("dbmig");
+      MigrationRunner runner = new MigrationRunner(config);
+      runner.run(dataSource);
+      System.out.println("-- run second time --");
+      runner.run(dataSource);
 
-    MigrationRunner runner = new MigrationRunner(config);
-    runner.run(dataSource);
-    System.out.println("-- run second time --");
-    runner.run(dataSource);
+      // simulate change to repeatable migration
+      config.setMigrationPath("dbmig3");
+      System.out.println("-- run third time --");
+      runner.run(dataSource);
 
-    // simulate change to repeatable migration
-    config.setMigrationPath("dbmig3");
-    System.out.println("-- run third time --");
-    runner.run(dataSource);
+      config.setMigrationPath("dbmig4");
 
-    config.setMigrationPath("dbmig4");
+      config.setPatchResetChecksumOn("m2_view,1.2");
+      List<MigrationResource> checkState = runner.checkState(dataSource);
+      assertThat(checkState).hasSize(1);
+      assertThat(checkState.get(0).version().asString()).isEqualTo("1.3");
 
-    config.setPatchResetChecksumOn("m2_view,1.2");
-    List<MigrationResource> checkState = runner.checkState(dataSource);
-    assertThat(checkState).hasSize(1);
-    assertThat(checkState.get(0).version().asString()).isEqualTo("1.3");
+      config.setPatchInsertOn("1.3");
+      checkState = runner.checkState(dataSource);
+      assertThat(checkState).isEmpty();
 
-    config.setPatchInsertOn("1.3");
-    checkState = runner.checkState(dataSource);
-    assertThat(checkState).isEmpty();
+      System.out.println("-- run forth time --");
+      runner.run(dataSource);
 
-    System.out.println("-- run forth time --");
-    runner.run(dataSource);
-
-    System.out.println("-- run fifth time --");
-    checkState = runner.checkState(dataSource);
-    assertThat(checkState).isEmpty();
-    runner.run(dataSource);
-
+      System.out.println("-- run fifth time --");
+      checkState = runner.checkState(dataSource);
+      assertThat(checkState).isEmpty();
+      runner.run(dataSource);
+    } finally {
+      dataSource.shutdown();
+    }
   }
 
   @Test
@@ -154,21 +158,24 @@ public class MigrationRunnerTest {
     dataSourceConfig.setPassword("");
 
     DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
+    try {
+      MigrationConfig config = createMigrationConfig();
+      config.setDbUrl("jdbc:h2:mem:testsDbInit");
+      config.setMigrationPath("dbmig5_base");
+      config.setMigrationInitPath("dbmig5_init");
 
-    MigrationConfig config = createMigrationConfig();
-    config.setDbUrl("jdbc:h2:mem:testsDbInit");
-    config.setMigrationPath("dbmig5_base");
-    config.setMigrationInitPath("dbmig5_init");
+      MigrationRunner runner = new MigrationRunner(config);
+      runner.run(dataSource);
 
-    MigrationRunner runner = new MigrationRunner(config);
-    runner.run(dataSource);
+      MigrationRunner runner2 = new MigrationRunner(config);
+      runner2.run(dataSource);
 
-    MigrationRunner runner2 = new MigrationRunner(config);
-    runner2.run(dataSource);
-
-    try (final Connection connection = dataSource.getConnection()) {
-      final List<String> names = migrationNames(connection);
-      assertThat(names).containsExactly("<init>", "some_i", "m4", "some_r");
+      try (final Connection connection = dataSource.getConnection()) {
+        final List<String> names = migrationNames(connection);
+        assertThat(names).containsExactly("<init>", "some_i", "m4", "some_r");
+      }
+    } finally {
+      dataSource.shutdown();
     }
   }
 
@@ -181,21 +188,24 @@ public class MigrationRunnerTest {
     dataSourceConfig.setPassword("");
 
     DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
+    try {
+      MigrationConfig config = createMigrationConfig();
+      config.setDbUrl("jdbc:h2:mem:testsDbInit2");
+      config.setMigrationPath("dbmig6_base");
+      config.setMigrationInitPath("dbmig6_init");
 
-    MigrationConfig config = createMigrationConfig();
-    config.setDbUrl("jdbc:h2:mem:testsDbInit2");
-    config.setMigrationPath("dbmig6_base");
-    config.setMigrationInitPath("dbmig6_init");
+      MigrationRunner runner = new MigrationRunner(config);
+      runner.run(dataSource);
 
-    MigrationRunner runner = new MigrationRunner(config);
-    runner.run(dataSource);
+      MigrationRunner runner2 = new MigrationRunner(config);
+      runner2.run(dataSource);
 
-    MigrationRunner runner2 = new MigrationRunner(config);
-    runner2.run(dataSource);
-
-    try (final Connection connection = dataSource.getConnection()) {
-      final List<String> names = migrationNames(connection);
-      assertThat(names).containsExactly("<init>", "m4");
+      try (final Connection connection = dataSource.getConnection()) {
+        final List<String> names = migrationNames(connection);
+        assertThat(names).containsExactly("<init>", "m4");
+      }
+    } finally {
+      dataSource.shutdown();
     }
   }
 
@@ -209,32 +219,35 @@ public class MigrationRunnerTest {
     dataSourceConfig.setPassword("");
 
     DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
+    try {
+      MigrationConfig config = createMigrationConfig();
+      config.setMigrationPath("dbmig");
+      config.setJdbcMigrations(List.of(new V1_2_1__test()));
 
-    MigrationConfig config = createMigrationConfig();
-    config.setMigrationPath("dbmig");
-    config.setJdbcMigrations(List.of(new V1_2_1__test()));
-
-    config.setMinVersion("1.3"); // dbmig must run, if DB is empty!
-    new MigrationRunner(config).run(dataSource);
+      config.setMinVersion("1.3"); // dbmig must run, if DB is empty!
+      new MigrationRunner(config).run(dataSource);
 
 
-    config = createMigrationConfig();
-    config.setMigrationPath("dbmig3");
-    config.setMinVersion("1.3");
-    config.setMinVersionFailMessage("Must run dbmig2 first.");
+      config = createMigrationConfig();
+      config.setMigrationPath("dbmig3");
+      config.setMinVersion("1.3");
+      config.setMinVersionFailMessage("Must run dbmig2 first.");
 
-    MigrationRunner runner3 = new MigrationRunner(config);
-    assertThatThrownBy(() -> runner3.run(dataSource))
-      .isInstanceOf(MigrationException.class)
-      .hasMessageContaining("Must run dbmig2 first. MigrationVersion mismatch: v1.2.1 < v1.3");
+      MigrationRunner runner3 = new MigrationRunner(config);
+      assertThatThrownBy(() -> runner3.run(dataSource))
+        .isInstanceOf(MigrationException.class)
+        .hasMessageContaining("Must run dbmig2 first. MigrationVersion mismatch: v1.2.1 < v1.3");
 
-    // now run dbmig2, as intended by error message
-    config = createMigrationConfig();
-    config.setMigrationPath("dbmig2");
-    new MigrationRunner(config).run(dataSource);
+      // now run dbmig2, as intended by error message
+      config = createMigrationConfig();
+      config.setMigrationPath("dbmig2");
+      new MigrationRunner(config).run(dataSource);
 
-    // dbmig3 should pass now
-    runner3.run(dataSource);
+      // dbmig3 should pass now
+      runner3.run(dataSource);
+    } finally {
+      dataSource.shutdown();
+    }
   }
 
   @Test
@@ -247,23 +260,26 @@ public class MigrationRunnerTest {
     dataSourceConfig.setPassword("");
 
     DataSourcePool dataSource = DataSourceFactory.create("test", dataSourceConfig);
+    try {
+      // init
+      MigrationConfig config = createMigrationConfig();
+      config.setMigrationPath("dbmig5_base");
+      config.setMigrationInitPath("dbmig5_init");
+      config.setMinVersion("2.0"); // init must run, although DB is empty!
+      new MigrationRunner(config).run(dataSource);
 
-    // init
-    MigrationConfig config = createMigrationConfig();
-    config.setMigrationPath("dbmig5_base");
-    config.setMigrationInitPath("dbmig5_init");
-    config.setMinVersion("2.0"); // init must run, although DB is empty!
-    new MigrationRunner(config).run(dataSource);
+      // test if migration detects correct init-version (1.3)
+      config = createMigrationConfig();
+      config.setMigrationPath("dbmig3");
+      config.setMinVersion("2.0");
 
-    // test if migration detects correct init-version (1.3)
-    config = createMigrationConfig();
-    config.setMigrationPath("dbmig3");
-    config.setMinVersion("2.0");
-
-    MigrationRunner runner = new MigrationRunner(config);
-    assertThatThrownBy(() -> runner.run(dataSource))
-      .isInstanceOf(MigrationException.class)
-      .hasMessageContaining("MigrationVersion mismatch: v1.3 < v2.0");
+      MigrationRunner runner = new MigrationRunner(config);
+      assertThatThrownBy(() -> runner.run(dataSource))
+        .isInstanceOf(MigrationException.class)
+        .hasMessageContaining("MigrationVersion mismatch: v1.3 < v2.0");
+    } finally {
+      dataSource.shutdown();
+    }
   }
 
   @Test
@@ -281,20 +297,24 @@ public class MigrationRunnerTest {
     config.setMigrationPath("dbmig");
 
     DataSourcePool dataSource = DataSourceFactory.create("skipMigration", dataSourceConfig);
-    new MigrationRunner(config).run(dataSource);
+    try {
+      new MigrationRunner(config).run(dataSource);
 
-    // assert migrations are in the migration table
-    try (final Connection connection = dataSource.getConnection()) {
-      final List<String> names = migrationNames(connection);
-      assertThat(names).containsExactly("<init>", "hello", "initial", "add_m3", "serviceLoaded", "m2_view");
-    }
+      // assert migrations are in the migration table
+      try (final Connection connection = dataSource.getConnection()) {
+        final List<String> names = migrationNames(connection);
+        assertThat(names).containsExactly("<init>", "hello", "initial", "add_m3", "serviceLoaded", "m2_view");
+      }
 
-    // assert the migrations didn't actually run (create the tables etc)
-    try (final Connection connection = dataSource.getConnection()) {
-      singleQueryResult(connection, "select acol from m3");
-      fail();
-    } catch (SQLException e) {
-      assertThat(e.getMessage()).contains("Table \"M3\" not found;");
+      // assert the migrations didn't actually run (create the tables etc)
+      try (final Connection connection = dataSource.getConnection()) {
+        singleQueryResult(connection, "select acol from m3");
+        fail();
+      } catch (SQLException e) {
+        assertThat(e.getMessage()).contains("Table \"M3\" not found;");
+      }
+    } finally {
+      dataSource.shutdown();
     }
   }
 

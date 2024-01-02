@@ -65,6 +65,8 @@ class MigrationTableCreateTableRaceTest {
       }
       // cleanup
       dropTable(conn);
+    } finally {
+      dataSource.shutdown();
     }
   }
 
