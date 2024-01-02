@@ -17,7 +17,7 @@ import java.sql.Connection;
  *   module info.</li>
  *   <li>Using <b>jdbcMigrations</b> property<br>
  *   you can specify all migrations in the jdbcMigrations property</li>
- *   <li>Using own <b>jdbcMigrationFactory</b<br>
+ *   <li>Using own <b>jdbcMigrationFactory</b><br>
  *   you can write your own jdbcMigrationFactory that provides JdbcMigrations</li>
  * </ul>
  *
