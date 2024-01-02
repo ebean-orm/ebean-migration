@@ -1,5 +1,6 @@
 package io.ebean.migration.runner;
 
+import io.ebean.Database;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationContext;
 
@@ -10,17 +11,20 @@ import java.sql.Connection;
  *
  * @author Roland Praml, FOCONIS AG
  */
-public class DefaultMigrationContext implements MigrationContext {
+class DefaultMigrationContext implements MigrationContext {
   private final Connection connection;
   private final String migrationPath;
   private final String platform;
   private final String basePlatform;
 
-  public DefaultMigrationContext(MigrationConfig config, Connection connection) {
+  private final Database database;
+
+  DefaultMigrationContext(MigrationConfig config, Connection connection, Database database) {
     this.connection = connection;
     this.migrationPath = config.getMigrationPath();
     this.platform = config.getPlatform();
     this.basePlatform = config.getBasePlatform();
+    this.database = database;
   }
 
   @Override
@@ -41,5 +45,10 @@ public class DefaultMigrationContext implements MigrationContext {
   @Override
   public String basePlatform() {
     return basePlatform;
+  }
+
+  @Override
+  public Database database() {
+    return database;
   }
 }

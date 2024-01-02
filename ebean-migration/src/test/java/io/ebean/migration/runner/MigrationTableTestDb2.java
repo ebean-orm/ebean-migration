@@ -44,7 +44,7 @@ public class MigrationTableTestDb2 {
     config.setMigrationPath("dbmig");
 
     try (Connection conn = dataSource.getConnection()) {
-      var fc = new FirstCheck(config, new DefaultMigrationContext(config, conn), platform);
+      var fc = new FirstCheck(config, new DefaultMigrationContext(config, conn, null), platform);
       MigrationTable table = new MigrationTable(fc, false);
       table.createIfNeededAndLock();
       table.unlockMigrationTable();
