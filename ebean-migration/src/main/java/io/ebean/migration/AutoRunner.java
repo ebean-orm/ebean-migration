@@ -44,4 +44,5 @@ public class AutoRunner implements AutoMigrationRunner {
   public void run(DataSource dataSource) {
     new MigrationRunner(config).run(dataSource);
   }
+
 }

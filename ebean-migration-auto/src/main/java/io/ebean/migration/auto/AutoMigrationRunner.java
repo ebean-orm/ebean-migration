@@ -56,4 +56,5 @@ public interface AutoMigrationRunner {
    * Run DB migrations using the given DataSource.
    */
   void run(DataSource dataSource);
+
 }
