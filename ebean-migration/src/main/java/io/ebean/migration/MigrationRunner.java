@@ -112,7 +112,7 @@ public class MigrationRunner {
    * Run the migrations if there are any that need running. Uses optionl DB as context
    */
   private List<MigrationResource> run(Connection connection, Database db, boolean checkStateOnly) {
-    return new MigrationEngine(migrationConfig, checkStateOnly).run(connection);
+    return new MigrationEngine(migrationConfig, checkStateOnly).run(connection, db);
   }
 
   /**

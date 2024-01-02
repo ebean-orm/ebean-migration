@@ -1,0 +1,3 @@
+entity-packages: org.migration.model
+entity-field-access: true
+synthetic: false
