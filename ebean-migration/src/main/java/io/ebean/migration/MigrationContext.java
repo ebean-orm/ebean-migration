@@ -1,6 +1,7 @@
 package io.ebean.migration;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * The current context while a migration runs.
@@ -38,4 +39,10 @@ public interface MigrationContext {
    */
   String basePlatform();
 
+  /**
+   * Indicates that all migrations are done and the underlying connection or transaction should perform a commit.
+   * <p>
+   * NOTE:
+   */
+  void commit() throws SQLException;
 }

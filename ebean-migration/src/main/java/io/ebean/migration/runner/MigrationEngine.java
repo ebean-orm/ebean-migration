@@ -53,8 +53,8 @@ public class MigrationEngine {
   public List<MigrationResource> run(MigrationContext context) {
 
     long startMs = System.currentTimeMillis();
-    LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
-    if (!resources.readResources(context) && !resources.readInitResources()) {
+    LocalMigrationResources resources = new LocalMigrationResources(migrationConfig, context);
+    if (!resources.readResources() && !resources.readInitResources()) {
       log.log(DEBUG, "no migrations to check");
       return emptyList();
     }
@@ -74,7 +74,7 @@ public class MigrationEngine {
     final MigrationTable table = initialiseMigrationTable(firstCheck, connection);
     try {
       List<MigrationResource> result = runMigrations(table, resources.versions());
-      connection.commit();
+      context.commit();
       if (!checkStateOnly) {
         long commitMs = System.currentTimeMillis();
         log.log(INFO, "DB migrations completed in {0}ms - executed:{1} totalMigrations:{2} mode:{3}", (commitMs - startMs), table.count(), table.size(), table.mode());

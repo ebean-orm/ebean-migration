@@ -1,6 +1,7 @@
 open module io.ebean.migration {
 
   exports io.ebean.migration;
+  exports io.ebean.migration.db;
 
   requires transitive java.sql;
   requires transitive io.avaje.applog;

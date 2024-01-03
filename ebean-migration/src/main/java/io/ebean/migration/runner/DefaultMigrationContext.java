@@ -4,6 +4,7 @@ import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationContext;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * A default implementation of the MigrationContext.
@@ -41,5 +42,10 @@ class DefaultMigrationContext implements MigrationContext {
   @Override
   public String basePlatform() {
     return basePlatform;
+  }
+
+  @Override
+  public void commit() throws SQLException {
+    connection.commit();
   }
 }

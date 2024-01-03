@@ -27,14 +27,16 @@ final class LocalMigrationResources {
   private final MigrationConfig migrationConfig;
   private final ClassLoader classLoader;
   private final Iterable<JdbcMigration> jdbcMigrations;
+  private final MigrationContext context;
 
   /**
    * Construct with configuration options.
    */
-  LocalMigrationResources(MigrationConfig migrationConfig) {
+  LocalMigrationResources(MigrationConfig migrationConfig, MigrationContext context) {
     this.migrationConfig = migrationConfig;
     this.classLoader = migrationConfig.getClassLoader();
     this.jdbcMigrations = migrationConfig.getJdbcMigrations();
+    this.context = context;
   }
 
   /**
@@ -49,7 +51,7 @@ final class LocalMigrationResources {
   /**
    * Read all the migration resources (SQL scripts and JDBC migrations) returning true if there are versions.
    */
-  boolean readResources(MigrationContext context) {
+  boolean readResources() {
     if (readFromIndex()) {
       // automatically enable earlyChecksumMode when using index file with pre-computed checksums
       migrationConfig.setEarlyChecksumMode(true);
@@ -58,7 +60,7 @@ final class LocalMigrationResources {
     }
     // after we read the SQL migrations from index or classpath scan, we
     // read jdbcMigrations and sort them.
-    readJdbcMigrations(context);
+    readJdbcMigrations();
     Collections.sort(versions);
     return !versions.isEmpty();
   }
@@ -90,7 +92,7 @@ final class LocalMigrationResources {
     return false;
   }
 
-  private void readJdbcMigrations(MigrationContext context) {
+  private void readJdbcMigrations() {
     if (jdbcMigrations != null) {
       for (JdbcMigration jdbcMigration : jdbcMigrations) {
         if (jdbcMigration.matches(context)) {
