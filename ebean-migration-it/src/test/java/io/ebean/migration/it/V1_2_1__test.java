@@ -26,14 +26,14 @@ public class V1_2_1__test implements JdbcMigration {
 
   @Override
   public void migrate(MigrationContext context) {
-    Database db = context.database();
-    try (Transaction txn = beginExternalTransaction(context.database(), context.connection())) {
-
-
-      M3 m3 = db.find(M3.class).findOne();
-      m3.setAcol("Hello Migration");
-      db.save(m3);
-    }
+//    Database db = context.database();
+//    try (Transaction txn = beginExternalTransaction(context.database(), context.connection())) {
+//
+//
+//      M3 m3 = db.find(M3.class).findOne();
+//      m3.setAcol("Hello Migration");
+//      db.save(m3);
+//    }
   }
 
   private Transaction beginExternalTransaction(Database database, Connection connection) {

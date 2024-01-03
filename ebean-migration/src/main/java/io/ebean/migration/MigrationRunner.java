@@ -1,7 +1,6 @@
 package io.ebean.migration;
 
 import io.avaje.applog.AppLog;
-import io.ebean.Database;
 import io.ebean.migration.runner.MigrationEngine;
 
 import javax.sql.DataSource;
@@ -42,7 +41,7 @@ public class MigrationRunner {
    * Return the migrations that would be applied if the migration is run.
    */
   public List<MigrationResource> checkState(Connection connection) {
-    return run(connection, null, true);
+    return run(connection, true);
   }
 
   /**
@@ -50,13 +49,6 @@ public class MigrationRunner {
    */
   public List<MigrationResource> checkState(MigrationContext context) {
     return run(context, true);
-  }
-
-  /**
-   * Return the migrations that would be applied if the migration is run.
-   */
-  public List<MigrationResource> checkState(Database server) {
-    return run(connection(server.dataSource()), null, true);
   }
 
   /**
@@ -77,7 +69,7 @@ public class MigrationRunner {
    * Run the migrations if there are any that need running.
    */
   public void run(Connection connection) {
-    run(connection, null, false);
+    run(connection, false);
   }
 
   /**
@@ -85,13 +77,6 @@ public class MigrationRunner {
    */
   public void run(MigrationContext context) {
     run(context, false);
-  }
-
-  /**
-   * Run the migrations if there are any that need running.
-   */
-  public void run(Database db) {
-    run(connection(db.dataSource()), db,false);
   }
 
   private Connection connection(DataSource dataSource) {
@@ -109,10 +94,10 @@ public class MigrationRunner {
   }
 
   /**
-   * Run the migrations if there are any that need running. Uses optionl DB as context
+   * Run the migrations if there are any that need running.
    */
-  private List<MigrationResource> run(Connection connection, Database db, boolean checkStateOnly) {
-    return new MigrationEngine(migrationConfig, checkStateOnly).run(connection, db);
+  private List<MigrationResource> run(Connection connection, boolean checkStateOnly) {
+    return new MigrationEngine(migrationConfig, checkStateOnly).run(connection);
   }
 
   /**

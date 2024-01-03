@@ -1,14 +1,11 @@
 package io.ebean.migration.runner;
 
 import io.avaje.applog.AppLog;
-import io.ebean.TxScope;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationContext;
 import io.ebean.migration.MigrationException;
 import io.ebean.migration.MigrationResource;
-import io.ebean.Database;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -37,18 +34,14 @@ public class MigrationEngine {
     this.fastMode = !checkStateOnly && migrationConfig.isFastMode();
   }
 
-  public List<MigrationResource> run(Connection connection) {
-    return run(connection, null);
-  }
-
   /**
    * Run the migrations if there are any that need running.
    *
    * @param connection the connection to run on. Note the connection will be closed.
    */
-  public List<MigrationResource> run(Connection connection, Database db) {
+  public List<MigrationResource> run(Connection connection) {
     try {
-      return run(new DefaultMigrationContext(migrationConfig, connection, db));
+      return run(new DefaultMigrationContext(migrationConfig, connection));
     } finally {
       close(connection);
     }
@@ -79,24 +72,6 @@ public class MigrationEngine {
     setAutoCommitFalse(connection);
 
     final MigrationTable table = initialiseMigrationTable(firstCheck, connection);
-
-
-    /*SpiEbeanServer defaultServer = (SpiEbeanServer)DB.get();
-
-    assert defaultServer != null;
-
-    TransactionManager transactionManager = (TransactionManager)defaultServer.transactionManager();
-    SpiTransaction txn = transactionManager.wrapExternalConnection(connection);
-    transactionManager.externalBeginTransaction(txn, TxScope.notSupported());
-
-    try {
-      this.migrate(defaultServer);
-      txn.flush();
-    } finally {
-      transactionManager.externalRemoveTransaction();
-    }*/
-
-
     try {
       List<MigrationResource> result = runMigrations(table, resources.versions());
       connection.commit();

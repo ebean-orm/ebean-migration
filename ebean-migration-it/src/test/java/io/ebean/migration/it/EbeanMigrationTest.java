@@ -24,7 +24,7 @@ public class EbeanMigrationTest {
     Database db = DB.getDefault();
     config.setName(db.name());
     config.load(db.pluginApi().config().getProperties());
-    new MigrationRunner(config).run(db);
+    //new MigrationRunner(config).run(db);
 
 
     M3 m3 = DB.find(M3.class).findOne();

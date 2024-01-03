@@ -94,8 +94,7 @@ final class LocalMigrationResources {
     if (jdbcMigrations != null) {
       for (JdbcMigration jdbcMigration : jdbcMigrations) {
         if (jdbcMigration.matches(context)) {
-          final var version = MigrationVersion.parse(jdbcMigration.getName());
-          versions.add(new LocalJdbcMigrationResource(version, jdbcMigration));
+          versions.add(new LocalJdbcMigrationResource(jdbcMigration.getVersion(), jdbcMigration.getName(), jdbcMigration));
         }
       }
     }

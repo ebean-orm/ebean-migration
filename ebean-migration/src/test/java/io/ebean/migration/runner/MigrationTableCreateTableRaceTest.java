@@ -51,7 +51,7 @@ class MigrationTableCreateTableRaceTest {
     try (Connection conn = dataSource.getConnection()) {
       dropTable(conn);
 
-      var fc = new FirstCheck(config, new DefaultMigrationContext(config, conn, null), platform);
+      var fc = new FirstCheck(config, new DefaultMigrationContext(config, conn), platform);
       MigrationTable table = new MigrationTable(fc, false);
       table.createTable();
       try {

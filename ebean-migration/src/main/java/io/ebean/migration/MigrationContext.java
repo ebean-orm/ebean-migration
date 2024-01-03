@@ -1,7 +1,5 @@
 package io.ebean.migration;
 
-import io.ebean.Database;
-
 import java.sql.Connection;
 
 /**
@@ -40,8 +38,4 @@ public interface MigrationContext {
    */
   String basePlatform();
 
-  /**
-   * The Ebean database.
-   */
-  Database database();
 }

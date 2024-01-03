@@ -50,6 +50,13 @@ public interface JdbcMigration extends MigrationChecksumProvider {
   }
 
   /**
+   * Returns the version of the JdbcMigration. By default, it is parsed from {@link #getName()}
+   */
+  default MigrationVersion getVersion() {
+    return MigrationVersion.parse(getName());
+  }
+
+  /**
    * Determines, if this migration can be used for that migrationContext.
    * Here, platform checks or other things can be implemented.
    * You should not write to database at this stage.

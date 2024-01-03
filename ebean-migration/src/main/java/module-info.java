@@ -6,7 +6,7 @@ open module io.ebean.migration {
   requires transitive io.avaje.applog;
   requires transitive io.avaje.classpath.scanner;
   requires transitive io.ebean.ddl.runner;
-  requires transitive io.ebean.api;
+  //requires transitive io.ebean.api;
   requires io.ebean.migration.auto;
 
   uses io.ebean.migration.JdbcMigration;

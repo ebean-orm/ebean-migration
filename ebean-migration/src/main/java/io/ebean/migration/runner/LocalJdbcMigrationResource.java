@@ -15,8 +15,8 @@ final class LocalJdbcMigrationResource extends LocalMigrationResource {
   /**
    * Construct with version and resource.
    */
-  LocalJdbcMigrationResource(MigrationVersion version, JdbcMigration migration) {
-    super(version, migration.getClass().getName());
+  LocalJdbcMigrationResource(MigrationVersion version, String location, JdbcMigration migration) {
+    super(version, location);
     this.migration = migration;
   }
 

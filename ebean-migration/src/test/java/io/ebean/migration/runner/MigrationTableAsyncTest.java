@@ -204,7 +204,7 @@ public class MigrationTableAsyncTest {
   }
 
   private static MigrationTable migrationTable(MigrationPlatform platform, Connection connection) {
-    var fc = new FirstCheck(config, new DefaultMigrationContext(config, connection, null), platform);
+    var fc = new FirstCheck(config, new DefaultMigrationContext(config, connection), platform);
     return new MigrationTable(fc, false);
   }
 

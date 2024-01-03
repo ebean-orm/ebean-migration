@@ -1,6 +1,5 @@
 package io.ebean.migration.runner;
 
-import io.ebean.Database;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationContext;
 
@@ -17,14 +16,11 @@ class DefaultMigrationContext implements MigrationContext {
   private final String platform;
   private final String basePlatform;
 
-  private final Database database;
-
-  DefaultMigrationContext(MigrationConfig config, Connection connection, Database database) {
+  DefaultMigrationContext(MigrationConfig config, Connection connection) {
     this.connection = connection;
     this.migrationPath = config.getMigrationPath();
     this.platform = config.getPlatform();
     this.basePlatform = config.getBasePlatform();
-    this.database = database;
   }
 
   @Override
@@ -45,10 +41,5 @@ class DefaultMigrationContext implements MigrationContext {
   @Override
   public String basePlatform() {
     return basePlatform;
-  }
-
-  @Override
-  public Database database() {
-    return database;
   }
 }
