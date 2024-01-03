@@ -5,7 +5,6 @@ import io.ebean.Database;
 import io.ebean.DatabaseFactory;
 import io.ebean.config.DatabaseConfig;
 import io.ebean.migration.MigrationConfig;
-import io.ebean.migration.MigrationRunner;
 import org.migration.model.M3;
 import org.junit.jupiter.api.Test;
 

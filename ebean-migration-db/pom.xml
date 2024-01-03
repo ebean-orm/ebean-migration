@@ -9,7 +9,7 @@
   </parent>
 
   <groupId>io.ebean</groupId>
-  <artifactId>ebean-migration</artifactId>
+  <artifactId>ebean-migration-db</artifactId>
   <version>13.11.2-SNAPSHOT</version>
 
   <scm>
@@ -23,31 +23,20 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>io.avaje</groupId>
-      <artifactId>avaje-applog</artifactId>
-      <version>1.0</version>
-    </dependency>
 
     <dependency>
       <groupId>io.ebean</groupId>
-      <artifactId>ebean-ddl-runner</artifactId>
-      <version>2.3</version>
+      <artifactId>ebean-migration</artifactId>
+      <version>13.11.2-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-api</artifactId>
       <version>13.25.0</version>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>io.ebean</groupId>
-      <artifactId>ebean-migration-auto</artifactId>
-      <version>1.2</version>
       <scope>provided</scope>
     </dependency>
+
 
     <dependency>
       <groupId>io.avaje</groupId>
@@ -56,11 +45,10 @@
     </dependency>
 
     <!-- test dependencies -->
-
     <dependency>
-      <groupId>io.avaje</groupId>
-      <artifactId>avaje-slf4j-jpl</artifactId>
-      <version>1.1</version>
+      <groupId>io.ebean</groupId>
+      <artifactId>ebean</artifactId>
+      <version>13.25.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -163,6 +151,19 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
     </dependency>
 
   </dependencies>
-
-
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.repaint.maven</groupId>
+        <artifactId>tiles-maven-plugin</artifactId>
+        <version>2.33</version>
+        <extensions>true</extensions>
+        <configuration>
+          <tiles>
+            <tile>io.ebean.tile:enhancement:13.25.0</tile>
+          </tiles>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

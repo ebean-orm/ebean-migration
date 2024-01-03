@@ -1,6 +1,7 @@
 package io.ebean.migration;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * Interface to be implemented by Jdbc Java Migrations. By default the migration
@@ -31,7 +32,7 @@ public interface JdbcMigration extends MigrationChecksumProvider {
    * Note: This API has changed with ebean-migration 13.12, as the initialization has changed.
    * See https://github.com/ebean-orm/ebean-migration/issues/90 for migration advice.
    */
-  void migrate(MigrationContext context);
+  void migrate(MigrationContext context) throws SQLException;
 
   @Override
   default int getChecksum() {

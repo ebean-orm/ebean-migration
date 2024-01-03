@@ -38,6 +38,11 @@ public class MigrationConfig {
   private boolean allowErrorInRepeatable;
 
   /**
+   * Run migration automatically when ebean starts (Requires MigrationPlugin)
+   */
+  private boolean autoRun;
+
+  /**
    * Holds a Collection/Iterable of JdbcMigrations. All migrations (JDBC and SQL) are
    * extecuted in the order defined by their version numbers.
    * By default, JdbcMigrations are loaded via ServiceLoader.
@@ -496,6 +501,20 @@ public class MigrationConfig {
   }
 
   /**
+   * Sets, if migration should automatically run when ebean starts.
+   */
+  public void setAutoRun(boolean autoRun) {
+    this.autoRun = autoRun;
+  }
+
+  /**
+   * run migration on ebean start
+   */
+  public boolean isAutoRun() {
+    return autoRun;
+  }
+
+  /**
    * Load configuration from standard properties.
    */
   public void load(Properties props) {
@@ -521,6 +540,7 @@ public class MigrationConfig {
     runPlaceholders = property("placeholders", runPlaceholders);
     minVersion = property("minVersion", minVersion);
     minVersionFailMessage = property("minVersionFailMessage", minVersionFailMessage);
+    autoRun = property("autoRun", autoRun);
 
     String jdbcMigrations = property("jdbcMigrations");
     if (jdbcMigrations != null) {

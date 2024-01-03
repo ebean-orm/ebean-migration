@@ -53,8 +53,8 @@ public class MigrationEngine {
   public List<MigrationResource> run(MigrationContext context) {
 
     long startMs = System.currentTimeMillis();
-    LocalMigrationResources resources = new LocalMigrationResources(migrationConfig, context);
-    if (!resources.readResources() && !resources.readInitResources()) {
+    LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
+    if (!resources.readResources(context) && !resources.readInitResources()) {
       log.log(DEBUG, "no migrations to check");
       return emptyList();
     }

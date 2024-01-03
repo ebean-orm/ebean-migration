@@ -1,7 +1,8 @@
 package org.migration.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.PreUpdate;
 
 /**
  * @author Roland Praml, FOCONIS AG
@@ -26,5 +27,10 @@ public class M3 {
 
   public void setAcol(String acol) {
     this.acol = acol;
+  }
+
+  @PreUpdate
+  public void addCommitMsg() {
+    acol += " PreCommit";
   }
 }
