@@ -16,14 +16,15 @@ class MigrationRunner_emptyTest {
     dataSourceConfig.setPassword("");
 
     DataSourcePool dataSource = DataSourceFactory.create("test-empty", dataSourceConfig);
+    try {
+      MigrationConfig config = new MigrationConfig();
+      config.setMigrationPath("empty-dbmig");
 
-    MigrationConfig config = new MigrationConfig();
-    config.setMigrationPath("empty-dbmig");
-
-    MigrationRunner runner = new MigrationRunner(config);
-    runner.run(dataSource);
-
-    dataSource.shutdown();
+      MigrationRunner runner = new MigrationRunner(config);
+      runner.run(dataSource);
+    } finally {
+      dataSource.shutdown();
+    }
   }
 
 }

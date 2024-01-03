@@ -1,5 +1,6 @@
 package io.ebean.migration.runner;
 
+import dbmig.V1_2_1__test;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationRunner;
 import io.ebean.datasource.DataSourceConfig;
@@ -52,6 +53,7 @@ public class MigrationTable1Test {
   public void testMigrationTableBase() throws Exception {
 
     config.setMigrationPath("dbmig");
+    config.setJdbcMigrations(List.of(new V1_2_1__test()));
 
     MigrationRunner runner = new MigrationRunner(config);
     runner.run(dataSource);

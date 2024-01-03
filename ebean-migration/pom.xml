@@ -19,6 +19,7 @@
 
   <properties>
     <nexus.staging.autoReleaseAfterClose>true</nexus.staging.autoReleaseAfterClose>
+    <surefire.useModulePath>false</surefire.useModulePath>
   </properties>
 
   <dependencies>
@@ -32,6 +33,13 @@
       <groupId>io.ebean</groupId>
       <artifactId>ebean-ddl-runner</artifactId>
       <version>2.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.ebean</groupId>
+      <artifactId>ebean-api</artifactId>
+      <version>13.25.0</version>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
@@ -155,5 +163,6 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
     </dependency>
 
   </dependencies>
+
 
 </project>

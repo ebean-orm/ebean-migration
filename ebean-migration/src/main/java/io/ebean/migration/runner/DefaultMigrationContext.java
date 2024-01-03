@@ -4,19 +4,20 @@ import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationContext;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * A default implementation of the MigrationContext.
  *
  * @author Roland Praml, FOCONIS AG
  */
-public class DefaultMigrationContext implements MigrationContext {
+class DefaultMigrationContext implements MigrationContext {
   private final Connection connection;
   private final String migrationPath;
   private final String platform;
   private final String basePlatform;
 
-  public DefaultMigrationContext(MigrationConfig config, Connection connection) {
+  DefaultMigrationContext(MigrationConfig config, Connection connection) {
     this.connection = connection;
     this.migrationPath = config.getMigrationPath();
     this.platform = config.getPlatform();
@@ -41,5 +42,10 @@ public class DefaultMigrationContext implements MigrationContext {
   @Override
   public String basePlatform() {
     return basePlatform;
+  }
+
+  @Override
+  public void commit() throws SQLException {
+    connection.commit();
   }
 }
