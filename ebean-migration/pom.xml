@@ -4,13 +4,13 @@
   <parent>
     <groupId>org.avaje</groupId>
     <artifactId>java11-oss</artifactId>
-    <version>3.12</version>
+    <version>4.0</version>
     <relativePath />
   </parent>
 
   <groupId>io.ebean</groupId>
   <artifactId>ebean-migration</artifactId>
-  <version>13.11.2-SNAPSHOT</version>
+  <version>14.0.1-SNAPSHOT</version>
 
   <scm>
     <developerConnection>scm:git:git@github.com:ebean-orm/ebean-migration.git</developerConnection>
@@ -79,16 +79,16 @@
     </dependency>
 
     <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.28</version>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <version>8.3.0</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.4.3</version>
+      <version>42.7.2</version>
       <scope>test</scope>
     </dependency>
 
@@ -135,30 +135,30 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
     <!--    </dependency>-->
 
     <dependency>
-      <groupId>org.avaje.composite</groupId>
-      <artifactId>logback</artifactId>
-      <version>1.1</version>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.5.2</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-test-containers</artifactId>
-      <version>7.1</version>
+      <version>7.3</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>io.avaje</groupId>
       <artifactId>junit</artifactId>
-      <version>1.3</version>
+      <version>1.4</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-datasource</artifactId>
-      <version>8.0</version>
+      <version>8.12</version>
       <scope>test</scope>
     </dependency>
 
