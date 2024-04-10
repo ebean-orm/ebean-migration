@@ -11,7 +11,7 @@
 
   <groupId>io.ebean</groupId>
   <artifactId>ebean-migration-it</artifactId>
-  <version>13.11.2-SNAPSHOT</version>
+  <version>14.0.1-SNAPSHOT</version>
 
   <scm>
     <developerConnection>scm:git:git@github.com:ebean-orm/ebean-migration.git</developerConnection>
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>io.ebean</groupId>
       <artifactId>ebean-migration</artifactId>
-      <version>13.11.2-SNAPSHOT</version>
+      <version>14.0.1-SNAPSHOT</version>
     </dependency>
     <!--
         &lt;!&ndash; test dependencies &ndash;&gt;
