@@ -8,19 +8,24 @@ import io.ebean.migration.MigrationRunner;
 
 import java.util.List;
 
-
 /**
+ * Runs the default checkState and run method on a current ebean server.
+ *
  * @author Roland Praml, FOCONIS AG
  */
 public class MigrationRunnerDb extends MigrationRunner {
-  public MigrationRunnerDb(MigrationConfig migrationConfig) {
+  private final Database db;
+
+  public MigrationRunnerDb(MigrationConfig migrationConfig, Database db) {
     super(migrationConfig);
+    this.db = db;
   }
 
   /**
    * Return the migrations that would be applied if the migration is run.
    */
-  public List<MigrationResource> checkState(Database db) {
+  @Override
+  public List<MigrationResource> checkState() {
     try (Transaction txn = db.beginTransaction()) {
       return checkState(new TransactionBasedMigrationContext(migrationConfig, txn, db));
     }
@@ -29,10 +34,11 @@ public class MigrationRunnerDb extends MigrationRunner {
   /**
    * Run the migrations if there are any that need running.
    */
-  public void run(Database db) {
+  @Override
+  public void run() {
     try (Transaction txn = db.beginTransaction()) {
       run(new TransactionBasedMigrationContext(migrationConfig, txn, db));
-      txn.end();
+      // No commit here!
     }
   }
 }

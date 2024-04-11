@@ -7,11 +7,13 @@ import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationContext;
 import io.ebean.migration.MigrationVersion;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import static java.lang.System.Logger.Level.DEBUG;

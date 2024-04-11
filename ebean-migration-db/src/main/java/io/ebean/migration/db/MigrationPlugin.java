@@ -26,7 +26,7 @@ public class MigrationPlugin implements Plugin {
   @Override
   public void online(boolean online) {
     if (online && config.isAutoRun()) {
-      new MigrationRunnerDb(config).run(server);
+      new MigrationRunnerDb(config, server).run();
     }
   }
 

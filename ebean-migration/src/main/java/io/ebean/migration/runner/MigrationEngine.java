@@ -10,12 +10,23 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import static java.lang.System.Logger.Level.*;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.ERROR;
+import static java.lang.System.Logger.Level.INFO;
 import static java.lang.System.Logger.Level.WARNING;
 import static java.util.Collections.emptyList;
 
 /**
- * Actually runs the migrations.
+ * Actually runs the migrations and executes JDBC-mgirations.
+ * <p>
+ * MigrationEngine needs a context that provides information for the current database,
+ * where the migration should run. When running on an existing {@link Connection}, a
+ * {@link DefaultMigrationContext} is created, but it is also possible, to pass a
+ * MigrationContext, that holds an ebeanserver. In this case, it is possible to use
+ * features like dto-queries in JDBC-migrations.
+ * <p>
+ * In the other case, if only a raw jdbc-connection is used, you may not have access
+ * to these features and JDBC-migrations have to be done the traditional way.
  */
 public class MigrationEngine {
 
