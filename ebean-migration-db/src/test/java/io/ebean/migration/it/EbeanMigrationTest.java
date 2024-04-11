@@ -62,7 +62,7 @@ public class EbeanMigrationTest {
     DatabaseConfig dbCfg = new DatabaseConfig();
     dbCfg.setName("h2");
     dbCfg.loadFromProperties();
-    dbCfg.getProperties().setProperty("ebean.h2.migration.autoRun", "true");
+    dbCfg.getProperties().setProperty("ebean.h2.migration.plugin.run", "true");
     dbCfg.setDefaultServer(true);
     Database db = DatabaseFactory.create(dbCfg);
     try {

@@ -37,13 +37,6 @@
 
     <dependency>
       <groupId>io.ebean</groupId>
-      <artifactId>ebean-api</artifactId>
-      <version>14.1.0</version>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>io.ebean</groupId>
       <artifactId>ebean-migration-auto</artifactId>
       <version>1.2</version>
       <scope>provided</scope>
@@ -163,6 +156,5 @@ mvn install:install-file -Dfile=/some/path/to/ojdbc7.jar -DgroupId=oracle \
     </dependency>
 
   </dependencies>
-
 
 </project>

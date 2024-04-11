@@ -1,6 +1,5 @@
 package io.ebean.migration;
 
-import java.lang.reflect.Constructor;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -38,9 +37,9 @@ public class MigrationConfig {
   private boolean allowErrorInRepeatable;
 
   /**
-   * Run migration automatically when ebean starts (Requires MigrationPlugin)
+   * Run migration automatically when ebean starts (Requires MigrationPlugin from ebean-migration-db)
    */
-  private boolean autoRun;
+  private boolean pluginRun;
 
   /**
    * Holds a Collection/Iterable of JdbcMigrations. All migrations (JDBC and SQL) are
@@ -503,15 +502,15 @@ public class MigrationConfig {
   /**
    * Sets, if migration should automatically run when ebean starts.
    */
-  public void setAutoRun(boolean autoRun) {
-    this.autoRun = autoRun;
+  public void setPluginRun(boolean pluginRun) {
+    this.pluginRun = pluginRun;
   }
 
   /**
    * run migration on ebean start
    */
-  public boolean isAutoRun() {
-    return autoRun;
+  public boolean isPluginRun() {
+    return pluginRun;
   }
 
   /**
@@ -540,7 +539,7 @@ public class MigrationConfig {
     runPlaceholders = property("placeholders", runPlaceholders);
     minVersion = property("minVersion", minVersion);
     minVersionFailMessage = property("minVersionFailMessage", minVersionFailMessage);
-    autoRun = property("autoRun", autoRun);
+    pluginRun = property("plugin.run", pluginRun);
 
     String jdbcMigrations = property("jdbcMigrations");
     if (jdbcMigrations != null) {

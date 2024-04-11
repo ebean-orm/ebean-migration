@@ -1,7 +1,5 @@
 package io.ebean.migration.db;
 
-import io.ebean.DB;
-import io.ebean.Database;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.plugin.Plugin;
 import io.ebean.plugin.SpiServer;
@@ -18,14 +16,14 @@ public class MigrationPlugin implements Plugin {
     config.setName(server.name());
     config.load(server.config().getProperties());
     this.server = server;
-    if (server.config().isRunMigration() && config.isAutoRun()) {
-      throw new UnsupportedOperationException("You cannot enable both"); // TODO
+    if (server.config().isRunMigration() && config.isPluginRun()) {
+      throw new UnsupportedOperationException("You cannot enable both 'migration.run'  and 'migration.plugin.run'");
     }
   }
 
   @Override
   public void online(boolean online) {
-    if (online && config.isAutoRun()) {
+    if (online && config.isPluginRun()) {
       new MigrationRunnerDb(config, server).run();
     }
   }
