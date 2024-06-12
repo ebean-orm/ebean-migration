@@ -91,4 +91,9 @@ abstract class LocalMigrationResource implements MigrationResource {
   void setInitType() {
     this.type = MigrationVersion.BOOTINIT_TYPE;
   }
+
+  /**
+   * The checksum of this resource (without parameter replacement).
+   */
+  abstract int checksum();
 }

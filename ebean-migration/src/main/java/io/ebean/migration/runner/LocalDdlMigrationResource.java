@@ -37,4 +37,8 @@ final class LocalDdlMigrationResource extends LocalMigrationResource {
     return "NPE reading DB migration content at [" + location + "] Probably missing an 'opens dbmigration;' in module-info.java";
   }
 
+  @Override
+  int checksum() {
+    return Checksum.calculate(content());
+  }
 }

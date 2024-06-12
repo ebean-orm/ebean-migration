@@ -1,6 +1,7 @@
 package io.ebean.migration;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import static java.lang.System.Logger.Level.*;
 
@@ -264,5 +265,20 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
   @Deprecated
   public String getType() {
     return type();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    MigrationVersion that = (MigrationVersion) o;
+    return Arrays.equals(ordering, that.ordering) && Objects.equals(comment, that.comment);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(comment);
+    result = 31 * result + Arrays.hashCode(ordering);
+    return result;
   }
 }
