@@ -66,7 +66,7 @@ public class MigrationConfig {
   private String platform;
   private Properties properties;
   private boolean earlyChecksumMode;
-  private boolean fastMode;
+  private boolean fastMode = true;
 
   /**
    * Return the name of the migration table.
