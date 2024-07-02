@@ -87,7 +87,9 @@ class MigrationPlatform {
         }
       }
     } finally {
-      connection.rollback();
+      if (!connection.getAutoCommit()) {
+        connection.rollback();
+      }
     }
     return rows;
   }

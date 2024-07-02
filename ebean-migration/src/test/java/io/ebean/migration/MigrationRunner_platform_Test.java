@@ -1,5 +1,7 @@
 package io.ebean.migration;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import io.ebean.ddlrunner.DdlRunner;
 import io.ebean.test.containers.*;
 import org.junit.jupiter.api.Disabled;
@@ -210,13 +212,23 @@ public class MigrationRunner_platform_Test {
 
     config.setMigrationPath("dbmig_basic");
 
-    MigrationRunner runner = new MigrationRunner(config);
-    runner.run();
+    HikariConfig hikariConfig = new HikariConfig();
+    hikariConfig.setJdbcUrl(mysqlContainer.jdbcUrl());
+    hikariConfig.setUsername("mig_test");
+    hikariConfig.setPassword("test");
 
-    try (Connection connection = mysqlContainer.createConnection()) {
-      readQuery(connection, "select * from m1");
-      readQuery(connection, "select * from m2");
-      readQuery(connection, "select * from m3");
+    try (HikariDataSource ds = new HikariDataSource(hikariConfig)) {
+      MigrationRunner runner = new MigrationRunner(config);
+      try (Connection connection1 = ds.getConnection()) {
+        // connection1.setAutoCommit(false);
+        runner.run(connection1);
+      }
+
+      try (Connection connection = mysqlContainer.createConnection()) {
+        readQuery(connection, "select * from m1");
+        readQuery(connection, "select * from m2");
+        readQuery(connection, "select * from m3");
+      }
     }
 
     mysqlContainer.stopRemove();
