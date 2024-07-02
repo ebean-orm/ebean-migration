@@ -1,5 +1,6 @@
 package io.ebean.migration;
 
+import dbmig.V1_2_1__test;
 import io.ebean.datasource.DataSourceConfig;
 import io.ebean.datasource.DataSourceFactory;
 import io.ebean.datasource.DataSourcePool;
@@ -221,6 +222,8 @@ public class MigrationRunnerTest {
     try {
       MigrationConfig config = createMigrationConfig();
       config.setMigrationPath("dbmig");
+      config.setJdbcMigrations(List.of(new V1_2_1__test()));
+
       config.setMinVersion("1.3"); // dbmig must run, if DB is empty!
       new MigrationRunner(config).run(dataSource);
 
@@ -300,7 +303,7 @@ public class MigrationRunnerTest {
       // assert migrations are in the migration table
       try (final Connection connection = dataSource.getConnection()) {
         final List<String> names = migrationNames(connection);
-        assertThat(names).contains("<init>", "hello", "initial", "add_m3", "test", "m2_view");
+        assertThat(names).containsExactly("<init>", "hello", "initial", "add_m3", "serviceLoaded", "m2_view");
       }
 
       // assert the migrations didn't actually run (create the tables etc)

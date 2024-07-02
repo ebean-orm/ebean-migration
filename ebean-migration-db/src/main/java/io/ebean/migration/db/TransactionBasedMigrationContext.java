@@ -1,5 +1,7 @@
-package io.ebean.migration.runner;
+package io.ebean.migration.db;
 
+import io.ebean.Database;
+import io.ebean.Transaction;
 import io.ebean.migration.MigrationConfig;
 import io.ebean.migration.MigrationContext;
 
@@ -11,22 +13,24 @@ import java.sql.SQLException;
  *
  * @author Roland Praml, FOCONIS AG
  */
-class DefaultMigrationContext implements MigrationContext {
-  private final Connection connection;
+class TransactionBasedMigrationContext implements MigrationContextDb {
+  private final Transaction transaction;
   private final String migrationPath;
   private final String platform;
   private final String basePlatform;
+  private final Database database;
 
-  DefaultMigrationContext(MigrationConfig config, Connection connection) {
-    this.connection = connection;
+  TransactionBasedMigrationContext(MigrationConfig config, Transaction transaction, Database database) {
+    this.transaction = transaction;
     this.migrationPath = config.getMigrationPath();
     this.platform = config.getPlatform();
     this.basePlatform = config.getBasePlatform();
+    this.database = database;
   }
 
   @Override
   public Connection connection() {
-    return connection;
+    return transaction.connection();
   }
 
   @Override
@@ -46,6 +50,17 @@ class DefaultMigrationContext implements MigrationContext {
 
   @Override
   public void commit() throws SQLException {
-    connection.commit();
+    // we must not use txn.commit here, as this closes the underlying connection, which is needed for logicalLock etc.
+    transaction.commitAndContinue();
+  }
+
+  @Override
+  public Transaction transaction() {
+    return transaction;
+  }
+
+  @Override
+  public Database database() {
+    return database;
   }
 }
