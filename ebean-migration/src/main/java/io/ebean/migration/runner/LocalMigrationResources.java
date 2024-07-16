@@ -90,8 +90,16 @@ final class LocalMigrationResources {
             final var location = pair[1].trim();
             final var substring = location.substring(0, location.length() - 4);
             final var version = MigrationVersion.parse(substring);
-            final var url = resource(base + location);
-            versions.add(new LocalUriMigrationResource(version, location, url, checksum));
+            if (location.endsWith(".class")) {
+              String className = base.replace('/', '.').substring(1)
+                + location.substring(0, location.length() - 6);
+              JdbcMigration instance = migrationConfig.getJdbcMigrationFactory().createInstance(className);
+              assert instance.getChecksum() == checksum;
+              versions.add(new LocalJdbcMigrationResource(version, location, instance));
+            } else {
+              final var url = resource(base + location);
+              versions.add(new LocalUriMigrationResource(version, location, url, checksum));
+            }
           }
         }
       }
