@@ -10,7 +10,8 @@
 
   <groupId>io.ebean</groupId>
   <artifactId>ebean-migration</artifactId>
-  <version>14.2.1-SNAPSHOT</version>
+  <name>ebean-migration</name>
+  <version>14.3.0</version>
 
   <scm>
     <developerConnection>scm:git:git@github.com:ebean-orm/ebean-migration.git</developerConnection>
