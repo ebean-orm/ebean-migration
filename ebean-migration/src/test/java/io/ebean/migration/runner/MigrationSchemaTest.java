@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 
-public class MigrationSchemaTest {
+class MigrationSchemaTest {
 
   @Test
   void testCreateAndSetIfNeeded() throws Exception {
@@ -14,13 +14,12 @@ public class MigrationSchemaTest {
     config.setDbSchema("SOME_NEW_SCHEMA");
     config.setCreateSchemaIfNotExists(true);
 
-    Connection connection = config.createConnection();
-
-    MigrationSchema.createIfNeeded(config, connection);
+    try (Connection connection = config.createConnection()) {
+      MigrationSchema.createIfNeeded(config, connection);
+    }
   }
 
   private MigrationConfig createMigrationConfig() {
-
     MigrationConfig config = new MigrationConfig();
     config.setDbUsername("sa");
     config.setDbPassword("");
