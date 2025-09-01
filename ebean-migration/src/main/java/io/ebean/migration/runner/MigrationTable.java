@@ -141,7 +141,9 @@ final class MigrationTable {
    */
   void createIfNeededAndLock() throws SQLException, IOException {
     SQLException suppressedException = null;
-    if (!tableKnownToExist) {
+    if (tableKnownToExist) {
+      MigrationSchema.setIfNeeded(config, context.connection());
+    } else {
       MigrationSchema.createIfNeeded(config, context.connection());
       if (!tableExists()) {
         try {

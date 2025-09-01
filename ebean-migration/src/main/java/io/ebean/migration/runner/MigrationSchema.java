@@ -37,6 +37,16 @@ final class MigrationSchema {
     new MigrationSchema(config, connection).createAndSetIfNeeded();
   }
 
+  static void setIfNeeded(MigrationConfig config, Connection connection) throws SQLException {
+    new MigrationSchema(config, connection).setSchemaIfNeeded();
+  }
+
+  private void setSchemaIfNeeded() throws SQLException {
+    if (dbSchema != null && setCurrentSchema) {
+       setSchema();
+    }
+  }
+
   private String trim(String dbSchema) {
     return (dbSchema == null) ? null : dbSchema.trim();
   }
