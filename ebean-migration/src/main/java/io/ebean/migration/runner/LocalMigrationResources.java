@@ -4,14 +4,17 @@ import io.avaje.classpath.scanner.Resource;
 import io.avaje.classpath.scanner.core.Scanner;
 import io.ebean.migration.JdbcMigration;
 import io.ebean.migration.MigrationConfig;
+import io.ebean.migration.MigrationContext;
 import io.ebean.migration.MigrationVersion;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static java.lang.System.Logger.Level.DEBUG;
 
@@ -25,7 +28,7 @@ final class LocalMigrationResources {
   private final List<LocalMigrationResource> versions = new ArrayList<>();
   private final MigrationConfig migrationConfig;
   private final ClassLoader classLoader;
-  private final boolean searchForJdbcMigrations;
+  private final Iterable<JdbcMigration> jdbcMigrations;
 
   /**
    * Construct with configuration options.
@@ -33,53 +36,78 @@ final class LocalMigrationResources {
   LocalMigrationResources(MigrationConfig migrationConfig) {
     this.migrationConfig = migrationConfig;
     this.classLoader = migrationConfig.getClassLoader();
-    this.searchForJdbcMigrations = migrationConfig.getJdbcMigrationFactory() != null;
+    this.jdbcMigrations = migrationConfig.getJdbcMigrations();
   }
 
   /**
    * Read the init migration resources (usually only 1) returning true if there are versions.
    */
   boolean readInitResources() {
-    return readResourcesForPath(migrationConfig.getMigrationInitPath());
+    readResourcesForPath(migrationConfig.getMigrationInitPath());
+    Collections.sort(versions);
+    return !versions.isEmpty();
   }
 
   /**
-   * Read all the migration resources (SQL scripts) returning true if there are versions.
+   * Read all the migration resources (SQL scripts and JDBC migrations) returning true if there are versions.
    */
-  boolean readResources() {
+  boolean readResources(MigrationContext context) {
     if (readFromIndex()) {
       // automatically enable earlyChecksumMode when using index file with pre-computed checksums
       migrationConfig.setEarlyChecksumMode(true);
-      return true;
+    } else {
+      readResourcesForPath(migrationConfig.getMigrationPath());
     }
-    return readResourcesForPath(migrationConfig.getMigrationPath());
+    // after we read the SQL migrations from index or classpath scan, we
+    // read jdbcMigrations and sort them.
+    readJdbcMigrations(context);
+    Collections.sort(versions);
+    return !versions.isEmpty();
   }
 
+  /**
+   * Returns true, if an index file was found. Although, if file was empty, so we do not fall back
+   * to classpath scan!
+   */
   private boolean readFromIndex() {
     final var base = "/" + migrationConfig.getMigrationPath() + "/";
     final var basePlatform = migrationConfig.getBasePlatform();
     final var indexName = "idx_" + basePlatform + ".migrations";
     URL idx = resource(base + indexName);
     if (idx != null) {
-      return loadFromIndexFile(idx, base);
+      loadFromIndexFile(idx, base);
+      return true;
     }
     idx = resource(base + basePlatform + '/' + indexName);
     if (idx != null) {
-      return loadFromIndexFile(idx, base + basePlatform + '/');
+      loadFromIndexFile(idx, base + basePlatform + '/');
+      return true;
     }
     final var platform = migrationConfig.getPlatform();
     idx = resource(base + platform + indexName);
     if (idx != null) {
-      return loadFromIndexFile(idx, base + platform + '/');
+      loadFromIndexFile(idx, base + platform + '/');
+      return true;
     }
     return false;
+  }
+
+  private void readJdbcMigrations(MigrationContext context) {
+    if (jdbcMigrations != null) {
+      for (JdbcMigration jdbcMigration : jdbcMigrations) {
+        if (jdbcMigration.matches(context)) {
+          versions.add(new LocalJdbcMigrationResource(jdbcMigration.getVersion(), jdbcMigration.getName(), jdbcMigration));
+        }
+      }
+    }
   }
 
   private URL resource(String base) {
     return LocalMigrationResources.class.getResource(base);
   }
 
-  private boolean loadFromIndexFile(URL idx, String base) {
+  private void loadFromIndexFile(URL idx, String base) {
+    log.log(DEBUG, "Loading index from {0}", idx);
     try (var reader = new LineNumberReader(new InputStreamReader(idx.openStream()))) {
       String line;
       while ((line = reader.readLine()) != null) {
@@ -95,93 +123,63 @@ final class LocalMigrationResources {
           }
         }
       }
-
-      return !versions.isEmpty();
-
     } catch (IOException e) {
       throw new UncheckedIOException("Error reading idx file", e);
     }
   }
 
-  private boolean readResourcesForPath(String path) {
+  private void readResourcesForPath(String path) {
     // try to load from base platform first
     final String basePlatform = migrationConfig.getBasePlatform();
     if (basePlatform != null && loadedFrom(path, basePlatform)) {
-      return true;
+      return;
     }
     // try to load from specific platform
     final String platform = migrationConfig.getPlatform();
     if (platform != null && loadedFrom(path, platform)) {
-      return true;
+      return;
     }
-    addResources(scanForBoth(path));
-    Collections.sort(versions);
-    return !versions.isEmpty();
+    addResources(scanForMigrations(path));
   }
 
   /**
    * Return true if migrations were loaded from platform specific location.
    */
   private boolean loadedFrom(String path, String platform) {
-    addResources(scanForBoth(path + "/" + platform));
+    addResources(scanForMigrations(path + "/" + platform));
     if (versions.isEmpty()) {
       return false;
     }
     log.log(DEBUG, "platform migrations for {0}", platform);
-    if (searchForJdbcMigrations) {
-      addResources(scanForJdbcOnly(path));
-    }
-    Collections.sort(versions);
     return true;
   }
 
   /**
-   * Scan only for JDBC migrations.
+   * Scan for SQL migrations.
    */
-  private List<Resource> scanForJdbcOnly(String path) {
-    return new Scanner(classLoader).scanForResources(path, new JdbcOnly());
+  private List<Resource> scanForMigrations(String path) {
+    return new Scanner(classLoader).scanForResources(path, name -> name.endsWith(".sql"));
   }
 
   /**
-   * Scan for both SQL and JDBC migrations.
+   * adds the script migrations found from classpath scan.
    */
-  private List<Resource> scanForBoth(String path) {
-    return new Scanner(classLoader).scanForResources(path, new Match(searchForJdbcMigrations));
-  }
-
   private void addResources(List<Resource> resourceList) {
     if (!resourceList.isEmpty()) {
       log.log(DEBUG, "resources: {0}", resourceList);
     }
     for (Resource resource : resourceList) {
       String filename = resource.name();
-      if (filename.endsWith(".sql")) {
-        versions.add(createScriptMigration(resource, filename));
-      } else if (searchForJdbcMigrations && filename.endsWith(".class")) {
-        versions.add(createJdbcMigration(resource, filename));
-      }
+      assert filename.endsWith(".sql");
+      String mainName = filename.substring(0, filename.length() - 4);
+      versions.add(createScriptMigration(resource, mainName));
     }
-  }
-
-  /**
-   * Return a programmatic JDBC migration.
-   */
-  private LocalMigrationResource createJdbcMigration(Resource resource, String filename) {
-    int pos = filename.lastIndexOf(".class");
-    String mainName = filename.substring(0, pos);
-    MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
-    String className = resource.location().replace('/', '.');
-    className = className.substring(0, className.length() - 6);
-    JdbcMigration instance = migrationConfig.getJdbcMigrationFactory().createInstance(className);
-    return new LocalJdbcMigrationResource(migrationVersion, resource.location(), instance);
   }
 
   /**
    * Create a script based migration.
    */
-  private LocalMigrationResource createScriptMigration(Resource resource, String filename) {
-    int pos = filename.lastIndexOf(".sql");
-    String mainName = filename.substring(0, pos);
+  private LocalMigrationResource createScriptMigration(Resource resource, String mainName) {
     MigrationVersion migrationVersion = MigrationVersion.parse(mainName);
     return new LocalDdlMigrationResource(migrationVersion, resource.location(), resource);
   }
@@ -193,30 +191,4 @@ final class LocalMigrationResources {
     return versions;
   }
 
-  /**
-   * Filter used to find the migration scripts.
-   */
-  private static final class Match implements Predicate<String> {
-
-    private final boolean searchJdbc;
-
-    Match(boolean searchJdbc) {
-      this.searchJdbc = searchJdbc;
-    }
-
-    @Override
-    public boolean test(String name) {
-      return name.endsWith(".sql") || (searchJdbc && name.endsWith(".class") && !name.contains("$"));
-    }
-  }
-
-  /**
-   * Filter to find JDBC migrations only.
-   */
-  private static final class JdbcOnly implements Predicate<String> {
-    @Override
-    public boolean test(String name) {
-      return name.endsWith(".class") && !name.contains("$");
-    }
-  }
 }

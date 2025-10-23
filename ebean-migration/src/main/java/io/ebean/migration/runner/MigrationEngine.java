@@ -10,12 +10,23 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import static java.lang.System.Logger.Level.*;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.ERROR;
+import static java.lang.System.Logger.Level.INFO;
 import static java.lang.System.Logger.Level.WARNING;
 import static java.util.Collections.emptyList;
 
 /**
- * Actually runs the migrations.
+ * Actually runs the migrations and executes JDBC-mgirations.
+ * <p>
+ * MigrationEngine needs a context that provides information for the current database,
+ * where the migration should run. When running on an existing {@link Connection}, a
+ * {@link DefaultMigrationContext} is created, but it is also possible, to pass a
+ * MigrationContext, that holds an ebeanserver. In this case, it is possible to use
+ * features like dto-queries in JDBC-migrations.
+ * <p>
+ * In the other case, if only a raw jdbc-connection is used, you may not have access
+ * to these features and JDBC-migrations have to be done the traditional way.
  */
 public class MigrationEngine {
 
@@ -54,7 +65,7 @@ public class MigrationEngine {
 
     long startMs = System.currentTimeMillis();
     LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
-    if (!resources.readResources() && !resources.readInitResources()) {
+    if (!resources.readResources(context) && !resources.readInitResources()) {
       log.log(DEBUG, "no migrations to check");
       return emptyList();
     }
@@ -74,7 +85,7 @@ public class MigrationEngine {
     final MigrationTable table = initialiseMigrationTable(firstCheck, connection);
     try {
       List<MigrationResource> result = runMigrations(table, resources.versions());
-      connection.commit();
+      context.commit();
       if (!checkStateOnly) {
         long commitMs = System.currentTimeMillis();
         log.log(INFO, "DB migrations completed in {0}ms - executed:{1} totalMigrations:{2} mode:{3}", (commitMs - startMs), table.count(), table.size(), table.mode());

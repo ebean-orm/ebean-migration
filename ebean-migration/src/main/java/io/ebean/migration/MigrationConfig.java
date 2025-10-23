@@ -3,9 +3,13 @@ package io.ebean.migration;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 /**
@@ -32,7 +36,17 @@ public class MigrationConfig {
   private boolean setCurrentSchema = true;
   private boolean allowErrorInRepeatable;
 
-  private JdbcMigrationFactory jdbcMigrationFactory = new DefaultMigrationFactory();
+  /**
+   * Run migration automatically when ebean starts (Requires MigrationPlugin from ebean-migration-db)
+   */
+  private boolean pluginRun;
+
+  /**
+   * Holds a Collection/Iterable of JdbcMigrations. All migrations (JDBC and SQL) are
+   * extecuted in the order defined by their version numbers.
+   * By default, JdbcMigrations are loaded via ServiceLoader.
+   */
+  private Iterable<JdbcMigration> jdbcMigrations = new DefaultJdbcMigrations();
 
   /**
    * Versions that we want to insert into migration history without actually running.
@@ -416,17 +430,45 @@ public class MigrationConfig {
   }
 
   /**
-   * Return the jdbcMigrationFactory.
+   * Return the jdbcMigrations.
    */
-  public JdbcMigrationFactory getJdbcMigrationFactory() {
-    return jdbcMigrationFactory;
+  public Iterable<JdbcMigration> getJdbcMigrations() {
+    return jdbcMigrations;
   }
 
   /**
-   * Set the jdbcMigrationFactory.
+   * Set the jdbcMigrations. If not set, the ServiceLoader is used.
+   * JdbcMigrations can be either defined with the property <code>jdbcMigrations</code>
+   * to a fully qualified class name implementing <code>Iterable&lt;JdbcMigration&gt;</code> or by
+   * specifying a comma separated list of {@link JdbcMigration}s in the <code>jdbcMigrations</code> property.
+   * <p>
+   * Note: If you plan to run migrations in multi-tenant env in multiple threads, the provided factory
+   * must be thread safe!
    */
-  public void setJdbcMigrationFactory(JdbcMigrationFactory jdbcMigrationFactory) {
-    this.jdbcMigrationFactory = jdbcMigrationFactory;
+  public void setJdbcMigrations(Iterable<JdbcMigration> jdbcMigrationFactory) {
+    this.jdbcMigrations = jdbcMigrationFactory;
+  }
+
+  /**
+   * Helper method to set migrations with the <code>jdbcMigrations</code> property.
+   * You can either pass ONE MigrationCollection or a list of JdbcMigrations.
+   */
+  @SuppressWarnings("unchecked")
+  public void setJdbcMigrations(String... classNames) {
+    if (classNames.length == 1) {
+      Object candidate = newInstance(classNames[0].trim());
+      if (candidate instanceof JdbcMigration) {
+        setJdbcMigrations(List.of((JdbcMigration) candidate));
+      } else {
+        setJdbcMigrations((Iterable<JdbcMigration>) candidate);
+      }
+    } else {
+      List<JdbcMigration> migrations = new ArrayList<>(classNames.length);
+      for (String className : classNames) {
+        migrations.add(newInstance(className.trim()));
+      }
+      setJdbcMigrations(migrations);
+    }
   }
 
   /**
@@ -458,6 +500,20 @@ public class MigrationConfig {
   }
 
   /**
+   * Sets, if migration should automatically run when ebean starts.
+   */
+  public void setPluginRun(boolean pluginRun) {
+    this.pluginRun = pluginRun;
+  }
+
+  /**
+   * run migration on ebean start
+   */
+  public boolean isPluginRun() {
+    return pluginRun;
+  }
+
+  /**
    * Load configuration from standard properties.
    */
   public void load(Properties props) {
@@ -483,6 +539,12 @@ public class MigrationConfig {
     runPlaceholders = property("placeholders", runPlaceholders);
     minVersion = property("minVersion", minVersion);
     minVersionFailMessage = property("minVersionFailMessage", minVersionFailMessage);
+    pluginRun = property("plugin.run", pluginRun);
+
+    String jdbcMigrations = property("jdbcMigrations");
+    if (jdbcMigrations != null) {
+      setJdbcMigrations(jdbcMigrations.split(","));
+    }
 
     String patchInsertOn = property("patchInsertOn");
     if (patchInsertOn != null) {
@@ -495,6 +557,16 @@ public class MigrationConfig {
     String runPlaceholders = property("runPlaceholders");
     if (runPlaceholders != null) {
       setRunPlaceholders(runPlaceholders);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T> T newInstance(String className) {
+    try {
+      Class<?> cls = Class.forName(className, true, getClassLoader());
+      return (T) cls.getDeclaredConstructor().newInstance();
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error constructing " + className, e);
     }
   }
 
@@ -611,25 +683,14 @@ public class MigrationConfig {
   }
 
   /**
-   * Default factory. Uses the migration's class loader and injects the config if necessary.
-   *
-   * @author Roland Praml, FOCONIS AG
+   * Default implementation for service-loader. Note: As ServiceLoader is not thread safe,
+   * it is better to return a new iterator each time.
    */
-  public class DefaultMigrationFactory implements JdbcMigrationFactory {
+  private class DefaultJdbcMigrations implements Iterable<JdbcMigration> {
 
     @Override
-    public JdbcMigration createInstance(String className) {
-      try {
-        Class<?> clazz = Class.forName(className, true, MigrationConfig.this.getClassLoader());
-        JdbcMigration migration = (JdbcMigration) clazz.getDeclaredConstructor().newInstance();
-        if (migration instanceof ConfigurationAware) {
-          ((ConfigurationAware) migration).setMigrationConfig(MigrationConfig.this);
-        }
-        return migration;
-      } catch (Exception e) {
-        throw new IllegalArgumentException(className + " is not a valid JdbcMigration", e);
-      }
+    public Iterator<JdbcMigration> iterator() {
+      return ServiceLoader.load(JdbcMigration.class, getClassLoader()).iterator();
     }
   }
-
 }

@@ -54,6 +54,32 @@ Then create a run a MigrationRunner. When running the database connection can ei
     runner.run();
 ```
 
+
+### Run from ebean with JDBC migrations
+
+Migration supports two modes how to run automatically on ebean server start:
+
+- Run as AutoRunner (controlled by `ebean.migration.run = true`)
+- Run as Ebean plugin (controlled by `ebean.migration.plugin.run = true`)
+
+To run as plugin, you need the additional dependency to `ebean-migration-db`.
+
+In the AutoRunner mode, you only have a `MigrationContext` that provides access to the current connection.
+When the plugin is used, you have a `MigrationContextDb` in your JDBC migrations and you can access the current transaction
+and the ebean server. This is useful to make queries with the ebean server:
+```java
+    public void migrate(MigrationContext context) throws SQLException {
+      Database db = ((MigrationContextDb) context).database();
+      db.findDto(...)
+    }
+```
+
+
+**Important**:
+- do not use `DB.getDefault()` at this stage
+- do not create new transactions (or committing existing one)
+- be aware that the DB layout may not match to your entities (use `db.findDto` instead of `db.find`)
+
 ## Notes:
 MigrationConfig migrationPath is the root path (classpath or filesystem) where the migration scripts are searched for.
 
