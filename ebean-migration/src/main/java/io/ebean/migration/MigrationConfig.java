@@ -21,6 +21,7 @@ public class MigrationConfig {
 
   private boolean skipMigrationRun;
   private boolean skipChecksum;
+  private boolean rebaseMigrationHistory;
   private ClassLoader classLoader;
 
   private String dbUsername;
@@ -181,6 +182,26 @@ public class MigrationConfig {
    */
   public void setSkipMigrationRun(boolean skipMigrationRun) {
     this.skipMigrationRun = skipMigrationRun;
+  }
+
+  /**
+   * Return true if the migration history will be replaced with the migrations currently defined.
+   * <p>
+   * This does not execute migration scripts. It is intended for a one-time migration-history
+   * rebase after the existing migrations have been compacted.
+   */
+  public boolean isRebaseMigrationHistory() {
+    return rebaseMigrationHistory;
+  }
+
+  /**
+   * Set true to replace the migration history with checksum entries for the migrations currently defined.
+   * <p>
+   * This does not execute migration scripts. Remove this setting after the one-time rebase so that
+   * subsequent migrations execute normally.
+   */
+  public void setRebaseMigrationHistory(boolean rebaseMigrationHistory) {
+    this.rebaseMigrationHistory = rebaseMigrationHistory;
   }
 
   /**
@@ -472,6 +493,7 @@ public class MigrationConfig {
     fastMode = property("fastMode", fastMode);
     skipMigrationRun = property("skipMigrationRun", skipMigrationRun);
     skipChecksum = property("skipChecksum", skipChecksum);
+    rebaseMigrationHistory = property("rebaseMigrationHistory", rebaseMigrationHistory);
     earlyChecksumMode = property("earlyChecksumMode", earlyChecksumMode);
     createSchemaIfNotExists = property("createSchemaIfNotExists", createSchemaIfNotExists);
     setCurrentSchema = property("setCurrentSchema", setCurrentSchema);

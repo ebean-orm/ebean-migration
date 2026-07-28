@@ -134,7 +134,7 @@ public class MigrationTableAsyncTest {
   @Test
   public void testSqlServer() throws Exception {
     // init sqlserver docker container
-    SqlServerContainer container = SqlServerContainer.builder("2017-GA-ubuntu")
+    SqlServerContainer container = SqlServerContainer.builder("2019-latest")
       .port(9435)
       .containerName("mig_async_sqlserver")
       .dbName("test_ebean")
@@ -147,7 +147,7 @@ public class MigrationTableAsyncTest {
     config.setMigrationPath("dbmig_sqlserver");
     config.setDbUsername("test_ebean");
     config.setDbPassword("SqlS3rv#r");
-    config.setDbUrl("jdbc:sqlserver://localhost:9435;databaseName=test_ebean;sendTimeAsDateTime=false");
+    config.setDbUrl(container.jdbcUrl() + ";sendTimeAsDateTime=false");
     runTest(true);
     runTest(false);
   }

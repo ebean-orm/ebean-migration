@@ -54,7 +54,12 @@ public class MigrationEngine {
 
     long startMs = System.currentTimeMillis();
     LocalMigrationResources resources = new LocalMigrationResources(migrationConfig);
-    if (!resources.readResources() && !resources.readInitResources()) {
+    boolean rebaseHistory = migrationConfig.isRebaseMigrationHistory();
+    boolean hasMigrations = resources.readResources();
+    if (rebaseHistory && !hasMigrations) {
+      throw new MigrationException("Cannot rebase migration history without defined migrations");
+    }
+    if (!hasMigrations && !resources.readInitResources()) {
       log.log(DEBUG, "no migrations to check");
       return emptyList();
     }
@@ -63,7 +68,7 @@ public class MigrationEngine {
     long splitMs = System.currentTimeMillis() - startMs;
     final var platform = derivePlatform(migrationConfig, connection);
     final var firstCheck = new FirstCheck(migrationConfig, context, platform);
-    if (fastMode && firstCheck.fastModeCheck(resources.versions())) {
+    if (!rebaseHistory && fastMode && firstCheck.fastModeCheck(resources.versions())) {
       long checkMs = System.currentTimeMillis() - startMs;
       log.log(INFO, "DB migrations completed in {0}ms - totalMigrations:{1} readResources:{2}ms", checkMs, firstCheck.count(), splitMs);
       return emptyList();
@@ -73,7 +78,9 @@ public class MigrationEngine {
 
     final MigrationTable table = initialiseMigrationTable(firstCheck, connection);
     try {
-      List<MigrationResource> result = runMigrations(table, resources.versions());
+      List<MigrationResource> result = rebaseHistory
+        ? table.rebaseMigrationHistory(resources.versions())
+        : runMigrations(table, resources.versions());
       connection.commit();
       if (!checkStateOnly) {
         long commitMs = System.currentTimeMillis();
