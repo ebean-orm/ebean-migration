@@ -134,7 +134,7 @@ public class MigrationTableAsyncTest {
   @Test
   public void testSqlServer() throws Exception {
     // init sqlserver docker container
-    SqlServerContainer container = SqlServerContainer.builder("2017-GA-ubuntu")
+    SqlServerContainer container = SqlServerContainer.builder("2019-latest")
       .port(9435)
       .containerName("mig_async_sqlserver")
       .dbName("test_ebean")
