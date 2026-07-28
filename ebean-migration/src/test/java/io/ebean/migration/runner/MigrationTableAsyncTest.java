@@ -147,7 +147,7 @@ public class MigrationTableAsyncTest {
     config.setMigrationPath("dbmig_sqlserver");
     config.setDbUsername("test_ebean");
     config.setDbPassword("SqlS3rv#r");
-    config.setDbUrl("jdbc:sqlserver://localhost:9435;databaseName=test_ebean;sendTimeAsDateTime=false");
+    config.setDbUrl(container.jdbcUrl() + ";sendTimeAsDateTime=false");
     runTest(true);
     runTest(false);
   }
