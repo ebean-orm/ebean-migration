@@ -76,3 +76,13 @@ dbmigration/R__create_views_repeatable.sql
 
 "Version migrations" start with `V` (or not) and have a version number (1.2 etc) followed by double underscore `__` and then a comment.
 
+## Rebasing migration history
+
+Set `ebean.migration.rebaseMigrationHistory=true` for a one-time rebase after compacting
+existing migrations. The runner keeps its internal bootstrap row, deletes all other migration
+history, and records every migration currently found under `migrationPath` with its normal
+checksum without executing any migration SQL.
+
+This is destructive and must only be used when the existing database schema is known to match
+the replacement migrations. `dbinit` resources are not included. Remove the setting after the
+rebase; otherwise future migrations will be recorded without being executed.

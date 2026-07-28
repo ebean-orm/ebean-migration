@@ -534,6 +534,49 @@ final class MigrationTable {
     return checkMigrations;
   }
 
+  /**
+   * Replace the existing migration history with the currently defined migrations without executing them.
+   */
+  List<MigrationResource> rebaseMigrationHistory(List<LocalMigrationResource> localVersions) throws SQLException {
+    if (checkStateOnly) {
+      checkMigrations.addAll(localVersions);
+      return checkMigrations;
+    }
+
+    clearMigrationHistory();
+    for (LocalMigrationResource localVersion : localVersions) {
+      insertIntoHistory(localVersion, rebaseChecksum(localVersion), 0);
+    }
+    return checkMigrations;
+  }
+
+  private int rebaseChecksum(LocalMigrationResource local) {
+    if (local instanceof LocalUriMigrationResource) {
+      // index file migration with precomputed checksum
+      return ((LocalUriMigrationResource)local).checksum();
+    }
+    if (local instanceof LocalDdlMigrationResource) {
+      final var content = local.content();
+      final var script = convertScript(content);
+      // normal migration checksums without executing the script.
+      return Checksum.calculate(earlyChecksumMode ? content : script);
+    }
+    return ((LocalJdbcMigrationResource)local).checksum();
+  }
+
+  private void clearMigrationHistory() throws SQLException {
+    final var deleteSql = "delete from " + sqlTable + " where mversion <> ?";
+    try (var statement = context.connection().prepareStatement(deleteSql)) {
+      statement.setString(1, INIT_VER_0);
+      statement.executeUpdate();
+    }
+    migrations.clear();
+    currentVersion = null;
+    lastMigration = null;
+    priorVersion = null;
+    dbInitVersion = null;
+  }
+
   private void checkMinVersion() {
     if (minVersion != null && currentVersion != null && currentVersion.compareTo(minVersion) < 0) {
       StringBuilder sb = new StringBuilder();

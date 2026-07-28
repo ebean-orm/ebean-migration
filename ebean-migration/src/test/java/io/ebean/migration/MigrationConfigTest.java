@@ -27,6 +27,7 @@ public class MigrationConfigTest {
     assertTrue(config.isSetCurrentSchema());
     assertFalse(config.isSkipChecksum());
     assertFalse(config.isSkipMigrationRun());
+    assertFalse(config.isRebaseMigrationHistory());
     assertEquals(config.getMetaTable(), "db_migration");
     assertNull(config.getRunPlaceholders());
     assertEquals(config.getMigrationPath(), "dbmigration");
@@ -45,6 +46,7 @@ public class MigrationConfigTest {
     props.setProperty("ebean.migration.setCurrentSchema","false");
     props.setProperty("ebean.migration.skipMigrationRun","true");
     props.setProperty("ebean.migration.skipChecksum","true");
+    props.setProperty("ebean.migration.rebaseMigrationHistory","true");
     props.setProperty("ebean.migration.driver","driver");
     props.setProperty("ebean.migration.url","url");
     props.setProperty("ebean.migration.metaTable","metaTable");
@@ -66,6 +68,7 @@ public class MigrationConfigTest {
     props.setProperty("dbmigration.setCurrentSchema","false");
     props.setProperty("dbmigration.skipMigrationRun","true");
     props.setProperty("dbmigration.skipChecksum","true");
+    props.setProperty("dbmigration.rebaseMigrationHistory","true");
     props.setProperty("dbmigration.driver","driver");
     props.setProperty("dbmigration.url","url");
     props.setProperty("dbmigration.metaTable","metaTable");
@@ -88,6 +91,7 @@ public class MigrationConfigTest {
     assertFalse(config.isSetCurrentSchema());
     assertTrue(config.isSkipChecksum());
     assertTrue(config.isSkipMigrationRun());
+    assertTrue(config.isRebaseMigrationHistory());
     assertEquals(config.getMetaTable(), "metaTable");
     assertEquals(config.getRunPlaceholders(), "placeholders");
     assertEquals(config.getMigrationPath(), "migrationPath");
@@ -100,6 +104,7 @@ public class MigrationConfigTest {
     Properties props = new Properties();
     props.setProperty("ebean.mydb.migration.username","username");
     props.setProperty("ebean.mydb.migration.migrationPath","migrationPath");
+    props.setProperty("ebean.mydb.migration.rebaseMigrationHistory","true");
     props.setProperty("ebean.migration.password","password");
     props.setProperty("ebean.migration.schema","fooSchema");
     props.setProperty("dbmigration.url","url");
@@ -113,6 +118,7 @@ public class MigrationConfigTest {
     assertEquals(config.getDbUsername(), "username");
     assertEquals(config.getDbPassword(), "password");
     assertEquals(config.getDbSchema(), "fooSchema");
+    assertTrue(config.isRebaseMigrationHistory());
 
     assertEquals(config.getDbUrl(), "url");
     assertEquals(config.getMetaTable(), "metaTable");

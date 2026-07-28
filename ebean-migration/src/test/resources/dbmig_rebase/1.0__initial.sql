@@ -1,0 +1,1 @@
+drop table m3;

@@ -315,6 +315,106 @@ public class MigrationRunnerTest {
     }
   }
 
+  @Test
+  void run_rebaseMigrationHistory() throws SQLException {
+
+    var dataSource = DataSourcePool.builder()
+      .name("rebaseMigrationHistory")
+      .url("jdbc:h2:mem:rebaseMigrationHistory")
+      .username("sa")
+      .password("")
+      .build();
+    try {
+      MigrationConfig config = createMigrationConfig();
+      config.setMigrationPath("dbmig");
+      MigrationRunner runner = new MigrationRunner(config);
+      runner.run(dataSource);
+
+      config.setMigrationPath("dbmig_rebase");
+      config.setRebaseMigrationHistory(true);
+      // checkState with the rebase
+      assertThat(runner.checkState(dataSource)).hasSize(1);
+      try (Connection connection = dataSource.getConnection()) {
+        assertThat(migrationVersions(connection)).containsExactly("0", "hello", "1.1", "1.2", "1.2.1", "m2_view");
+      }
+
+      // perform the rebase, expect only 0 and 1.0 migrations
+      runner.run(dataSource);
+      try (Connection connection = dataSource.getConnection()) {
+        assertThat(migrationVersions(connection)).containsExactly("0", "1.0");
+        assertThat(singleQueryResult(connection, "select count(*) from m3")).containsExactly("1");
+      }
+
+      config.setRebaseMigrationHistory(false);
+      assertThat(runner.checkState(dataSource)).isEmpty();
+    } finally {
+      dataSource.shutdown();
+    }
+  }
+
+  @Test
+  public void run_rebaseMigrationHistory_bypassesFastMode() throws SQLException {
+
+    var dataSource = DataSourcePool.builder()
+      .name("rebaseMigrationHistoryFastMode")
+      .url("jdbc:h2:mem:rebaseMigrationHistoryFastMode")
+      .username("sa")
+      .password("")
+      .build();
+    try {
+      MigrationConfig config = createMigrationConfig();
+      config.setMigrationPath("dbmig");
+      MigrationRunner runner = new MigrationRunner(config);
+      runner.run(dataSource);
+
+      try (Connection connection = dataSource.getConnection();
+           PreparedStatement statement = connection.prepareStatement("update db_migration set mcomment = 'stale' where mversion = '1.1'")) {
+        statement.executeUpdate();
+        connection.commit();
+      }
+
+      config.setRebaseMigrationHistory(true);
+      runner.run(dataSource);
+
+      try (Connection connection = dataSource.getConnection()) {
+        assertThat(singleQueryResult(connection, "select mcomment from db_migration where mversion = '1.1'"))
+          .containsExactly("initial");
+        assertThat(migrationVersions(connection)).containsExactly("0", "hello", "1.1", "1.2", "1.2.1", "m2_view");
+      }
+    } finally {
+      dataSource.shutdown();
+    }
+  }
+
+  @Test
+  public void run_rebaseMigrationHistory_withoutMigrationsFails() throws SQLException {
+
+    var dataSource = DataSourcePool.builder()
+      .name("rebaseMigrationHistoryNoMigrations")
+      .url("jdbc:h2:mem:rebaseMigrationHistoryNoMigrations")
+      .username("sa")
+      .password("")
+      .build();
+    try {
+      MigrationConfig config = createMigrationConfig();
+      config.setMigrationPath("dbmig");
+      MigrationRunner runner = new MigrationRunner(config);
+      runner.run(dataSource);
+
+      config.setMigrationPath("missing-rebase-migrations");
+      config.setRebaseMigrationHistory(true);
+      assertThatThrownBy(() -> runner.run(dataSource))
+        .isInstanceOf(MigrationException.class)
+        .hasMessage("Cannot rebase migration history without defined migrations");
+
+      try (Connection connection = dataSource.getConnection()) {
+        assertThat(migrationNames(connection)).contains("<init>", "hello", "initial", "add_m3", "test", "m2_view");
+      }
+    } finally {
+      dataSource.shutdown();
+    }
+  }
+
 
   /**
    * Run this integration test manually against CockroachDB.
@@ -335,6 +435,10 @@ public class MigrationRunnerTest {
 
   private List<String> migrationNames(Connection connection) throws SQLException {
     return singleQueryResult(connection, "select mcomment from db_migration");
+  }
+
+  private List<String> migrationVersions(Connection connection) throws SQLException {
+    return singleQueryResult(connection, "select mversion from db_migration order by id");
   }
 
   private List<String> singleQueryResult(Connection connection, String sql) throws SQLException {
